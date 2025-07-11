@@ -1,15 +1,16 @@
 "use client";
-import Image from "next/image";
-import Link from "next/link";
+
 import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import { signOut } from "@/server/api/auth";
+import { useError } from "@/context/ErrorContext";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
+  const setError = useError().setError;
   const router = useRouter();
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
@@ -23,22 +24,11 @@ export default function UserDropdown() {
 
   const handleSignOut = async () => {
     try {
-      const user = Cookies.get("user");
-      const token = Cookies.get("auth_token");
-      if (user && token) {
-        const userId = JSON.parse(user).id;
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_API_URL}/logout`,
-          { id: userId },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
-    } catch (error) {
-      // Puedes manejar el error si lo deseas
-    } finally {
-      Cookies.remove("auth_token");
-      Cookies.remove("user");
-      router.push("/signin");
+      await signOut();
+      router.push("/signin"); // Redirigir solo si no hay error
+    } catch (err) {
+      setError(err.data?.message || err.message || "Error al iniciar sesión");
+      console.error("Error during sign out:", err);
     }
   };
 
@@ -46,7 +36,7 @@ export default function UserDropdown() {
   const userData = user ? JSON.parse(user) : null;
 
   return (
-    <div className="relative">
+    <div className="relative ml-auto">
       <button
         onClick={toggleDropdown}
         className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"

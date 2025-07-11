@@ -8,34 +8,37 @@ import Link from "next/link";
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Cookies from "js-cookie";
-import axios from "axios";
+import { signIn } from "@/server/api/auth";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [isChecked, setIsChecked] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [validationErrors, setValidationErrors] = useState<Record<string, string[]>>({});
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setValidationErrors({});
+
     try {
-      const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/login`,
-        { email, password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      const data = res.data;
-      // Guardar token y datos de usuario en cookies
+      const data = await signIn(email, password);
       Cookies.set("auth_token", data.token, { path: "/" });
       Cookies.set("user", JSON.stringify(data.user), { path: "/" });
       const redirect = searchParams.get("redirect");
       router.push(redirect || "/");
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Error al iniciar sesión");
+
+      if (err.data.errors) {
+        Object.entries(err.data.errors).forEach(([field, messages]) => {
+          setValidationErrors(prev => ({ ...prev, [field]: messages }));
+        });
+      } else {
+        setError(err.data?.message || err.message || "Error al iniciar sesión");
+      }
     }
   };
 
@@ -64,6 +67,11 @@ export default function SignInForm() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                   />
+                  {validationErrors.email && (
+                    <div className="text-error-500 text-sm">
+                      {validationErrors.email.join(", ")}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <Label>
@@ -87,10 +95,13 @@ export default function SignInForm() {
                       )}
                     </span>
                   </div>
+                  {validationErrors.password && (
+                    <div className="text-error-500 text-sm">
+                      {validationErrors.password.join(", ")}
+                    </div>
+                  )}
                 </div>
-                {error && (
-                  <div className="text-error-500 text-sm">{error}</div>
-                )}
+                {error && <div className="text-error-500 text-sm">{error}</div>}
                 <div>
                   <Button className="w-full" size="sm" type="submit">
                     Sign in
