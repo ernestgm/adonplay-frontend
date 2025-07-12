@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/user',
+    '/users',
     '/business',
     '/slides',
     '/marquees',

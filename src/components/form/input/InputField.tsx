@@ -66,7 +66,7 @@ const Input: FC<InputProps> = ({
       {/* Optional Hint Text */}
       {hint && (
         <p
-          className={`mt-1.5 text-xs ${
+          className={`absolute mt-1.5 text-xs ${
             error
               ? "text-error-500"
               : success

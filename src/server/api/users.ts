@@ -20,3 +20,24 @@ export const fetchUsers = async () => {
     };
   }
 };
+
+export const createUser = async (user) => {
+  try {
+    const token = Cookies.get("auth_token");
+    const response = await axios.post(
+      `${process.env.NEXT_PUBLIC_API_URL}/users`,
+      user,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw {
+      status: error.response?.status || 500,
+      data: error.response?.data || "Error al crear usuario.",
+    };
+  }
+};
