@@ -24,4 +24,4 @@ const apiRequest = async (method: string, url: string, data: any = null, headers
 export const apiGet = (url: string, headers = {}, isPublic = false) => apiRequest("get", url, null, headers, isPublic);
 export const apiPost = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("post", url, data, headers, isPublic);
 export const apiPut = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("put", url, data, headers, isPublic);
-export const apiDelete = (url: string, headers = {}, isPublic = false) => apiRequest("delete", url, null, headers, isPublic);
+export const apiDelete = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("delete", url, data, headers, isPublic);

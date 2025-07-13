@@ -5,6 +5,7 @@ import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React from "react";
+import {MessageProvider} from "@/context/MessageContext";
 
 export default function AdminLayout({
   children,
@@ -32,7 +33,11 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
+            <MessageProvider>
+                {children}
+            </MessageProvider>
+        </div>
       </div>
     </div>
   );

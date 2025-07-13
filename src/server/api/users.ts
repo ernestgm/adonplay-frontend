@@ -1,6 +1,4 @@
-import axios from "axios";
-import Cookies from "js-cookie";
-import {apiGet, apiPost, apiPut} from "@/server/api/apiClient";
+import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getUser = async (id) => {
   try {
@@ -43,4 +41,15 @@ export const updateUser = async (id, user) => {
       data: error.response?.data || "Error al actualizar usuario.",
     };
   }
+};
+
+export const deleteUsersAPI = async (userIds: number[]) => {
+    try {
+      return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/users`, {'ids': userIds});
+    } catch (error) {
+      throw {
+        status: error.response?.status || 500,
+        data: error.response?.data || "Error al eliminar usuarios.",
+      };
+    }
 };

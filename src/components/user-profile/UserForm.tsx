@@ -43,7 +43,13 @@ const UserForm = ({user}) => {
         setValidationErrors({});
         try {
             if (user) {
-                await updateUser(user.id, form);
+                const updatedForm = { ...form };
+                // Solo incluir la contraseña si los campos no están vacíos
+                if (!updatedForm.password || !updatedForm.password_confirmation) {
+                    delete updatedForm.password;
+                    delete updatedForm.password_confirmation;
+                }
+                await updateUser(user.id, updatedForm);
             } else {
                 await createUser(form);
             }
