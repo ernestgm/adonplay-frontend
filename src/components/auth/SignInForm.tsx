@@ -11,6 +11,7 @@ import Cookies from "js-cookie";
 import { signIn } from "@/server/api/auth";
 
 export default function SignInForm() {
+  const [loading, setLoading] = React.useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,6 +24,7 @@ export default function SignInForm() {
     e.preventDefault();
     setError("");
     setValidationErrors({});
+    setLoading(true);
 
     try {
       const data = await signIn(email, password);
@@ -31,7 +33,6 @@ export default function SignInForm() {
       const redirect = searchParams.get("redirect");
       router.push(redirect || "/");
     } catch (err: any) {
-
       if (err.data.errors) {
         Object.entries(err.data.errors).forEach(([field, messages]) => {
           setValidationErrors(prev => ({ ...prev, [field]: messages }));
@@ -39,6 +40,8 @@ export default function SignInForm() {
       } else {
         setError(err.data?.message || err.message || "Error al iniciar sesión");
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,7 +106,7 @@ export default function SignInForm() {
                 </div>
                 {error && <div className="text-error-500 text-sm">{error}</div>}
                 <div>
-                  <Button className="w-full" size="sm" type="submit">
+                  <Button className="w-full" size="sm" type="submit" loading={loading}>
                     Sign in
                   </Button>
                 </div>

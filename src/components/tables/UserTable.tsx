@@ -20,9 +20,11 @@ import Input from "@/components/form/input/InputField";
 import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
+import { useRouter } from "next/navigation";
 
 
 const UserTable = () => {
+    const router = useRouter();
     const [users, setUsers] = useState([]);
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -76,6 +78,10 @@ const UserTable = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    const handleEdit = (userId) => {
+        router.push(`/users/edit/${userId}`);
+    };
 
     return (
         <div>
@@ -197,7 +203,7 @@ const UserTable = () => {
                                         <div className="flex gap-2 justify-end">
                                             <Tooltip content="Editar">
                                                 <Button
-                                                    onClick={() => console.log("Edit users", user.id)}
+                                                    onClick={() => handleEdit(user.id)}
                                                     variant="primary"
                                                     size="sm"
                                                     className="p-1"

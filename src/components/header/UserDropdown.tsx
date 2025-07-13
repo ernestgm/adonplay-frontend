@@ -27,7 +27,7 @@ export default function UserDropdown() {
       await signOut();
       router.push("/signin"); // Redirigir solo si no hay error
     } catch (err) {
-      setError(err.data?.message || err.message || "Error al iniciar sesión");
+      setError(err.data?.message || err.message || "Error during sign out");
       console.error("Error during sign out:", err);
     }
   };

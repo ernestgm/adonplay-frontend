@@ -4,7 +4,7 @@ import UserForm from "@/components/user-profile/UserForm";
 const CreateUserPage = () => {
   return (
     <div className="py-8">
-      <UserForm />
+      <UserForm user={id} />
     </div>
   );
 };

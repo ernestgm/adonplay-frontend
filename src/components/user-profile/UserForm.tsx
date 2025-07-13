@@ -5,15 +5,14 @@ import {useRouter} from "next/navigation";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
-import { createUser } from "@/server/api/users";
+import {createUser, updateUser} from "@/server/api/users";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Label from "@/components/form/Label";
 import {ChevronDownIcon, EnvelopeIcon, EyeCloseIcon, EyeIcon} from "@/icons";
-import PhoneInput from "@/components/form/group-input/PhoneInput";
 import {MdPhone} from "react-icons/md";
 
-const UserForm = ({user, onSubmit}) => {
+const UserForm = ({user}) => {
     const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
@@ -23,7 +22,7 @@ const UserForm = ({user, onSubmit}) => {
         password: "",
         password_confirmation: "",
         enabled: user?.enabled || 1,
-        role: user?.roleId || "",
+        role: user?.roles[0].id || "",
         // Agrega más campos según tu modelo
     });
     const [loading, setLoading] = React.useState(false);
@@ -43,7 +42,11 @@ const UserForm = ({user, onSubmit}) => {
         setLoading(true);
         setValidationErrors({});
         try {
-            await createUser(form);
+            if (user) {
+                await updateUser(user.id, form);
+            } else {
+                await createUser(form);
+            }
             router.push("/users");
         } catch (error) {
             console.log(error);
@@ -67,7 +70,7 @@ const UserForm = ({user, onSubmit}) => {
                 <Label>Name *</Label>
                 <Input
                     name="name"
-                    value={form.name}
+                    defaultValue={form.name}
                     onChange={handleChange}
                     required
                     error={validationErrors.name}
@@ -80,7 +83,7 @@ const UserForm = ({user, onSubmit}) => {
                     <Input
                         name="email"
                         type="email"
-                        value={form.email}
+                        defaultValue={form.email}
                         onChange={handleChange}
                         required
                         error={validationErrors.email}
@@ -98,7 +101,7 @@ const UserForm = ({user, onSubmit}) => {
                     <Input
                         name="phone"
                         type="text"
-                        value={form.phone}
+                        defaultValue={form.phone}
                         onChange={handleChange}
                         error={validationErrors.phone}
                         hint={validationErrors.phone}
@@ -115,7 +118,7 @@ const UserForm = ({user, onSubmit}) => {
                     <Input
                         type={showPassword ? "text" : "password"}
                         name="password"
-                        value={form.password || ''}
+                        defaultValue={form.password || ''}
                         onChange={handleChange}
                         required={!user} // Solo requerido al crear
                         error={validationErrors.password}
@@ -139,7 +142,7 @@ const UserForm = ({user, onSubmit}) => {
                 <Input
                     type={showPassword ? "text" : "password"}
                     name="password_confirmation"
-                    value={form.password_confirmation || ''}
+                    defaultValue={form.password_confirmation || ''}
                     onChange={handleChange}
                     required={!user} // Solo requerido al crear
                     error={validationErrors.password_confirmation}

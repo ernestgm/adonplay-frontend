@@ -1,18 +1,20 @@
 import axios from "axios";
 import Cookies from "js-cookie";
+import {apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
+export const getUser = async (id) => {
+  try {
+    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/user/${id}`);
+  } catch (error) {
+    throw {
+      status: error.response?.status || 500,
+      data: error.response?.data || "Failed to sign out.",
+    };
+  }
+};
 export const fetchUsers = async () => {
   try {
-    const token = Cookies.get("auth_token");
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_API_URL}/users`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
+    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/users`);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -23,21 +25,22 @@ export const fetchUsers = async () => {
 
 export const createUser = async (user) => {
   try {
-    const token = Cookies.get("auth_token");
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/users`,
-      user,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.data;
+    return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/users`, user);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Error al crear usuario.",
+    };
+  }
+};
+
+export const updateUser = async (id, user) => {
+  try {
+    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/user/${id}`, user);
+  } catch (error) {
+    throw {
+      status: error.response?.status || 500,
+      data: error.response?.data || "Error al actualizar usuario.",
     };
   }
 };

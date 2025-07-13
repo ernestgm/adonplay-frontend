@@ -1,13 +1,9 @@
-import axios from "axios";
 import Cookies from "js-cookie";
+import {apiPost} from "@/server/api/apiClient";
 
 export const signIn = async (email: string, password: string) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_API_URL}/login`,
-      { email, password }
-    );
-    return response.data;
+    return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/login`, {email, password}, {}, true);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -21,13 +17,11 @@ export const signOut = async () => {
 
   try {
     const user = Cookies.get("user");
-    const token = Cookies.get("auth_token");
-    if (user && token) {
+    if (user) {
       const userId = JSON.parse(user).id;
-      await axios.post(
+      await apiPost(
         `${process.env.NEXT_PUBLIC_API_URL}/logout`,
-        { id: userId },
-        { headers: { Authorization: `Bearer ${token}` } }
+        { id: userId }
       );
     }
   } catch (error) {
