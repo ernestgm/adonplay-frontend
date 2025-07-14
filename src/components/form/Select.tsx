@@ -11,6 +11,7 @@ interface SelectProps {
   onChange: (value: string) => void;
   className?: string;
   defaultValue?: string;
+  disabled?: boolean;
   success?: boolean;
   error?: boolean;
   hint?: string; // Optional hint text
@@ -23,6 +24,7 @@ const Select: React.FC<SelectProps> = ({
   className = "",
   defaultValue = "",
    success = false,
+                                         disabled = false,
    error = false,
    hint,
 }) => {
@@ -45,6 +47,7 @@ const Select: React.FC<SelectProps> = ({
       } ${className}`}
       value={selectedValue}
       onChange={handleChange}
+      disabled={disabled}
     >
       {/* Placeholder option */}
       <option

@@ -17,12 +17,13 @@ import Pagination from "./Pagination";
 import Select from "../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdDevices} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
+import Cookies from "js-cookie";
 
 
 const UserTable = () => {
@@ -35,6 +36,7 @@ const UserTable = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
     const [userToDelete, setUserToDelete] = useState(null);
+    const [authenticatedUserId, setAuthenticatedUserId] = useState(null);
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
 
@@ -51,6 +53,15 @@ const UserTable = () => {
         };
 
         fetchData();
+    }, []);
+
+    useEffect(() => {
+        const fetchAuthenticatedUserId = async () => {
+            const userId = Cookies.get("user").id;
+            setAuthenticatedUserId(userId);
+        };
+
+        fetchAuthenticatedUserId();
     }, []);
 
     const toggleSelectUser = (id) => {
@@ -91,7 +102,9 @@ const UserTable = () => {
         );
     };
 
-    const filteredUsers = filterItems(users, searchTerm);
+    const filteredUsers = filterItems(users, searchTerm).filter(
+        (user) => user.id !== authenticatedUserId
+    );
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
     const paginatedUsers = filteredUsers.slice(
@@ -101,6 +114,10 @@ const UserTable = () => {
 
     const handleEdit = (userId) => {
         router.push(`/users/edit/${userId}`);
+    };
+
+    const handleActivateDevice = (userId) => {
+        router.push(`/activate/${userId}`);
     };
 
     return (
@@ -236,9 +253,17 @@ const UserTable = () => {
                                                         onClick={() => handleEdit(user.id)}
                                                         variant="primary"
                                                         size="sm"
-                                                        className="p-1"
                                                     >
                                                         <MdEdit size={18}/>
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip content="Activate Device">
+                                                    <Button
+                                                        onClick={() => handleActivateDevice(user.id)}
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        <MdDevices size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                                 <Tooltip content="Eliminar">
@@ -246,7 +271,6 @@ const UserTable = () => {
                                                         onClick={() => openWarningModal(user.id)}
                                                         variant="danger"
                                                         size="sm"
-                                                        className="p-1 text-red-500"
                                                     >
                                                         <MdDelete size={18}/>
                                                     </Button>

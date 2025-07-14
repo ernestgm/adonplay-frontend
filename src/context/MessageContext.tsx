@@ -18,7 +18,9 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
               <Alert
                   message={message}
                   variant="info"
-                  title="Message"/>
+                  title="Message"
+                  onClose={() => setMessage(null)}
+              />
           </div>
       )}
       {children}

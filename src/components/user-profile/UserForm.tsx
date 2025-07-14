@@ -11,8 +11,11 @@ import config from "@/config/globalConfig";
 import Label from "@/components/form/Label";
 import {ChevronDownIcon, EnvelopeIcon, EyeCloseIcon, EyeIcon} from "@/icons";
 import {MdPhone} from "react-icons/md";
+import Cookies from "js-cookie";
+import {getDataUserAuth} from "@/server/api/auth";
 
 const UserForm = ({user}) => {
+    const userData = getDataUserAuth()
     const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
@@ -29,12 +32,16 @@ const UserForm = ({user}) => {
     const [validationErrors, setValidationErrors] = React.useState({});
     const router = useRouter();
 
+    const isAuthenticatedUserEditing = user?.id === userData.id; // Verificar si el usuario autenticado está editando su propio perfil
+
     const handleChange = (e) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
     const handleRoleSelectChange = (value: string) => {
-        setForm({...form, role: value});
+        if (!isAuthenticatedUserEditing) { // Restringir cambios de rol si el usuario está editando su propio perfil
+            setForm({...form, role: value});
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -181,6 +188,7 @@ const UserForm = ({user}) => {
                             className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
                             error={validationErrors.role}
                             hint={validationErrors.role}
+                            disabled={isAuthenticatedUserEditing} // Deshabilitar campo de rol si está editando su propio perfil
                         />
                         <span
                             className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">

@@ -16,9 +16,9 @@ export const signOut = async () => {
   let caughtError = null; // Variable para almacenar el error
 
   try {
-    const user = Cookies.get("user");
+    const user = getDataUserAuth();
     if (user) {
-      const userId = JSON.parse(user).id;
+      const userId = user.id;
       await apiPost(
         `${process.env.NEXT_PUBLIC_API_URL}/logout`,
         { id: userId }
@@ -37,4 +37,9 @@ export const signOut = async () => {
       Cookies.remove("user");
     }
   }
+};
+
+export const getDataUserAuth = () => {
+  const userAuth = typeof window !== "undefined" ? Cookies.get("user") : null;
+  return userAuth ? JSON.parse(userAuth) : null;
 };
