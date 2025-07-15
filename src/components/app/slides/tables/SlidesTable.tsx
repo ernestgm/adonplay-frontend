@@ -16,13 +16,14 @@ import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {getDataUserAuth} from "@/server/api/auth";
+import {fetchSlides} from "@/server/api/slides";
 
-const BusinessTable = () => {
+const SlidesTable = () => {
     const userData = getDataUserAuth();
     const isOwner = userData.roles?.some(r => r.code === "owner");
     const router = useRouter();
-    const [businesses, setBusinesses] = useState([]);
-    const [selectedBusinesses, setSelectedBusinesses] = useState([]);
+    const [slides, setSlides] = useState([]);
+    const [selectedSlides, setSelectedSlides] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -34,8 +35,8 @@ const BusinessTable = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await fetchBusinesses();
-                setBusinesses(data);
+                const data = await fetchSlides();
+                setSlides(data);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al cargar negocios");
             } finally {
@@ -45,26 +46,26 @@ const BusinessTable = () => {
         fetchData();
     }, []);
 
-    const toggleSelectBusiness = (id) => {
-        setSelectedBusinesses((prev) =>
+    const toggleSelectSlides = (id) => {
+        setSelectedSlides((prev) =>
             prev.includes(id) ? prev.filter((bId) => bId !== id) : [...prev, id]
         );
     };
 
-    const deleteSelectedBusinesses = async () => {
+    const deleteSelectedSlides = async () => {
         setIsWarningModalOpen(true);
     };
 
     const openWarningModal = (businessId) => {
-        setSelectedBusinesses([businessId]);
+        setSelectedSlides([businessId]);
         setIsWarningModalOpen(true);
     };
 
-    const confirmDeleteBusiness = async () => {
-        if (selectedBusinesses.length > 0) {
+    const confirmDeleteSlides = async () => {
+        if (selectedSlides.length > 0) {
             try {
-                const response = await deleteBusinessesAPI(selectedBusinesses);
-                setBusinesses((prev) => prev.filter((b) => !selectedBusinesses.includes(b.id)));
+                const response = await deleteBusinessesAPI(selectedSlides);
+                setSlides((prev) => prev.filter((b) => !selectedSlides.includes(b.id)));
                 setMessage(response.message);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
@@ -82,7 +83,7 @@ const BusinessTable = () => {
         );
     };
 
-    const filteredBusinesses = filterItems(businesses, searchTerm);
+    const filteredBusinesses = filterItems(slides, searchTerm);
     const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
     const paginatedBusinesses = filteredBusinesses.slice(
         (currentPage - 1) * itemsPerPage,
@@ -90,7 +91,7 @@ const BusinessTable = () => {
     );
 
     const handleEdit = (businessId) => {
-        router.push(`/business/edit/${businessId}`);
+        router.push(`/slides/edit/${businessId}`);
     };
 
     return (
@@ -102,18 +103,18 @@ const BusinessTable = () => {
                 message="¿Estás seguro de que deseas eliminar este negocio?"
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteBusiness, variant: "danger"},
+                    {label: "Eliminar", onClick: confirmDeleteSlides, variant: "danger"},
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
-                    {selectedBusinesses.length > 0 ? (
-                        <div className={selectedBusinesses.length === 0 ? "hidden" : "flex"}>
+                    {selectedSlides.length > 0 ? (
+                        <div className={selectedSlides.length === 0 ? "hidden" : "flex"}>
                             <Tooltip content="Eliminar negocios seleccionados">
                                 <Button
                                     size="sm"
-                                    onClick={deleteSelectedBusinesses}
-                                    disabled={selectedBusinesses.length === 0}
+                                    onClick={deleteSelectedSlides}
+                                    disabled={selectedSlides.length === 0}
                                     variant="danger"
                                 >
                                     <MdDelete size={20}/>
@@ -121,19 +122,17 @@ const BusinessTable = () => {
                             </Tooltip>
                         </div>
                     ) : (
-                        !isOwner && (
-                            <Button
-                                onClick={() => {
-                                    window.location.href = "/business/create";
-                                }}
-                                variant="primary"
-                                size="sm"
-                                className="mb-2 sm:mb-0 sm:w-auto"
-                            >
-                                <span className="hidden sm:block">+ Adicionar negocio</span>
-                                <span className="block sm:hidden">+</span>
-                            </Button>
-                        )
+                        <Button
+                            onClick={() => {
+                                window.location.href = "/slides/create";
+                            }}
+                            variant="primary"
+                            size="sm"
+                            className="mb-2 sm:mb-0 sm:w-auto"
+                        >
+                            <span className="hidden sm:block">+ Adicionar Slides</span>
+                            <span className="block sm:hidden">+</span>
+                        </Button>
                     )}
                     <div className="relative">
                         <Input
@@ -160,9 +159,9 @@ const BusinessTable = () => {
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                     <Checkbox
-                                        checked={selectedBusinesses.length === businesses.length && businesses.length > 0}
+                                        checked={selectedSlides.length === slides.length && slides.length > 0}
                                         onChange={(checked) =>
-                                            setSelectedBusinesses(checked ? businesses.map((b) => b.id) : [])
+                                            setSelectedSlides(checked ? slides.map((b) => b.id) : [])
                                         }
                                     />
                                 </th>
@@ -173,22 +172,22 @@ const BusinessTable = () => {
                             </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedBusinesses.map((business) => (
-                                <tr key={business.id}>
+                            {paginatedBusinesses.map((slides) => (
+                                <tr key={slides.id}>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <Checkbox
-                                            checked={selectedBusinesses.includes(business.id)}
-                                            onChange={() => toggleSelectBusiness(business.id)}
+                                            checked={selectedSlides.includes(slides.id)}
+                                            onChange={() => toggleSelectSlides(slides.id)}
                                         />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{business.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.owner?.name || ""}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slides.name}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.description}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.owner?.name || ""}</td>
                                     <td className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                         <div className="flex gap-2 justify-end">
                                             <Tooltip content="Editar">
                                                 <Button
-                                                    onClick={() => handleEdit(business.id)}
+                                                    onClick={() => handleEdit(slides.id)}
                                                     variant="primary"
                                                     size="sm"
                                                 >
@@ -198,7 +197,7 @@ const BusinessTable = () => {
                                             {!isOwner && (
                                                 <Tooltip content="Eliminar">
                                                     <Button
-                                                        onClick={() => openWarningModal(business.id)}
+                                                        onClick={() => openWarningModal(slides.id)}
                                                         variant="danger"
                                                         size="sm"
                                                     >
@@ -226,7 +225,7 @@ const BusinessTable = () => {
                                     placeholder="Select items per page"
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded w-full sm:w-auto"
+                                    className="border border-gray-300 rounded py-1 w-full sm:w-auto"
                                 />
                                 <span
                                     className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -248,4 +247,4 @@ const BusinessTable = () => {
     );
 };
 
-export default BusinessTable;
+export default SlidesTable;

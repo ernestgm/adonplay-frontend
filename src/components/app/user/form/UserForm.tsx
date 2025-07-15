@@ -184,7 +184,7 @@ const UserForm = ({user}) => {
                             placeholder="Select role"
                             defaultValue={form.role || ''}
                             onChange={handleRoleSelectChange}
-                            className="px-2 py-1 w-full sm:w-auto"
+                            className="w-full sm:w-auto"
                             error={validationErrors.role}
                             hint={validationErrors.role}
                             disabled={isAuthenticatedUserEditing} // Deshabilitar campo de rol si está editando su propio perfil

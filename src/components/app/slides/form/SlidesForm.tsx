@@ -5,38 +5,41 @@ import { useRouter } from "next/navigation";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import { useError } from "@/context/ErrorContext";
-import { createBusiness, updateBusiness } from "@/server/api/business";
+import {createBusiness, fetchBusinesses, updateBusiness} from "@/server/api/business";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
 import { fetchUsers } from "@/server/api/users";
 import { getDataUserAuth } from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
+import {createSlide, updateSlide} from "@/server/api/slides";
 
-const BusinessForm = ({ business }) => {
+const SlidesForm = ({ slides }) => {
     const userData = getDataUserAuth();
     const [form, setForm] = useState({
-        name: business?.name || "",
-        description: business?.description || "",
-        owner_id: business?.owner_id || "",
+        name: slides?.name || "",
+        description: slides?.description || "",
+        business_id: slides?.business_id || "",
+        description_position: slides?.description_position || "",
+        description_size: slides?.description_size || "",
     });
+
     const [loading, setLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
-    const [users, setUsers] = useState([]);
+    const [business, setBusiness] = useState([]);
     const setError = useError().setError;
     const router = useRouter();
 
     useEffect(() => {
-        const fetchOwners = async () => {
+        const getBusiness = async () => {
             try {
-                const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => !u.roles.some(r => r.code === "admin"));
-                setUsers(filtered);
+                const allBusiness = await fetchBusinesses();
+                setBusiness(allBusiness);
             } catch (err) {
                 setError("Error al cargar usuarios para owner");
             }
         };
-        fetchOwners();
+        getBusiness();
     }, [setError]);
 
     const isOwner = userData.roles?.some(r => r.code === "owner");
@@ -45,8 +48,8 @@ const BusinessForm = ({ business }) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleOwnerChange = (value) => {
-        if (!isOwner) setForm({ ...form, owner_id: value });
+    const handleBusinessChange = (value) => {
+        if (!isOwner) setForm({ ...form, business_id: value });
     };
 
     const handleSubmit = async (e) => {
@@ -54,12 +57,12 @@ const BusinessForm = ({ business }) => {
         setLoading(true);
         setValidationErrors({});
         try {
-            if (business) {
-                await updateBusiness(business.id, form);
+            if (slides) {
+                await updateSlide(slides.id, form);
             } else {
-                await createBusiness(form);
+                await createSlide(form);
             }
-            router.push("/business");
+            router.push("/slides");
         } catch (err) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
@@ -99,15 +102,12 @@ const BusinessForm = ({ business }) => {
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
-                            defaultValue={ isOwner ? userData.id : form.owner_id}
-                            onChange={handleOwnerChange}
-                            options={ isOwner
-                                ? [{ value: userData.id, label: userData.name }]
-                                : users.map(u => ({ value: u.id, label: u.name }))}
-                            disabled={isOwner}
+                            defaultValue={ form.business_id}
+                            onChange={handleBusinessChange}
+                            options={ business.map(u => ({ value: u.id, label: u.name }))}
                             className="w-full sm:w-auto"
-                            error={validationErrors.owner_id}
-                            hint={validationErrors.owner_id}
+                            error={validationErrors.business_id}
+                            hint={validationErrors.business_id}
                         />
                         <span
                             className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -117,13 +117,13 @@ const BusinessForm = ({ business }) => {
                 </div>
             </div>
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/business")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/slides")}>Cancelar</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {business ? "Guardar cambios" : "Crear"}
+                    {slides ? "Guardar cambios" : "Crear"}
                 </Button>
             </div>
         </Form>
     );
 };
 
-export default BusinessForm;
+export default SlidesForm;
