@@ -1,9 +1,10 @@
 "use client";
+
 import React, {useEffect, useState} from "react";
-import { useParams } from "next/navigation";
-import UserForm from "@/components/user-profile/UserForm";
+import UserForm from "@/components/app/user/form/UserForm";
 import { getUser } from "@/server/api/users";
 import { useError } from "@/context/ErrorContext";
+import {useParams} from "next/navigation";
 
 const EditUserPage = () => {
     const params = useParams();

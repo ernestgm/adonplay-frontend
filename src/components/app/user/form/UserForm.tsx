@@ -13,6 +13,7 @@ import {ChevronDownIcon, EnvelopeIcon, EyeCloseIcon, EyeIcon} from "@/icons";
 import {MdPhone} from "react-icons/md";
 import Cookies from "js-cookie";
 import {getDataUserAuth} from "@/server/api/auth";
+import Form from "@/components/form/Form";
 
 const UserForm = ({user}) => {
     const userData = getDataUserAuth()
@@ -64,9 +65,7 @@ const UserForm = ({user}) => {
         } catch (error) {
             console.log(error);
             if (error.data.errors) {
-                Object.entries(error.data.errors).forEach(([field, messages]) => {
-                    setValidationErrors(prev => ({...prev, [field]: messages}));
-                });
+                setValidationErrors(error.data.errors)
             } else {
                 setError(error.data?.message || error.message || "Error al iniciar sesión");
             }
@@ -76,7 +75,7 @@ const UserForm = ({user}) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <h2 className="text-xl font-bold mb-4">{user ? "Editar usuario" : "Crear usuario"}</h2>
 
             <div className="mb-5">
@@ -185,7 +184,7 @@ const UserForm = ({user}) => {
                             placeholder="Select role"
                             defaultValue={form.role || ''}
                             onChange={handleRoleSelectChange}
-                            className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                            className="px-2 py-1 w-full sm:w-auto"
                             error={validationErrors.role}
                             hint={validationErrors.role}
                             disabled={isAuthenticatedUserEditing} // Deshabilitar campo de rol si está editando su propio perfil
@@ -202,10 +201,10 @@ const UserForm = ({user}) => {
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/users")}>Cancelar</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {user ? "Guardar cambios" : "Crear usuario"}
+                    {user ? "Guardar cambios" : "Crear"}
                 </Button>
             </div>
-        </form>
+        </Form>
     );
 };
 

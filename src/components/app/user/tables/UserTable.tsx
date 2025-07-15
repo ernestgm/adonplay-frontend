@@ -7,14 +7,14 @@ import {
     TableCell,
     TableHeader,
     TableRow,
-} from "../ui/table";
+} from "../../../ui/table";
 
 import Checkbox from "@/components/form/input/Checkbox";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
 import {fetchUsers, deleteUsersAPI} from "@/server/api/users";
-import Pagination from "./Pagination";
-import Select from "../form/Select";
+import Pagination from "../../../tables/Pagination";
+import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
 import {MdSearch, MdDelete, MdEdit, MdDevices} from "react-icons/md";
@@ -181,6 +181,8 @@ const UserTable = () => {
 
                 {loading ? (
                     <div>Loading...</div>
+                ) : paginatedUsers.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">No hay usuarios para mostrar.</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">

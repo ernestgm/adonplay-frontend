@@ -20,7 +20,9 @@ export function middleware(request: NextRequest) {
     const userObj = JSON.parse(isAuthenticated?.value || '{}');
     const userRole = userObj.roles?.[0]?.code;
 
-    if ( userRole === 'owner' && request.nextUrl.pathname === '/users/create'
+    if (
+        userRole === 'owner' && request.nextUrl.pathname === '/users/create' ||
+        userRole === 'owner' && request.nextUrl.pathname === '/business/create'
     ) {
       const notFoundUrl = request.nextUrl.clone();
       notFoundUrl.pathname = '/not-found';
@@ -45,6 +47,7 @@ export const config = {
     '/users',
     '/users/create',
     '/business',
+    '/business/create',
     '/slides',
     '/marquees',
     '/qrcodes',
