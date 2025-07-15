@@ -98,11 +98,11 @@ const SlidesForm = ({ slides }) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Owner *</Label>
+                <Label>Business *</Label>
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
-                            defaultValue={ form.business_id}
+                            defaultValue={form.business_id}
                             onChange={handleBusinessChange}
                             options={ business.map(u => ({ value: u.id, label: u.name }))}
                             className="w-full sm:w-auto"

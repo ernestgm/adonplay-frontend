@@ -16,7 +16,7 @@ import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {getDataUserAuth} from "@/server/api/auth";
-import {fetchSlides} from "@/server/api/slides";
+import {deleteSlides, fetchSlides} from "@/server/api/slides";
 
 const SlidesTable = () => {
     const userData = getDataUserAuth();
@@ -64,7 +64,7 @@ const SlidesTable = () => {
     const confirmDeleteSlides = async () => {
         if (selectedSlides.length > 0) {
             try {
-                const response = await deleteBusinessesAPI(selectedSlides);
+                const response = await deleteSlides(selectedSlides);
                 setSlides((prev) => prev.filter((b) => !selectedSlides.includes(b.id)));
                 setMessage(response.message);
             } catch (err) {
@@ -167,7 +167,7 @@ const SlidesTable = () => {
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</th>
                             </tr>
                             </thead>
@@ -182,7 +182,7 @@ const SlidesTable = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slides.name}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.owner?.name || ""}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</td>
                                     <td className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                         <div className="flex gap-2 justify-end">
                                             <Tooltip content="Editar">

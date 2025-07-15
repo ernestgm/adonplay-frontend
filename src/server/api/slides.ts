@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getSlide = async (id) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/businesses/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
