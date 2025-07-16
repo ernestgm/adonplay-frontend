@@ -24,6 +24,7 @@ import { useRouter } from "next/navigation";
 import { useMessage } from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import Cookies from "js-cookie";
+import filterItems from "@/utils/filterItems";
 
 
 const UserTable = () => {
@@ -84,6 +85,7 @@ const UserTable = () => {
             try {
                 const response = await deleteUsersAPI(selectedUsers);
                 setUsers((prev) => prev.filter((user) => !selectedUsers.includes(user.id)));
+                setSelectedUsers([]);
                 setMessage(response.message);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al eliminar usuario");
@@ -92,14 +94,6 @@ const UserTable = () => {
                 setUserToDelete(null);
             }
         }
-    };
-
-    const filterItems = (items, term) => {
-        return items.filter((item) =>
-            Object.keys(item).some((key) =>
-                item[key]?.toString().toLowerCase().includes(term.toLowerCase())
-            )
-        );
     };
 
     const filteredUsers = filterItems(users, searchTerm).filter(
@@ -253,7 +247,7 @@ const UserTable = () => {
                                                 <Tooltip content="Editar">
                                                     <Button
                                                         onClick={() => handleEdit(user.id)}
-                                                        variant="primary"
+                                                        variant="outline"
                                                         size="sm"
                                                     >
                                                         <MdEdit size={18}/>
@@ -262,7 +256,7 @@ const UserTable = () => {
                                                 <Tooltip content="Activate Device">
                                                     <Button
                                                         onClick={() => handleActivateDevice(user.id)}
-                                                        variant="outline"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDevices size={18}/>

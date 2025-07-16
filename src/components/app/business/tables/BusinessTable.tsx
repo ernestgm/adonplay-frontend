@@ -16,6 +16,14 @@ import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {getDataUserAuth} from "@/server/api/auth";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import filterItems from "@/utils/filterItems";
 
 const BusinessTable = () => {
     const userData = getDataUserAuth();
@@ -65,6 +73,7 @@ const BusinessTable = () => {
             try {
                 const response = await deleteBusinessesAPI(selectedBusinesses);
                 setBusinesses((prev) => prev.filter((b) => !selectedBusinesses.includes(b.id)));
+                setSelectedBusinesses([]);
                 setMessage(response.message);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
@@ -72,14 +81,6 @@ const BusinessTable = () => {
                 setIsWarningModalOpen(false);
             }
         }
-    };
-
-    const filterItems = (items, term) => {
-        return items.filter((item) =>
-            Object.keys(item).some((key) =>
-                item[key]?.toString().toLowerCase().includes(term.toLowerCase())
-            )
-        );
     };
 
     const filteredBusinesses = filterItems(businesses, searchTerm);
@@ -155,63 +156,57 @@ const BusinessTable = () => {
                     <div className="text-center text-gray-500 py-8">No hay negocios para mostrar.</div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    <Checkbox
-                                        checked={selectedBusinesses.length === businesses.length && businesses.length > 0}
-                                        onChange={(checked) =>
-                                            setSelectedBusinesses(checked ? businesses.map((b) => b.id) : [])
-                                        }
-                                    />
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</th>
-                            </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedBusinesses.map((business) => (
-                                <tr key={business.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <Table className="min-w-full divide-y divide-gray-200">
+                            <TableHeader className="bg-gray-50">
+                                <TableRow>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         <Checkbox
-                                            checked={selectedBusinesses.includes(business.id)}
-                                            onChange={() => toggleSelectBusiness(business.id)}
+                                            checked={selectedBusinesses.length === businesses.length && businesses.length > 0}
+                                            onChange={(checked) => setSelectedBusinesses(checked ? businesses.map((b) => b.id) : [])}
                                         />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{business.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.owner?.name || ""}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
-                                        <div className="flex gap-2 justify-end">
-                                            <Tooltip content="Editar">
-                                                <Button
-                                                    onClick={() => handleEdit(business.id)}
-                                                    variant="primary"
-                                                    size="sm"
-                                                >
-                                                    <MdEdit size={18}/>
-                                                </Button>
-                                            </Tooltip>
-                                            {!isOwner && (
-                                                <Tooltip content="Eliminar">
-                                                    <Button
-                                                        onClick={() => openWarningModal(business.id)}
-                                                        variant="danger"
-                                                        size="sm"
-                                                    >
-                                                        <MdDelete size={18}/>
+                                    </TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="bg-white divide-y divide-gray-200">
+                                {paginatedBusinesses.map((business) => (
+                                    <TableRow key={business.id}>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Checkbox
+                                                checked={selectedBusinesses.includes(business.id)}
+                                                onChange={() => toggleSelectBusiness(business.id)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{business.name}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.description}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.owner?.name || ""}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                            <div className="flex gap-2 justify-end">
+                                                <Tooltip content="Editar">
+                                                    <Button size="sm" variant="outline" onClick={() => handleEdit(business.id)}>
+                                                        <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                                {!isOwner && (
+                                                    <Tooltip content="Eliminar">
+                                                        <Button
+                                                            onClick={() => openWarningModal(business.id)}
+                                                            variant="danger"
+                                                            size="sm"
+                                                        >
+                                                            <MdDelete size={18}/>
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
                 )}
                 <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2 sm:gap-0">

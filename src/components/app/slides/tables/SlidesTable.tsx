@@ -17,6 +17,14 @@ import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {getDataUserAuth} from "@/server/api/auth";
 import {deleteSlides, fetchSlides} from "@/server/api/slides";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import filterItems from "@/utils/filterItems";
 
 const SlidesTable = () => {
     const userData = getDataUserAuth();
@@ -66,6 +74,7 @@ const SlidesTable = () => {
             try {
                 const response = await deleteSlides(selectedSlides);
                 setSlides((prev) => prev.filter((b) => !selectedSlides.includes(b.id)));
+                setSelectedSlides([]);
                 setMessage(response.message);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
@@ -73,14 +82,6 @@ const SlidesTable = () => {
                 setIsWarningModalOpen(false);
             }
         }
-    };
-
-    const filterItems = (items, term) => {
-        return items.filter((item) =>
-            Object.keys(item).some((key) =>
-                item[key]?.toString().toLowerCase().includes(term.toLowerCase())
-            )
-        );
     };
 
     const filteredBusinesses = filterItems(slides, searchTerm);
@@ -100,17 +101,14 @@ const SlidesTable = () => {
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
                 title="Warning"
-                message="¿Estás seguro de que deseas eliminar este negocio?"
-                actions={[
-                    {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteSlides, variant: "danger"},
-                ]}
+                message="¿Estás seguro de que deseas eliminar este Slide?"
+                actions={[{label: "Cancelar", onClick: () => setIsWarningModalOpen(false)}, {label: "Eliminar", onClick: confirmDeleteSlides, variant: "danger"}]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedSlides.length > 0 ? (
                         <div className={selectedSlides.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar negocios seleccionados">
+                            <Tooltip content="Eliminar slides seleccionados">
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedSlides}
@@ -123,9 +121,7 @@ const SlidesTable = () => {
                         </div>
                     ) : (
                         <Button
-                            onClick={() => {
-                                window.location.href = "/slides/create";
-                            }}
+                            onClick={() => { window.location.href = "/slides/create"; }}
                             variant="primary"
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
@@ -142,8 +138,7 @@ const SlidesTable = () => {
                             type="text"
                             className="pl-[62px]"
                         />
-                        <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
                             <MdSearch size={20}/>
                         </span>
                     </div>
@@ -151,66 +146,54 @@ const SlidesTable = () => {
                 {loading ? (
                     <div>Loading...</div>
                 ) : paginatedBusinesses.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay negocios para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">No hay slides para mostrar.</div>
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                    <Checkbox
-                                        checked={selectedSlides.length === slides.length && slides.length > 0}
-                                        onChange={(checked) =>
-                                            setSelectedSlides(checked ? slides.map((b) => b.id) : [])
-                                        }
-                                    />
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</th>
-                            </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                            {paginatedBusinesses.map((slides) => (
-                                <tr key={slides.id}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <Table className="min-w-full divide-y divide-gray-200">
+                            <TableHeader className="bg-gray-50">
+                                <TableRow>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         <Checkbox
-                                            checked={selectedSlides.includes(slides.id)}
-                                            onChange={() => toggleSelectSlides(slides.id)}
+                                            checked={selectedSlides.length === slides.length && slides.length > 0}
+                                            onChange={(checked) => setSelectedSlides(checked ? slides.map((b) => b.id) : [])}
                                         />
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slides.name}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.description}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</td>
-                                    <td className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
-                                        <div className="flex gap-2 justify-end">
-                                            <Tooltip content="Editar">
-                                                <Button
-                                                    onClick={() => handleEdit(slides.id)}
-                                                    variant="primary"
-                                                    size="sm"
-                                                >
-                                                    <MdEdit size={18}/>
-                                                </Button>
-                                            </Tooltip>
-                                            {!isOwner && (
+                                    </TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody className="bg-white divide-y divide-gray-200">
+                                {paginatedBusinesses.map((slides) => (
+                                    <TableRow key={slides.id}>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Checkbox
+                                                checked={selectedSlides.includes(slides.id)}
+                                                onChange={() => toggleSelectSlides(slides.id)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slides.name}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.description}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                            <div className="flex gap-2 justify-end">
+                                                <Tooltip content="Editar">
+                                                    <Button size="sm" variant="outline" onClick={() => handleEdit(slides.id)}>
+                                                        <MdEdit size={18}/>
+                                                    </Button>
+                                                </Tooltip>
                                                 <Tooltip content="Eliminar">
-                                                    <Button
-                                                        onClick={() => openWarningModal(slides.id)}
-                                                        variant="danger"
-                                                        size="sm"
-                                                    >
+                                                    <Button size="sm" variant="danger" onClick={() => openWarningModal(slides.id)}>
                                                         <MdDelete size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
                     </div>
                 )}
                 <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-2 sm:gap-0">
