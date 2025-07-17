@@ -15,6 +15,7 @@ import config from "@/config/globalConfig";
 import {ChevronDownIcon} from "@/icons";
 import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react';
 import PositionExample from "@/components/common/PositionExample";
+import handleDownloadQr from "@/utils/qrCode";
 
 const QrCodeForm = ({ qrcode }) => {
     const [form, setForm] = useState({
@@ -76,17 +77,6 @@ const QrCodeForm = ({ qrcode }) => {
             }
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleDownloadQr = () => {
-        const canvas = document.getElementById("qrcode-canvas");
-        if (canvas) {
-            const url = canvas.toDataURL("image/png");
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `qrcode-${form.name || "info"}.png`;
-            a.click();
         }
     };
 

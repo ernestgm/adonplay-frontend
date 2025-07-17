@@ -9,7 +9,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdSettings} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
@@ -90,6 +90,10 @@ const SlidesTable = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    const handleSettings = (slide) => {
+        router.push(`/slides/settings/${slide}`);
+    };
 
     const handleEdit = (businessId) => {
         router.push(`/slides/edit/${businessId}`);
@@ -179,8 +183,13 @@ const SlidesTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content="Editar">
-                                                    <Button size="sm" variant="outline" onClick={() => handleEdit(slides.id)}>
+                                                    <Button size="sm" variant="primary" onClick={() => handleEdit(slides.id)}>
                                                         <MdEdit size={18}/>
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip content="Settings">
+                                                    <Button size="sm" variant="outline" onClick={() => handleSettings(slides.id)}>
+                                                        <MdSettings size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                                 <Tooltip content="Eliminar">
