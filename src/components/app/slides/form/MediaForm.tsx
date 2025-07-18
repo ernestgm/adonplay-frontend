@@ -36,13 +36,13 @@ interface MediaFormProps {
 const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
     const [form, setForm] = useState({
         slide_id: slideId || "",
-        type: media.type || "image",
-        description: media.description || "",
-        description_position: media.description_position || "bc",
-        description_size: media.description_size || "md",
-        qr_info: media.qr_info || "",
-        qr_position: media.qr_position || "bc",
-        duration: media.duration || "5",
+        type: media?.type || "image",
+        description: media?.description || "",
+        description_position: media?.description_position || "bc",
+        description_size: media?.description_size || "md",
+        qr_info: media?.qr_info || "",
+        qr_position: media?.qr_position || "bc",
+        duration: media?.duration || "5",
     });
     const [file, setFile] = useState<File[] | File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility
