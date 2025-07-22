@@ -8,7 +8,7 @@ import Select from "@/components/form/Select";
 import TextArea from "@/components/form/input/TextArea";
 import { useError } from "@/context/ErrorContext";
 import { useMessage } from "@/context/MessageContext";
-import { createMedia } from "@/server/api/media";
+import { createMedia, updateMedia } from "@/server/api/media";
 import config from "@/config/globalConfig";
 import Form from "@/components/form/Form";
 import Label from "@/components/form/Label";
@@ -18,6 +18,9 @@ import PositionExample from "@/components/common/PositionExample";
 import FileInput from "@/components/form/input/FileInput";
 import {QRCodeCanvas} from "qrcode.react";
 import handleDownloadQr from "@/utils/qrCode";
+
+// Base URL for media files
+const FTP_BASE_URL = process.env.FTP_BASE_URL || "http://adonplayftp.geniusdevelops.com/";
 
 const typeOptions = [
     { value: "image", label: "Imagen" },
@@ -43,6 +46,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
         qr_info: media?.qr_info || "",
         qr_position: media?.qr_position || "bc",
         duration: media?.duration || "5",
+        file_path: media?.file_path || "",
+        audio_path: media?.audio_path || "",
     });
     const [file, setFile] = useState<File[] | File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility
@@ -58,17 +63,34 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
     const setMessage = useMessage().setMessage;
     const router = useRouter();
     
+    // Initialize preview URLs for existing media when component mounts
+    useEffect(() => {
+        if (media) {
+            if (media.type === "video" && media.file_path) {
+                // Concatenate FTP_BASE_URL with file_path for video preview
+                setVideoPreviewUrl(FTP_BASE_URL + media.file_path);
+            } else if (media.type === "image" && media.file_path) {
+                // For image, use a single image with FTP_BASE_URL + file_path
+                const newImagePreviewUrls = new Map<number, string>();
+                newImagePreviewUrls.set(0, FTP_BASE_URL + media.file_path);
+                setImagePreviewUrls(newImagePreviewUrls);
+            }
+        }
+    }, [media]);
+
     // Clean up video preview URL and image preview URLs when component unmounts or when URLs change
     useEffect(() => {
         return () => {
             // Clean up video preview
-            if (videoPreviewUrl) {
+            if (videoPreviewUrl && !videoPreviewUrl.startsWith('http')) {
                 URL.revokeObjectURL(videoPreviewUrl);
             }
             
             // Clean up image previews
             imagePreviewUrls.forEach(url => {
-                URL.revokeObjectURL(url);
+                if (!url.startsWith('http')) {
+                    URL.revokeObjectURL(url);
+                }
             });
         };
     }, [videoPreviewUrl, imagePreviewUrls]);
@@ -121,14 +143,16 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
         const files = e.target.files;
         
         // Clean up previous preview URLs
-        if (videoPreviewUrl) {
+        if (videoPreviewUrl && !videoPreviewUrl.startsWith('http')) {
             URL.revokeObjectURL(videoPreviewUrl);
             setVideoPreviewUrl(null);
         }
         
         // Clean up image preview URLs
         imagePreviewUrls.forEach(url => {
-            URL.revokeObjectURL(url);
+            if (!url.startsWith('http')) {
+                URL.revokeObjectURL(url);
+            }
         });
         setImagePreviewUrls(new Map());
         
@@ -137,24 +161,48 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
         setAudioErrors(new Map());
         
         if (form.type === "image") {
-            for (let i = 0; i < files.length; i++) {
-                if (!files[i].type.match("image/jpeg")) {
+            if (files.length === 0) return;
+            
+            const isEditing = !!media?.id;
+            
+            if (isEditing) {
+                // When editing, only process the first file
+                const imageFile = files[0];
+                
+                if (!imageFile.type.match("image/jpeg")) {
                     setFileError("Solo se permiten imágenes JPG");
                     return;
                 }
-            }
-            
-            const imageFiles = Array.from(files) as File[];
-            setFile(imageFiles);
-            
-            // Create preview URLs for each image
-            const newImagePreviewUrls = new Map<number, string>();
-            imageFiles.forEach((imageFile, index) => {
+                
+                // Set a single file, not an array
+                setFile(imageFile);
+                
+                // Create preview URL for the single image
+                const newImagePreviewUrls = new Map<number, string>();
                 const previewUrl = URL.createObjectURL(imageFile as Blob);
-                newImagePreviewUrls.set(index, previewUrl);
-            });
-            setImagePreviewUrls(newImagePreviewUrls);
-            
+                newImagePreviewUrls.set(0, previewUrl);
+                setImagePreviewUrls(newImagePreviewUrls);
+            } else {
+                // When creating, process all selected files
+                for (let i = 0; i < files.length; i++) {
+                    if (!files[i].type.match("image/jpeg")) {
+                        setFileError("Solo se permiten imágenes JPG");
+                        return;
+                    }
+                }
+                
+                // Convert FileList to array and store it
+                const imageFiles = Array.from(files) as File[];
+                setFile(imageFiles);
+                
+                // Create preview URLs for each image
+                const newImagePreviewUrls = new Map<number, string>();
+                imageFiles.forEach((imageFile, index) => {
+                    const previewUrl = URL.createObjectURL(imageFile as Blob);
+                    newImagePreviewUrls.set(index, previewUrl);
+                });
+                setImagePreviewUrls(newImagePreviewUrls);
+            }
         } else if (form.type === "video") {
             if (files.length > 1) {
                 setFileError("Solo se puede subir un video");
@@ -226,30 +274,87 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
                 if (value) formData.append(key, value);
             });
             
-            // Add files based on type
-            if (form.type === "image" && Array.isArray(file)) {
-                // For images, add each file with its index
-                file.forEach((f, index) => {
-                    formData.append(`file[${index}]`, f);
-                    
-                    // If there's an audio file for this image, add it with the same index
-                    if (imageAudioMap.has(index)) {
-                        formData.append(`audio[${index}]`, imageAudioMap.get(index));
+            // Check if we're editing or creating
+            const isEditing = !!media?.id;
+            
+            if (isEditing) {
+                // When editing, only include files that have been changed
+                if (form.type === "image") {
+                    // For images, only include file if it has been selected
+                    if (file && !Array.isArray(file)) {
+                        // User has selected a new image file
+                        formData.append("file", file as File);
+                    } else {
+                        // No new image file, keep existing file_path
+                        formData.append("keep_file", "true");
                     }
-                });
-                
-                // Add legacy audio for backward compatibility
-                if (audio) {
-                    formData.append("audio", audio);
+                    
+                    // Handle audio file for image
+                    if (imageAudioMap.has(0)) {
+                        // User has selected a new audio file
+                        formData.append("audio", imageAudioMap.get(0));
+                    } else if (audio) {
+                        // Legacy audio handling
+                        formData.append("audio", audio);
+                    } else {
+                        // No new audio file, keep existing audio_path
+                        formData.append("keep_audio", "true");
+                    }
+                } else if (form.type === "video") {
+                    // For video, only include file if it has been selected
+                    if (file) {
+                        // User has selected a new video file
+                        formData.append("file", file as File);
+                    } else {
+                        // No new video file, keep existing file_path
+                        formData.append("keep_file", "true");
+                    }
                 }
-            } else if (file) {
-                // For video, just add the single file
-                formData.append("file", file as File);
+                
+                // Update the media
+                await updateMedia(slideId, media.id, formData);
+                setMessage("Item actualizado correctamente");
+            } else {
+                // When creating, include all files
+                if (form.type === "image") {
+                    // For images, check if we have multiple files
+                    if (file && Array.isArray(file)) {
+                        // Add each file with its index
+                        file.forEach((f, index) => {
+                            formData.append(`file[${index}]`, f);
+                            
+                            // If there's an audio file for this image, add it with the same index
+                            if (imageAudioMap.has(index)) {
+                                formData.append(`audio[${index}]`, imageAudioMap.get(index));
+                            }
+                        });
+                        
+                        // Add legacy audio for backward compatibility
+                        if (audio) {
+                            formData.append("audio", audio);
+                        }
+                    } else if (file) {
+                        // Single file case (shouldn't happen when creating, but handle it anyway)
+                        formData.append("file", file as File);
+                        
+                        // If there's an audio file for this image, add it
+                        if (imageAudioMap.has(0)) {
+                            formData.append("audio", imageAudioMap.get(0));
+                        } else if (audio) {
+                            // Legacy audio handling
+                            formData.append("audio", audio);
+                        }
+                    }
+                } else if (file) {
+                    // For video, just add the single file
+                    formData.append("file", file as File);
+                }
+                
+                // Create the media
+                await createMedia(slideId, formData);
+                setMessage("Item creado correctamente");
             }
             
-            // Send the form data to the server
-            await createMedia(slideId, formData);
-            setMessage("Item creado correctamente");
             router.push(`/slides/edit/${slideId}`);
         } catch (err) {
             if (err.response && err.response.data) {
@@ -278,6 +383,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
                         className="w-full"
                         error={validationErrors['type']}
                         hint={validationErrors['type']}
+                        disabled={media}
                     />
                     <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
                         <ChevronDownIcon/>
@@ -286,16 +392,23 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
             </div>
             
             <div className="mb-5">
-                <Label>{form.type === "image" ? "Imágenes JPG" : "Video MP4"} *</Label>
+                <Label>{form.type === "image" ? (media ? "Imagen JPG" : "Imágenes JPG") : "Video MP4"} {!media && "*"}</Label>
                 <FileInput
                     name="file"
                     accept={form.type === "image" ? ".jpg" : ".mp4"}
-                    multiple={form.type === "image"}
+                    multiple={form.type === "image" && !media} // Multiple only when creating new image media
                     onChange={handleFileChange}
                     error={fileError ? true : false}
                     hint={fileError}
-                    required
+                    required={!media} // Only required when creating new media
                 />
+                {media && (
+                    <div className="mt-1 text-xs text-gray-500">
+                        {form.type === "image" 
+                            ? "Deja este campo vacío si no deseas cambiar la imagen existente." 
+                            : "Deja este campo vacío si no deseas cambiar el video existente."}
+                    </div>
+                )}
             </div>
             
             {form.type === "video" && videoPreviewUrl && (
@@ -322,19 +435,20 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
                 />
             </div>
             
-            {form.type === "image" && Array.isArray(file) && file.length > 0 && (
+            {form.type === "image" && (file || imagePreviewUrls.size > 0) && (
                 <div className="mb-5">
-                    <Label>Imágenes con Audio MP3 (opcional)</Label>
+                    <Label>{media ? "Imagen con Audio MP3 (opcional)" : "Imágenes con Audio MP3 (opcional)"}</Label>
                     <div className="mt-3 space-y-4">
-                        {Array.from(imagePreviewUrls.entries()).map(([index, previewUrl]) => (
-                            <div key={index} className="p-3 border rounded-md">
+                        {media ? (
+                            // Single image preview for editing
+                            <div className="p-3 border rounded-md">
                                 <div className="flex flex-col sm:flex-row gap-4">
                                     {/* Image preview */}
                                     <div className="w-full sm:w-1/3">
                                         <div className="border rounded overflow-hidden">
                                             <img 
-                                                src={previewUrl} 
-                                                alt={`Imagen ${index + 1}`} 
+                                                src={imagePreviewUrls.get(0) || ''} 
+                                                alt="Imagen" 
                                                 className="w-full h-auto object-contain"
                                                 style={{ maxHeight: '150px' }}
                                             />
@@ -343,24 +457,74 @@ const MediaForm: React.FC<MediaFormProps> = ({ media, slideId }) => {
                                     
                                     {/* Audio input for this image */}
                                     <div className="w-full sm:w-2/3">
-                                        <div className="mb-1 font-medium">Imagen {index + 1}</div>
-                                        <div className="mb-1 text-xs">Select Audio</div>
+                                        <div className="mb-1 font-medium">Audio para la imagen</div>
+                                        <div className="mb-1 text-xs">Select Audio (opcional)</div>
                                         <FileInput
-                                            name={`audio-${index}`}
+                                            name="audio"
                                             accept=".mp3,audio/mpeg"
-                                            onChange={(e) => handleImageAudioChange(e, index)}
-                                            error={audioErrors.has(index)}
-                                            hint={audioErrors.get(index) || ''}
+                                            onChange={(e) => handleImageAudioChange(e, 0)}
+                                            error={audioErrors.has(0)}
+                                            hint={audioErrors.get(0) || ''}
                                         />
-                                        {imageAudioMap.has(index) && (
+                                        <div className="mt-1 text-xs text-gray-500">
+                                            Deja este campo vacío si no deseas cambiar el audio existente.
+                                        </div>
+                                        {imageAudioMap.has(0) && (
                                             <div className="mt-1 text-sm text-green-600">
-                                                Audio seleccionado: {imageAudioMap.get(index)?.name}
+                                                Audio seleccionado: {imageAudioMap.get(0)?.name}
+                                            </div>
+                                        )}
+                                        {media?.audio_path && (
+                                            <div className="mt-3">
+                                                <Label>Audio actual:</Label>
+                                                <audio 
+                                                    src={FTP_BASE_URL + media.audio_path} 
+                                                    controls 
+                                                    className="w-full mt-1"
+                                                />
                                             </div>
                                         )}
                                     </div>
                                 </div>
                             </div>
-                        ))}
+                        ) : (
+                            // Multiple image previews for creating
+                            Array.from(imagePreviewUrls.entries()).map(([index, previewUrl]) => (
+                                <div key={index} className="p-3 border rounded-md">
+                                    <div className="flex flex-col sm:flex-row gap-4">
+                                        {/* Image preview */}
+                                        <div className="w-full sm:w-1/3">
+                                            <div className="border rounded overflow-hidden">
+                                                <img 
+                                                    src={previewUrl} 
+                                                    alt={`Imagen ${index + 1}`} 
+                                                    className="w-full h-auto object-contain"
+                                                    style={{ maxHeight: '150px' }}
+                                                />
+                                            </div>
+                                        </div>
+                                        
+                                        {/* Audio input for this image */}
+                                        <div className="w-full sm:w-2/3">
+                                            <div className="mb-1 font-medium">Imagen {index + 1}</div>
+                                            <div className="mb-1 text-xs">Select Audio (opcional)</div>
+                                            <FileInput
+                                                name={`audio-${index}`}
+                                                accept=".mp3,audio/mpeg"
+                                                onChange={(e) => handleImageAudioChange(e, index)}
+                                                error={audioErrors.has(index)}
+                                                hint={audioErrors.get(index) || ''}
+                                            />
+                                            {imageAudioMap.has(index) && (
+                                                <div className="mt-1 text-sm text-green-600">
+                                                    Audio seleccionado: {imageAudioMap.get(index)?.name}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
                     </div>
                 </div>
             )}

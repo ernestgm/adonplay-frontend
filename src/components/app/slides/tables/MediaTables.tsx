@@ -17,12 +17,15 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
 import { fetchMedia, deleteMedia } from "@/server/api/media";
+
+// Base URL for media files
+const FTP_BASE_URL = process.env.FTP_BASE_URL || "http://adonplayftp.geniusdevelops.com/";
 
 const MediaTable = ({slide}) => {
     const router = useRouter();
@@ -88,7 +91,11 @@ const MediaTable = ({slide}) => {
     );
 
     const handleEdit = (mediaId) => {
-        router.push(`/slides/edit/1/media/edit/${mediaId}`);
+        router.push(`/slides/edit/${slide}/media/edit/${mediaId}`);
+    };
+    
+    const handleViewDetails = (mediaId) => {
+        router.push(`/slides/edit/${slide}/media/details/${mediaId}`);
     };
 
     return (
@@ -159,16 +166,11 @@ const MediaTable = ({slide}) => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">slide_id</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">type</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">file_path</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">audio_path</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">description</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">description_position</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">description_size</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">qr_info</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">qr_position</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">duration</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Slide ID</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">File</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Actions</TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -183,16 +185,44 @@ const MediaTable = ({slide}) => {
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.slide_id}</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.type}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.file_path}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.audio_path}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.description}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.description_position}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.description_size}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.qr_info}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.qr_position}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.duration}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {item.type === "image" ? (
+                                                <div className="w-16 h-16 border rounded overflow-hidden">
+                                                    <img 
+                                                        src={FTP_BASE_URL + item.file_path} 
+                                                        alt="Image preview" 
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex items-center">
+                                                    <MdVideoFile size={24} className="text-blue-500 mr-2" />
+                                                    <span>Video</span>
+                                                </div>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {item.audio_path ? (
+                                                <div className="flex items-center">
+                                                    <MdAudioFile size={24} className="text-green-500 mr-2" />
+                                                    <span>Audio</span>
+                                                </div>
+                                            ) : (
+                                                <span>-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.duration}s</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
+                                                <Tooltip content="Ver Detalles">
+                                                    <Button
+                                                        onClick={() => handleViewDetails(item.id)}
+                                                        variant="primary"
+                                                        size="sm"
+                                                    >
+                                                        <MdInfo size={18}/>
+                                                    </Button>
+                                                </Tooltip>
                                                 <Tooltip content="Editar">
                                                     <Button
                                                         onClick={() => handleEdit(item.id)}

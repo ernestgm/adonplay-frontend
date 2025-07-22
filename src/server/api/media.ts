@@ -24,7 +24,7 @@ export const fetchMedia = async (slide) => {
 
 export const deleteMedia = async (slide,ids) => {
     try {
-        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media/media`, {'ids': ids});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -46,7 +46,7 @@ export const createMedia = async (slide, data) => {
 
 export const updateMedia = async (slide,id, data) => {
     try {
-        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media/${id}`, data);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
