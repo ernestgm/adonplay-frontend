@@ -239,7 +239,7 @@ const UserTable = () => {
                                             {user.enabled ? "Enabled" : "Disabled"}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {user.roles.map((role) => role.name).join(", ")}
+                                            {user.role}
                                         </TableCell>
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">

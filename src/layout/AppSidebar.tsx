@@ -78,7 +78,7 @@ const AppSidebar: React.FC = () => {
 
   // Extraer el role del usuario autenticado desde la cookie
   const userData = getDataUserAuth()
-  const userRole = userData?.roles?.[0]?.code || ""; // Obtener el primer rol del usuario
+  const userRole = userData?.role || ""; // Obtener el primer rol del usuario
 
 
   const renderMenuItems = (
