@@ -1,8 +1,8 @@
 import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
-export const getMedia = async (slide, id) => {
+export const getMedia = async (id) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -11,9 +11,9 @@ export const getMedia = async (slide, id) => {
     }
 };
 
-export const fetchMedia = async (slide) => {
+export const fetchMedia = async () => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -22,9 +22,9 @@ export const fetchMedia = async (slide) => {
     }
 };
 
-export const deleteMedia = async (slide,ids) => {
+export const deleteMedia = async (ids) => {
     try {
-        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`, {'ids': ids});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/media`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -33,7 +33,7 @@ export const deleteMedia = async (slide,ids) => {
     }
 };
 
-export const createMedia = async (slide, data) => {
+export const createMedia = async (data) => {
     try {
         return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`, data);
     } catch (error) {
@@ -44,9 +44,9 @@ export const createMedia = async (slide, data) => {
     }
 };
 
-export const updateMedia = async (slide,id, data) => {
+export const updateMedia = async (id, data) => {
     try {
-        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media/${id}`, data);
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/media/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,

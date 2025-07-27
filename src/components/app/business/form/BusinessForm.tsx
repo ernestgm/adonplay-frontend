@@ -30,7 +30,7 @@ const BusinessForm = ({ business }) => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => !u.roles.some(r => r.code === "admin"));
+                const filtered = allUsers.filter(u => u.role !== "admin");
                 setUsers(filtered);
             } catch (err) {
                 setError("Error al cargar usuarios para owner");

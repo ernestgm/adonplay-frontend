@@ -23,14 +23,9 @@ export default function UserDropdown() {
     setIsOpen(false);
   }
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push("/signin"); // Redirigir solo si no hay error
-    } catch (err) {
-      setError(err.data?.message || err.message || "Error during sign out");
-      console.error("Error during sign out:", err);
-    }
+  const handleSignOut = () => {
+    signOut();
+    router.push("/signin");
   };
 
   const userData = getDataUserAuth()

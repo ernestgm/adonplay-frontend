@@ -14,7 +14,7 @@ interface MediaDetailsProps {
     onBack: () => void;
 }
 
-const MediaDetails: React.FC<MediaDetailsProps> = ({ media, onBack }) => {
+const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ media, onBack }) => {
     if (!media) return null;
 
     const formatDate = (dateString) => {
@@ -193,4 +193,4 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media, onBack }) => {
     );
 };
 
-export default MediaDetails;
+export default SlideMediaDetails;

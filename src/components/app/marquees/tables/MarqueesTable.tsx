@@ -155,8 +155,7 @@ const MarqueesTable = () => {
                                 </TableCell>
                                 <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
                                 <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negocio</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Color Fondo</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Color Texto</TableCell>
+                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Format</TableCell>
                                 <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
                             </TableRow>
                         </TableHeader>
@@ -178,11 +177,8 @@ const MarqueesTable = () => {
                                             padding: '2px 8px',
                                             borderRadius: '4px'
                                         }}>
-                                            {m.background_color}
+                                            {m.message}
                                         </span>
-                                    </TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        <span style={{color: m.text_color}}>{m.text_color}</span>
                                     </TableCell>
                                     <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                         <div className="flex gap-2 justify-end">

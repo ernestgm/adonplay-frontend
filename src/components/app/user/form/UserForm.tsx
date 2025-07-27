@@ -26,7 +26,7 @@ const UserForm = ({user}) => {
         password: "",
         password_confirmation: "",
         enabled: user?.enabled || 1,
-        role: user?.roles[0].id || "",
+        role: user?.role || "",
         // Agrega más campos según tu modelo
     });
     const [loading, setLoading] = React.useState(false);

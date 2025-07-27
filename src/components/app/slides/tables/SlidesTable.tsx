@@ -9,7 +9,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit, MdSettings} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdSettings, MdSlideshow, MdCollections} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
@@ -95,8 +95,8 @@ const SlidesTable = () => {
         router.push(`/slides/settings/${slide}`);
     };
 
-    const handleEdit = (businessId) => {
-        router.push(`/slides/edit/${businessId}`);
+    const handleEdit = (slide) => {
+        router.push(`/slides/media-management/${slide}`);
     };
 
     return (
@@ -182,9 +182,9 @@ const SlidesTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Editar">
+                                                <Tooltip content="Medias Management">
                                                     <Button size="sm" variant="primary" onClick={() => handleEdit(slides.id)}>
-                                                        <MdEdit size={18}/>
+                                                        <MdCollections size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                                 <Tooltip content="Settings">

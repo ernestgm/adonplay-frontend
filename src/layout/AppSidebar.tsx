@@ -15,9 +15,14 @@ import {
   PlugInIcon,
   UserCircleIcon,
 } from "../icons/index";
-import SidebarWidget from "./SidebarWidget";
-import Cookies from "js-cookie";
-import {getDataUserAuth} from "@/server/api/auth"; // Importar nookies para manejar cookies
+import {getDataUserAuth} from "@/server/api/auth";
+import {
+  MdOutlineBusinessCenter,
+  MdOutlineGridView,
+  MdOutlineQrCode2, MdOutlineSupervisedUserCircle, MdOutlineTextRotationNone, MdOutlineTv,
+  MdOutlineVideoLibrary, MdOutlineViewCarousel,
+  MdVideoLibrary
+} from "react-icons/md"; // Importar nookies para manejar cookies
 
 type NavItem = {
   name: string;
@@ -29,46 +34,55 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
-    icon: <GridIcon />,
+    icon: <MdOutlineGridView  size={25} />,
     name: "Home",
     path: "/",
     roles: ["admin", "owner"], // Ejemplo de roles
   },
   {
-    icon: <UserCircleIcon />,
-    name: "Users",
-    path: "/users",
-    roles: ["admin"],
-  },
-  {
-    icon: <BoxCubeIcon />,
-    name: "Business",
+    icon: <MdOutlineBusinessCenter size={25} />,
+    name: "Business Management",
     path: "/business",
     roles: ["admin", "owner"],
   },
   {
-    icon: <PageIcon />,
-    name: "Slides",
+    icon: <MdOutlineVideoLibrary size={25} />,
+    name: "Media Library",
+    path: "/media-library",
+    roles: ["admin", "owner"],
+  },
+  {
+    icon: <MdOutlineViewCarousel size={25} />,
+    name: "Slides Management",
     path: "/slides",
     roles: ["admin", "owner"],
   },
   {
-    icon: <ListIcon />,
-    name: "Marquees",
+    icon: <MdOutlineTextRotationNone size={25} />,
+    name: "Marquees Management",
     path: "/marquees",
     roles: ["admin", "owner"],
   },
   {
-    icon: <PieChartIcon />,
-    name: "Qr Codes",
+    icon: <MdOutlineQrCode2 size={25}  />,
+    name: "Qr Codes Management",
     path: "/qrcodes",
     roles: ["admin", "owner"],
   },
   {
-    icon: <PlugInIcon />,
-    name: "Devices",
+    icon: <MdOutlineTv size={25} />,
+    name: "Devices Management",
     path: "/devices",
     roles: ["admin", "owner"],
+  },
+];
+
+const othersItems: NavItem[] = [
+  {
+    icon: <MdOutlineSupervisedUserCircle size={25} />,
+    name: "User Management",
+    path: "/users",
+    roles: ["admin"],
   },
 ];
 
@@ -340,6 +354,23 @@ const AppSidebar: React.FC = () => {
                 )}
               </h2>
               {renderMenuItems(navItems, "main", [userRole])} {/* Pasar los roles aquí */}
+            </div>
+
+            <div className="">
+              <h2
+                  className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                      !isExpanded && !isHovered
+                          ? "lg:justify-center"
+                          : "justify-start"
+                  }`}
+              >
+                {isExpanded || isHovered || isMobileOpen ? (
+                    "System Settings"
+                ) : (
+                    <HorizontaLDots />
+                )}
+              </h2>
+              {renderMenuItems(othersItems, "others", [userRole])}
             </div>
           </div>
         </nav>
