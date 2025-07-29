@@ -36,7 +36,7 @@ const SlideMediaEditPage = () => {
     return (
         <div>
             <PageBreadcrumb pageTitle="Edit Slide Media"/>
-            {media && <SlideMediaForm slideId={slideId} media={media} />}
+            {media && <SlideMediaForm slideId={slideId} slideMedia={media} />}
         </div>
     );
 };

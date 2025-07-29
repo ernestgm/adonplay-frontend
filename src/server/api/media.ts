@@ -22,6 +22,28 @@ export const fetchMedia = async () => {
     }
 };
 
+export const fetchMediaExcepted = async (slideId) => {
+    try {
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media_excepted/${slideId}`);
+    } catch (error) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Error al obtener media.",
+        };
+    }
+};
+
+export const fetchAudioMediaExcepted = async (slideId) => {
+    try {
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/all_audio_excepted/${slideId}`);
+    } catch (error) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Error al obtener media.",
+        };
+    }
+};
+
 export const deleteMedia = async (ids) => {
     try {
         return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/media`, {'ids': ids});
