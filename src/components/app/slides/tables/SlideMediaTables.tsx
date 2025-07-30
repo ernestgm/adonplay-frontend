@@ -17,7 +17,17 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile, MdImage, MdArrowUpward, MdArrowDownward} from "react-icons/md";
+import {
+    MdSearch,
+    MdDelete,
+    MdEdit,
+    MdInfo,
+    MdAudioFile,
+    MdVideoFile,
+    MdImage,
+    MdArrowUpward,
+    MdArrowDownward
+} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
@@ -25,6 +35,7 @@ import filterItems from "@/utils/filterItems";
 import {fetchMedia, deleteMedia} from "@/server/api/media";
 import mediaUrl from "@/utils/files";
 import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
+import {QRCodeCanvas} from "qrcode.react";
 
 const SlideMediaTable = ({slide}) => {
     const router = useRouter();
@@ -54,77 +65,77 @@ const SlideMediaTable = ({slide}) => {
         };
         fetchData();
     }, [slide, setError]); // Added slide and setError to dependency array
-    
+
     // Function to handle moving an item up in order
     const handleMoveUp = async (item, index) => {
         if (index === 0) return; // Already at the top
-        
+
         try {
             // Get the item above
             const prevItem = paginatedMedia[index - 1];
-            
+
             // Swap orders
             const newOrder = parseInt(prevItem.order);
             const prevOrder = parseInt(item.order);
-            
+
             // Update current item with new order
-            await updateSlideMedias(item.id, { order: newOrder });
-            
+            await updateSlideMedias(item.id, {order: newOrder});
+
             // Update previous item with current item's order
-            await updateSlideMedias(prevItem.id, { order: prevOrder });
-            
+            await updateSlideMedias(prevItem.id, {order: prevOrder});
+
             // Update local state
             const updatedMedia = [...media];
             const itemIndex = updatedMedia.findIndex(m => m.id === item.id);
             const prevItemIndex = updatedMedia.findIndex(m => m.id === prevItem.id);
-            
+
             if (itemIndex !== -1 && prevItemIndex !== -1) {
-                updatedMedia[itemIndex] = { ...updatedMedia[itemIndex], order: newOrder };
-                updatedMedia[prevItemIndex] = { ...updatedMedia[prevItemIndex], order: prevOrder };
-                
+                updatedMedia[itemIndex] = {...updatedMedia[itemIndex], order: newOrder};
+                updatedMedia[prevItemIndex] = {...updatedMedia[prevItemIndex], order: prevOrder};
+
                 // Sort the updated media by order
                 const sortedMedia = [...updatedMedia].sort((a, b) => parseInt(a.order) - parseInt(b.order));
                 setMedia(sortedMedia);
             }
-            
+
             setMessage("Orden actualizado correctamente");
         } catch (err) {
             setError(err.data?.message || err.message || "Error al actualizar el orden");
         }
     };
-    
+
     // Function to handle moving an item down in order
     const handleMoveDown = async (item, index) => {
         if (index === paginatedMedia.length - 1) return; // Already at the bottom
-        
+
         try {
             // Get the item below
             const nextItem = paginatedMedia[index + 1];
-            
+
             // Swap orders
             const newOrder = parseInt(nextItem.order);
             const nextOrder = parseInt(item.order);
-            
+
             // Update current item with new order
-            await updateSlideMedias(item.id, { order: newOrder });
-            
+            await updateSlideMedias(item.id, {order: newOrder});
+
             // Update next item with current item's order
-            await updateSlideMedias(nextItem.id, { order: nextOrder });
-            
+            await updateSlideMedias(nextItem.id, {order: nextOrder});
+
             // Update local state
             const updatedMedia = [...media];
             const itemIndex = updatedMedia.findIndex(m => m.id === item.id);
             const nextItemIndex = updatedMedia.findIndex(m => m.id === nextItem.id);
-            
+
             if (itemIndex !== -1 && nextItemIndex !== -1) {
-                updatedMedia[itemIndex] = { ...updatedMedia[itemIndex], order: newOrder };
-                updatedMedia[nextItemIndex] = { ...updatedMedia[nextItemIndex], order: nextOrder };
-                
+                updatedMedia[itemIndex] = {...updatedMedia[itemIndex], order: newOrder};
+                updatedMedia[nextItemIndex] = {...updatedMedia[nextItemIndex], order: nextOrder};
+
                 // Sort the updated media by order
                 const sortedMedia = [...updatedMedia].sort((a, b) => parseInt(a.order) - parseInt(b.order));
                 setMedia(sortedMedia);
             }
-            
+
             setMessage("Orden actualizado correctamente");
         } catch (err) {
             setError(err.data?.message || err.message || "Error al actualizar el orden");
@@ -252,17 +263,19 @@ const SlideMediaTable = ({slide}) => {
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</TableCell>
                                     <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</TableCell>
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">File</TableCell>
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qr</TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</TableCell>
                                     <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</TableCell>
                                     <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Actions</TableCell>
+                                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Actions</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
@@ -287,7 +300,7 @@ const SlideMediaTable = ({slide}) => {
                                                             disabled={index === 0}
                                                             className="p-1 h-6"
                                                         >
-                                                            <MdArrowUpward size={16} />
+                                                            <MdArrowUpward size={16}/>
                                                         </Button>
                                                     </Tooltip>
                                                     <Tooltip content="Mover abajo">
@@ -298,15 +311,22 @@ const SlideMediaTable = ({slide}) => {
                                                             disabled={index === paginatedMedia.length - 1}
                                                             className="p-1 h-6"
                                                         >
-                                                            <MdArrowDownward size={16} />
+                                                            <MdArrowDownward size={16}/>
                                                         </Button>
                                                     </Tooltip>
                                                 </div>
                                             </div>
                                         </TableCell>
                                         {/* Access owner name from nested media object */}
-                                        <TableCell
-                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.media.owner.name}</TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {item.audio_media_id ? (
+                                                <div className="flex items-center">
+                                                    <MdAudioFile size={24} className="text-blue-500 mr-2"/>
+                                                </div>
+                                            ) : (
+                                                <span className="text-gray-400">-</span>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {/* Access media_type and file_path from nested media object */}
                                             {item.media.media_type === "image" ? (
@@ -331,6 +351,18 @@ const SlideMediaTable = ({slide}) => {
                                             }
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            { item.qr ? (
+                                                <QRCodeCanvas
+                                                    id="qrcode-canvas"
+                                                    value={item.qr.info || []}
+                                                    size={30}
+                                                    level="H"
+                                                    marginSize={1}
+                                                />
+                                                ) : ("-")
+                                            }
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {item.description ? (
                                                 <div className="max-w-xs truncate">{item.description}</div>
                                             ) : (
@@ -342,20 +374,13 @@ const SlideMediaTable = ({slide}) => {
                                             {item.media.media_type === "image" && item.audio_media_id ? (
                                                 <span className="text-gray-400">-</span>
                                             ) : item.media.media_type === "video" ? (
-                                                    <span className="text-gray-400">-</span>
-                                                ) : (
+                                                <span className="text-gray-400">-</span>
+                                            ) : (
                                                 <span>{item.duration}s</span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {item.audio_media_id ? (
-                                                <div className="flex items-center">
-                                                    <MdAudioFile size={24} className="text-blue-500 mr-2"/>
-                                                </div>
-                                            ) : (
-                                                <span className="text-gray-400">-</span>
-                                            )}
-                                        </TableCell>
+                                        <TableCell
+                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.media.owner.name}</TableCell>
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">

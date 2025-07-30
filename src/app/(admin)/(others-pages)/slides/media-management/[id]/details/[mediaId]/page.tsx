@@ -12,7 +12,7 @@ const SlideMediaDetailsPage = () => {
     const router = useRouter();
     const slideId = params.id; // Get the slide ID from the URL
     const mediaId = params.mediaId; // Get the media ID from the URL
-    const [media, setMedia] = useState(null);
+    const [slideMedia, setSlideMedia] = useState(null);
     const [loading, setLoading] = useState(true);
     const setError = useError().setError;
 
@@ -20,7 +20,7 @@ const SlideMediaDetailsPage = () => {
         const fetchData = async () => {
             try {
                 const data = await getSlideMedias(mediaId);
-                setMedia(data);
+                setSlideMedia(data);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al cargar media");
             } finally {
@@ -40,8 +40,8 @@ const SlideMediaDetailsPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Slide Media Details"/>
-            {media && <SlideMediaDetails media={media} onBack={handleBack} />}
+            <PageBreadcrumb pageTitle="Slide Media Details" onBack={handleBack} />
+            {slideMedia && <SlideMediaDetails slideMedia={slideMedia} />}
         </div>
     );
 };

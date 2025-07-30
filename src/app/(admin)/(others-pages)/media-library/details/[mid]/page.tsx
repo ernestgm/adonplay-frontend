@@ -44,8 +44,8 @@ const MediaDetailsPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Detalles de Media"/>
-            <MediaDetails media={media} onBack={handleBack} />
+            <PageBreadcrumb pageTitle="Detalles de Media" onBack={handleBack}/>
+            <MediaDetails media={media} />
         </div>
     );
 };

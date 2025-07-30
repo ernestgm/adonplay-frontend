@@ -3,7 +3,7 @@
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
 import {getMarquees} from "@/server/api/marquees";
 import {getQrCode} from "@/server/api/qrcodes";
@@ -16,6 +16,12 @@ const QrCodeEditPage = () => {
     // Obtener el id de la URL
     const [loading, setLoading] = useState(true);
     const [qrcode, setQrCode] = useState(null);
+
+    const router = useRouter();
+    const handleBack = () => {
+        router.push(`/qrcodes`);
+    };
+
     // Obtener el negocio a editar (puedes mejorar esto usando SWR o React Query si lo usas en el proyecto)
 
     useEffect(() => {
@@ -40,7 +46,7 @@ const QrCodeEditPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Editar Marquee"/>
+            <PageBreadcrumb pageTitle="Editar Marquee" onBack={handleBack}/>
             <QrCodeForm qrcode={qrcode} />
         </div>
     );

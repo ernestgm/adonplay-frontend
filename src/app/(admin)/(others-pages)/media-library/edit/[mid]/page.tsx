@@ -3,7 +3,7 @@
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
 import {getMarquees} from "@/server/api/marquees";
 import {getQrCode} from "@/server/api/qrcodes";
@@ -20,7 +20,11 @@ const MediaEditPage = () => {
     // Obtener el id de la URL
     const [loading, setLoading] = useState(true);
     const [media, setMedia] = useState(null);
-    // Obtener el negocio a editar (puedes mejorar esto usando SWR o React Query si lo usas en el proyecto)
+
+    const router = useRouter();
+    const handleBack = () => {
+        router.push(`/media-library`);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -45,7 +49,7 @@ const MediaEditPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Editar Marquee"/>
+            <PageBreadcrumb pageTitle="Editar Marquee" onBack={handleBack}/>
             <MediaForm media={media} />
         </div>
     );

@@ -13,7 +13,10 @@ import Form from "@/components/form/Form";
 import {createMarquees, updateMarquees} from "@/server/api/marquees";
 import TextArea from "@/components/form/input/TextArea";
 
-const MarqueesForm = ({ marquee }) => {
+interface MarqueeFormProps {
+    marquee?: any;
+}
+const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     const userData = getDataUserAuth();
     const isOwner = userData.roles?.some(r => r.code === "owner");
     const [form, setForm] = useState({

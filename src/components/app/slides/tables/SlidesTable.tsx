@@ -165,7 +165,7 @@ const SlidesTable = () => {
                                     <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
                                     <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</TableCell>
                                     <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">

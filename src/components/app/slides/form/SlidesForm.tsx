@@ -17,7 +17,10 @@ import ComponentCard from "@/components/common/ComponentCard";
 import config from "@/config/globalConfig";
 import PositionExample from "@/components/common/PositionExample";
 
-const SlidesForm = ({slides}) => {
+interface SlidesFormProps {
+    slides?: any;
+}
+const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
     const userData = getDataUserAuth();
     const [form, setForm] = useState({
         name: slides?.name || "",

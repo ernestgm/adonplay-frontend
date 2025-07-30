@@ -17,7 +17,10 @@ import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react';
 import PositionExample from "@/components/common/PositionExample";
 import handleDownloadQr from "@/utils/qrCode";
 
-const QrCodeForm = ({ qrcode }) => {
+interface QrCodeFormProps {
+    qrcode?: any;
+}
+const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
     const [form, setForm] = useState({
         name: qrcode?.name || "",
         info: qrcode?.info || "",

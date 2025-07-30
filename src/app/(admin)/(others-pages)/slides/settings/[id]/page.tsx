@@ -3,7 +3,7 @@
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import {getSlide} from "@/server/api/slides";
 import SlidesForm from "@/components/app/slides/form/SlidesForm";
 
@@ -14,8 +14,13 @@ const SlidesEditPage = () => {
     // Obtener el id de la URL
     const [loading, setLoading] = useState(true);
     const [slide, setSlide] = useState(null);
-    // Obtener el negocio a editar (puedes mejorar esto usando SWR o React Query si lo usas en el proyecto)
 
+    const router = useRouter();
+    const handleBack = () => {
+        router.push(`/slides`);
+    };
+
+    // Obtener el negocio a editar (puedes mejorar esto usando SWR o React Query si lo usas en el proyecto)
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
@@ -38,7 +43,7 @@ const SlidesEditPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Slide Settings"/>
+            <PageBreadcrumb pageTitle="Slide Settings" onBack={handleBack}/>
             <SlidesForm slides={slide} />
         </div>
     );

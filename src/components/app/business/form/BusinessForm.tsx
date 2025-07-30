@@ -13,7 +13,11 @@ import { getDataUserAuth } from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
 
-const BusinessForm = ({ business }) => {
+interface BusinessFormProps {
+    business?: any;
+}
+
+const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
     const userData = getDataUserAuth();
     const [form, setForm] = useState({
         name: business?.name || "",

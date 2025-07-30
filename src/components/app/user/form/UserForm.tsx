@@ -15,7 +15,10 @@ import Cookies from "js-cookie";
 import {getDataUserAuth} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 
-const UserForm = ({user}) => {
+interface UserFormProps {
+    user?: any;
+}
+const UserForm: React.FC<UserFormProps> = ({user}) => {
     const userData = getDataUserAuth()
     const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
@@ -76,8 +79,6 @@ const UserForm = ({user}) => {
 
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
-            <h2 className="text-xl font-bold mb-4">{user ? "Editar usuario" : "Crear usuario"}</h2>
-
             <div className="mb-5">
                 <Label>Name *</Label>
                 <Input

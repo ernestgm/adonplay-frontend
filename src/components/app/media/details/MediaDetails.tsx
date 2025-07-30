@@ -10,10 +10,9 @@ import mediaUrl from "@/utils/files";
 
 interface MediaDetailsProps {
     media: any;
-    onBack: () => void;
 }
 
-const MediaDetails: React.FC<MediaDetailsProps> = ({ media, onBack }) => {
+const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
     if (!media) return null;
 
     const formatDate = (dateString) => {
@@ -24,18 +23,6 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media, onBack }) => {
 
     return (
         <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
-            <div className="flex items-center mb-6">
-                <Button 
-                    onClick={onBack} 
-                    variant="outline" 
-                    size="sm"
-                    className="mr-4"
-                >
-                    <MdArrowBack size={18} className="mr-1" /> Volver
-                </Button>
-                <h1 className="text-2xl font-bold">Detalles de Media</h1>
-            </div>
-
             {/* Media Preview */}
             <div className="mb-8">
                 <h2 className="text-xl font-semibold mb-4">Vista Previa</h2>

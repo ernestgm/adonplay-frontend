@@ -6,26 +6,27 @@ import { getUser } from "@/server/api/users";
 import { useError } from "@/context/ErrorContext";
 import {useParams, useRouter} from "next/navigation";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+import {getDevice} from "@/server/api/devices";
+import DeviceForm from "@/components/app/devices/form/DeviceForm";
 
 const EditUserPage = () => {
     const params = useParams();
     const id = params.id; // El ID de la URL
-    const [user, setUser] = useState(null);
+    const [device, setDevice] = useState(null);
     const [loading, setLoading] = useState(true);
     const setError = useError().setError;
 
     const router = useRouter();
     const handleBack = () => {
-        router.push(`/users`);
+        router.push(`/devices`);
     };
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const data = await getUser(id);
-                console.log(data);
-                setUser(data);
+                const data = await getDevice(id);
+                setDevice(data);
             } catch (err) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
@@ -42,8 +43,8 @@ const EditUserPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Edit User" onBack={handleBack} />
-            <UserForm user={user} />
+            <PageBreadcrumb pageTitle="Edit Device" onBack={handleBack} />
+            <DeviceForm device={device} />
         </div>
     );
 };

@@ -2,7 +2,7 @@
 
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, { useEffect, useState } from 'react';
-import { useParams } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { useError } from "@/context/ErrorContext";
 import SlideMediaForm from "@/components/app/slides/form/SlideMediaForm";
 import { getSlideMedias } from "@/server/api/slidesMedia";
@@ -14,6 +14,11 @@ const SlideMediaEditPage = () => {
     const [media, setMedia] = useState(null);
     const [loading, setLoading] = useState(true);
     const setError = useError().setError;
+    const router = useRouter();
+
+    const handleBack = () => {
+        router.push(`/slides/media-management/${slideId}`);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -35,7 +40,7 @@ const SlideMediaEditPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Edit Slide Media"/>
+            <PageBreadcrumb pageTitle="Edit Slide Media" onBack={handleBack}/>
             {media && <SlideMediaForm slideId={slideId} slideMedia={media} />}
         </div>
     );

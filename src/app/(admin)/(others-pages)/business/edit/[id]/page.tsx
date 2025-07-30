@@ -6,7 +6,7 @@ import React, {useEffect, useState} from 'react';
 import {getBusiness} from '@/server/api/business';
 import {useError} from "@/context/ErrorContext";
 import type {Metadata} from "next";
-import {useParams} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 
 const BusinessEditPage = () => {
     const params = useParams();
@@ -16,6 +16,10 @@ const BusinessEditPage = () => {
     const [loading, setLoading] = useState(true);
     const [business, setBusiness] = useState(null);
     // Obtener el negocio a editar (puedes mejorar esto usando SWR o React Query si lo usas en el proyecto)
+    const router = useRouter();
+    const handleBack = () => {
+        router.push(`/business`);
+    };
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,7 +43,7 @@ const BusinessEditPage = () => {
 
     return (
         <div>
-            <PageBreadcrumb pageTitle="Editar Negocio"/>
+            <PageBreadcrumb pageTitle="Editar Negocio" onBack={handleBack}/>
             <BusinessForm business={business}/>
         </div>
     );

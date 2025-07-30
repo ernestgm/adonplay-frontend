@@ -47,7 +47,7 @@ const qrPositions = descriptionPositions;
 
 interface MediaFormProps {
     slideMedia?: any;
-    slideId: string;
+    slideId: any;
 }
 
 const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
@@ -69,6 +69,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     const [selectedMedia, setSelectedMedia] = useState(slideMedia?.media || null);
     const [selectedAudioId, setSelectedAudioId] = useState(slideMedia?.audio_media_id || "");
     const [selectedAudio, setSelectedAudio] = useState(slideMedia?.audio_media || null);
+    const [audioUsed, setAudioUsed] = useState(slideMedia?.audio_media != null);
     const [mediaSearchTerm, setMediaSearchTerm] = useState("");
     const [audioSearchTerm, setAudioSearchTerm] = useState("");
     const [currentMediaPage, setCurrentMediaPage] = useState(1);
@@ -124,6 +125,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 if (slideMedia?.media) {
                     setSelectedMedia(slideMedia.media);
                 }
+
                 if (slideMedia?.audio_media) {
                     setSelectedAudio(slideMedia.audio_media);
                 }
@@ -173,12 +175,15 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 const audio = allAudios.find(m => m.id === parseInt(selectedAudioId));
                 setAudioPreviewUrl(mediaUrl(audio.file_path));
                 setSelectedAudio(audio);
+                setAudioUsed(true);
             } else if(slideMedia && selectedAudioId !== slideMedia?.audio_media_id?.toString()) {
                 const audio = allAudios.find(m => m.id === parseInt(selectedAudioId));
                 setAudioPreviewUrl(mediaUrl(audio.file_path));
                 setSelectedAudio(audio);
+                setAudioUsed(true);
             }
         }
+        console.log(audioUsed);
     }, [selectedAudioId]);
 
     // Clean up preview URLs when component unmounts
@@ -219,6 +224,14 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         setSelectedAudio(null);
         setAudioPreviewUrl(null);
         setUploadNewAudio(false);
+        setAudioUsed(false);
+    };
+
+    const clearQr = () => {
+        setSelectedQrId(null);
+        setForm({...form, qr_id: ''});
+        setSelectedQr(null);
+        setShowQrSelector(false);
     };
 
     const handleSelectQr = (qrId) => {
@@ -276,6 +289,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         if (audio.type.match("audio/mp3|audio/mpeg")) {
             const previewUrl = URL.createObjectURL(audio);
             setAudioPreviewUrl(previewUrl);
+            setAudioUsed(true)
         } else {
             setFileError("Formato de archivo no soportado");
         }
@@ -787,7 +801,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 </div>
             )}
 
-            {(selectedMedia?.media_type === "image" || imagePreviewUrl) && !selectedAudio || !audioPreviewUrl && (
+            {(selectedMedia?.media_type === "image" || imagePreviewUrl) && (!audioUsed) && (
                 <div className="mb-5">
                     <Label>Duración (segundos) *</Label>
                     <div className="text-xs text-gray-500 mb-1">
@@ -884,6 +898,14 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     onClick={() => setShowQrSelector(true)}
                                 >
                                     Cambiar
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => clearQr() }
+                                >
+                                    Quitar
                                 </Button>
                             </div>
                         </div>

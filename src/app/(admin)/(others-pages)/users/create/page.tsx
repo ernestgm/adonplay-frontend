@@ -1,15 +1,21 @@
+"use client"
+
 import React from "react";
 import UserForm from "@/components/app/user/form/UserForm";
 import type {Metadata} from "next";
+import {useRouter} from "next/navigation";
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 
-export const metadata: Metadata = {
-    title: `Create Users | ${process.env.NAME_PAGE}`,
-    description: `This is Create Users Page in ${process.env.NAME_PAGE}`,
-};
 const CreateUserPage = () => {
+    const router = useRouter();
+    const handleBack = () => {
+        router.push(`/users`);
+    };
+
   return (
-    <div className="py-8">
-      <UserForm />
+    <div>
+        <PageBreadcrumb pageTitle="Crear User" onBack={handleBack}/>
+        <UserForm />
     </div>
   );
 };
