@@ -6,7 +6,7 @@ import './globals.css';
 import { SidebarProvider } from '@/context/SidebarContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ErrorProvider } from "@/context/ErrorContext";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import GlobalLoadingIndicator from "@/components/ui/loading/globalLoadingIndicator";
 
 const outfit = Outfit({
