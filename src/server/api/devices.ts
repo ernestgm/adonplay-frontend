@@ -23,7 +23,7 @@ export const fetchDevices = async () => {
 
 export const updateDevices = async (id, device) => {
   try {
-    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, device);
+    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/devices/${id}`, device);
   } catch (error) {
     throw {
       status: error.response?.status || 500,

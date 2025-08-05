@@ -8,13 +8,13 @@ import {useError} from "@/context/ErrorContext";
 import Label from "@/components/form/Label";
 import {getDataUserAuth} from "@/server/api/auth";
 import Form from "@/components/form/Form";
+import {updateDevices} from "@/server/api/devices";
 
 interface UserFormProps {
     device?: any;
 }
 const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     const userData = getDataUserAuth()
-    const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
         name: device?.name || "",
@@ -31,8 +31,23 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
-    function handleSubmit() {
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setValidationErrors({});
+        try {
+            await updateDevices(device.id, form);
+            router.push("/devices");
+        } catch (err) {
+            if (err.data?.errors) {
+                setValidationErrors(err.data.errors)
+            } else {
+                setError(err.data?.message || err.message || "Error al guardar Device");
+            }
 
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
@@ -43,9 +58,48 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     name="name"
                     defaultValue={form.name}
                     onChange={handleChange}
-                    required
                     error={validationErrors.name}
                     hint={validationErrors.name}
+                />
+            </div>
+            <div className="mb-5">
+                <Label>Qr *</Label>
+                <Input
+                    name="qr_id"
+                    defaultValue={form.qr_id}
+                    onChange={handleChange}
+                    error={validationErrors.qr_id}
+                    hint={validationErrors.qr_id}
+                />
+            </div>
+            <div className="mb-5">
+                <Label>Marquee *</Label>
+                <Input
+                    name="marquee_id"
+                    defaultValue={form.marquee_id}
+                    onChange={handleChange}
+                    error={validationErrors.marquee_id}
+                    hint={validationErrors.marquee_id}
+                />
+            </div>
+            <div className="mb-5">
+                <Label>Slide *</Label>
+                <Input
+                    name="slide_id"
+                    defaultValue={form.slide_id}
+                    onChange={handleChange}
+                    error={validationErrors.slide_id}
+                    hint={validationErrors.slide_id}
+                />
+            </div>
+            <div className="mb-5">
+                <Label>User *</Label>
+                <Input
+                    name="users_id"
+                    defaultValue={form.users_id}
+                    onChange={handleChange}
+                    error={validationErrors.users_id}
+                    hint={validationErrors.users_id}
                 />
             </div>
             {/* Agrega más campos aquí si es necesario */}
