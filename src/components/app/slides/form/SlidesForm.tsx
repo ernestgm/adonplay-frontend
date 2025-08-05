@@ -8,7 +8,7 @@ import {useError} from "@/context/ErrorContext";
 import {fetchBusinesses} from "@/server/api/business";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
-import {getDataUserAuth} from "@/server/api/auth";
+import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
 import {createSlide, updateSlide} from "@/server/api/slides";
@@ -21,7 +21,6 @@ interface SlidesFormProps {
     slides?: any;
 }
 const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
-    const userData = getDataUserAuth();
     const [form, setForm] = useState({
         name: slides?.name || "",
         description: slides?.description || "",
@@ -47,8 +46,6 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
         };
         getBusiness();
     }, [setError]);
-
-    const isOwner = userData.roles?.some(r => r.code === "owner");
 
     const handleChange = (e) => {
         setForm({...form, [e.target.name]: e.target.value});

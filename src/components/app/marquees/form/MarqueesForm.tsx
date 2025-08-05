@@ -5,7 +5,7 @@ import Select from "@/components/form/Select";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/form/Label";
-import {getDataUserAuth} from "@/server/api/auth";
+import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import {useError} from "@/context/ErrorContext";
 import {useRouter} from "next/navigation";
 import {createBusiness, fetchBusinesses, updateBusiness} from "@/server/api/business";
@@ -18,7 +18,7 @@ interface MarqueeFormProps {
 }
 const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     const userData = getDataUserAuth();
-    const isOwner = userData.roles?.some(r => r.code === "owner");
+    const isOwner = getIsOwner();
     const [form, setForm] = useState({
         name: marquee?.name || "",
         message: marquee?.message || "",

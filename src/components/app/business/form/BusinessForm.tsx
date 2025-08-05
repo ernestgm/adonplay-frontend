@@ -9,7 +9,7 @@ import { createBusiness, updateBusiness } from "@/server/api/business";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
 import { fetchUsers } from "@/server/api/users";
-import { getDataUserAuth } from "@/server/api/auth";
+import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
 
@@ -19,6 +19,7 @@ interface BusinessFormProps {
 
 const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
     const userData = getDataUserAuth();
+    const isOwner = getIsOwner()
     const [form, setForm] = useState({
         name: business?.name || "",
         description: business?.description || "",
@@ -42,8 +43,6 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         };
         fetchOwners();
     }, [setError]);
-
-    const isOwner = userData.roles?.some(r => r.code === "owner");
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });

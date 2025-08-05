@@ -57,11 +57,11 @@ export const deleteUsersAPI = async (userIds: number[]) => {
 
 export const activateDevice = async (data) => {
   try {
-    return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/login-code/confirm`, data);
+    return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/activate_device`, data);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
-      data: error.response?.data || "Error al crear usuario.",
+      data: error.response?.data || "Error al activar dispositivo.",
     };
   }
 };

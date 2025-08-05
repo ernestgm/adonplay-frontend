@@ -21,3 +21,8 @@ export const getDataUserAuth = () => {
   const userAuth = typeof window !== "undefined" ? Cookies.get("user") : null;
   return userAuth ? JSON.parse(userAuth) : null;
 };
+
+export const getIsOwner = () => {
+  const userAuth = getDataUserAuth();
+  return (userAuth.role === "owner");
+};

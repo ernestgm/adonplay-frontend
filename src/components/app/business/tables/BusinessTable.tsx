@@ -15,7 +15,7 @@ import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
-import {getDataUserAuth} from "@/server/api/auth";
+import {getIsOwner} from "@/server/api/auth";
 import {
     Table,
     TableBody,
@@ -26,8 +26,7 @@ import {
 import filterItems from "@/utils/filterItems";
 
 const BusinessTable = () => {
-    const userData = getDataUserAuth();
-    const isOwner = userData.roles?.some(r => r.code === "owner");
+    const isOwner = getIsOwner()
     const router = useRouter();
     const [businesses, setBusinesses] = useState([]);
     const [selectedBusinesses, setSelectedBusinesses] = useState([]);

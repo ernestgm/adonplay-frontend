@@ -27,8 +27,6 @@ import {
 import filterItems from "@/utils/filterItems";
 
 const SlidesTable = () => {
-    const userData = getDataUserAuth();
-    const isOwner = userData.roles?.some(r => r.code === "owner");
     const router = useRouter();
     const [slides, setSlides] = useState([]);
     const [selectedSlides, setSelectedSlides] = useState([]);

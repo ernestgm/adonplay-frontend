@@ -253,15 +253,6 @@ const UserTable = () => {
                                                         <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Activate Device">
-                                                    <Button
-                                                        onClick={() => handleActivateDevice(user.id)}
-                                                        variant="primary"
-                                                        size="sm"
-                                                    >
-                                                        <MdDevices size={18}/>
-                                                    </Button>
-                                                </Tooltip>
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(user.id)}
