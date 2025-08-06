@@ -175,15 +175,15 @@ const DevicesTable = () => {
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        Slide
+                                    </TableCell>
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         QR
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         Marquee
-                                    </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Slide
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
@@ -210,13 +210,13 @@ const DevicesTable = () => {
                                             {device.name}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            { device.slide?.name || "-" }
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {device.qr?.name || "-"}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {device.marquee?.name || "-"}
-                                        </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            { device.slide?.name || "-" }
                                         </TableCell>
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">

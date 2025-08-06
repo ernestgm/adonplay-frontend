@@ -21,6 +21,17 @@ export const fetchQrCode = async () => {
     }
 };
 
+export const fetchQrCodeByUser = async (userId) => {
+    try {
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/qrs_by_user/${userId}`);
+    } catch (error) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Failed to sign out.",
+        };
+    }
+};
+
 export const createQrCode = async (user) => {
     try {
         return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/qrs`, user);

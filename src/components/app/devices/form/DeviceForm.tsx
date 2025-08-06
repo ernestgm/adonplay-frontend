@@ -1,20 +1,37 @@
 "use client";
 
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {useRouter} from "next/navigation";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
 import Label from "@/components/form/Label";
-import {getDataUserAuth} from "@/server/api/auth";
+import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {updateDevices} from "@/server/api/devices";
+import RadioImage from "@/components/form/input/RadioImage";
+import {MdOutlineStayCurrentLandscape, MdOutlineStayCurrentPortrait} from "react-icons/md";
+import CheckboxImage from "@/components/form/input/CheckboxImage";
+import {RiSlideshowLine} from "react-icons/ri";
+import ComponentCard from "@/components/common/ComponentCard";
+import {fetchUsers} from "@/server/api/users";
+import Select from "@/components/form/Select";
+import {ChevronDownIcon} from "@/icons";
+import {fetchSlidesByUser} from "@/server/api/slides";
+import {fetchQrCodeByUser} from "@/server/api/qrcodes";
+import {fetchMarqueesByUser} from "@/server/api/marquees";
 
 interface UserFormProps {
     device?: any;
 }
+
 const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     const userData = getDataUserAuth()
+    const isOwner = getIsOwner()
+    const [users, setUsers] = useState([]);
+    const [slides, setSlides] = useState([]);
+    const [marquees, setMarquees] = useState([]);
+    const [qrs, setQrs] = useState([]);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
         name: device?.name || "",
@@ -22,6 +39,8 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         marquee_id: device?.marquee_id || "",
         slide_id: device?.slide_id || "",
         users_id: device?.users_id || "",
+        portrait: device?.portrait || false,
+        as_presentation: device?.as_presentation || false,
     });
     const [loading, setLoading] = React.useState(false);
     const [validationErrors, setValidationErrors] = React.useState({});
@@ -29,6 +48,30 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
 
     const handleChange = (e) => {
         setForm({...form, [e.target.name]: e.target.value});
+    };
+
+    const handlePortraitChange = (value) => {
+        setForm({...form, portrait: value == "1"});
+    };
+
+    const handleAsPresentationChange = (value) => {
+        setForm({...form, as_presentation: value});
+    };
+
+    const handleUserChange = (value) => {
+        if (!isOwner) setForm({...form, users_id: value});
+    };
+
+    const handleSlidesChange = (value) => {
+        if (!isOwner) setForm({...form, slide_id: value});
+    };
+
+    const handleQrChange = (value) => {
+        if (!isOwner) setForm({...form, qr_id: value});
+    };
+
+    const handleMarqueeChange = (value) => {
+        if (!isOwner) setForm({...form, marquee_id: value});
     };
 
     const handleSubmit = async (e) => {
@@ -50,8 +93,56 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         }
     }
 
+    useEffect(() => {
+        const fetchSlides = async () => {
+            try {
+                const slides = await fetchSlidesByUser(form.users_id);
+                setSlides(slides);
+            } catch (err) {
+                setError("Error al cargar usuarios para owner");
+            }
+        };
+        const fetchQrs = async () => {
+            try {
+                const qrs = await fetchQrCodeByUser(form.users_id);
+                setQrs(qrs);
+            } catch (err) {
+                setError("Error al cargar usuarios para owner");
+            }
+        };
+        const fetchMarquees = async () => {
+            try {
+                const marquees = await fetchMarqueesByUser(form.users_id);
+                setMarquees(marquees);
+            } catch (err) {
+                setError("Error al cargar usuarios para owner");
+            }
+        };
+
+        fetchSlides();
+        fetchQrs();
+        fetchMarquees();
+    }, [form.users_id]);
+
+    useEffect(() => {
+        const fetchOwners = async () => {
+            try {
+                const allUsers = await fetchUsers();
+                const filtered = allUsers.filter(u => u.role !== "admin");
+                setUsers(filtered);
+            } catch (err) {
+                setError("Error al cargar usuarios para owner");
+            }
+        };
+        fetchOwners();
+    }, []);
+
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+            <div className="mb-5 flex flex-row items-center gap-1">
+                <Label>Device ID: </Label>
+                <Label>{ device?.device_id }</Label>
+            </div>
             <div className="mb-5">
                 <Label>Name *</Label>
                 <Input
@@ -62,51 +153,132 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     hint={validationErrors.name}
                 />
             </div>
-            <div className="mb-5">
-                <Label>Qr *</Label>
-                <Input
-                    name="qr_id"
-                    defaultValue={form.qr_id}
-                    onChange={handleChange}
-                    error={validationErrors.qr_id}
-                    hint={validationErrors.qr_id}
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="mb-5">
+                    <Label>User *</Label>
+                    <div className="flex flex-shrink-0 w-full sm:w-auto">
+                        <div className="relative">
+                            <Select
+                                defaultValue={isOwner ? userData.id : form.users_id}
+                                onChange={handleUserChange}
+                                options={isOwner
+                                    ? [{value: userData.id, label: userData.name}]
+                                    : users.map(u => ({value: u.id, label: u.name}))}
+                                disabled={isOwner}
+                                className="w-full sm:w-auto"
+                                error={validationErrors.users_id}
+                                hint={validationErrors.users_id}
+                            />
+                            <span
+                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                          <ChevronDownIcon/>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+                <div className="mb-5">
+                    <Label>Slides</Label>
+                    <div className="flex flex-shrink-0 w-full sm:w-auto">
+                        <div className="relative">
+                            <Select
+                                defaultValue={form.slide_id}
+                                onChange={handleSlidesChange}
+                                options={slides.map(u => ({value: u.id, label: u.name}))}
+                                className="w-full sm:w-auto"
+                                error={validationErrors.users_id}
+                                hint={validationErrors.users_id}
+                            />
+                            <span
+                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                          <ChevronDownIcon/>
+                        </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="mb-5">
-                <Label>Marquee *</Label>
-                <Input
-                    name="marquee_id"
-                    defaultValue={form.marquee_id}
-                    onChange={handleChange}
-                    error={validationErrors.marquee_id}
-                    hint={validationErrors.marquee_id}
-                />
+            <div className="grid grid-cols-2 gap-4">
+                <div className="mb-5">
+                    <Label>Qr</Label>
+                    <div className="flex flex-shrink-0 w-full sm:w-auto">
+                        <div className="relative">
+                            <Select
+                                defaultValue={form.qr_id}
+                                onChange={handleQrChange}
+                                options={qrs.map(u => ({value: u.id, label: u.name}))}
+                                className="w-full sm:w-auto"
+                                placeholder="No Qr"
+                                disabledPlaceholder={false}
+                                error={validationErrors.qr_id}
+                                hint={validationErrors.qr_id}
+                            />
+                            <span
+                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                          <ChevronDownIcon/>
+                        </span>
+                        </div>
+                    </div>
+                </div>
+                <div className="mb-5">
+                    <Label>Marquees *</Label>
+                    <div className="flex flex-shrink-0 w-full sm:w-auto">
+                        <div className="relative">
+                            <Select
+                                defaultValue={form.marquee_id}
+                                onChange={handleMarqueeChange}
+                                options={marquees.map(u => ({value: u.id, label: u.name}))}
+                                placeholder="No Marquee"
+                                disabledPlaceholder={false}
+                                className="w-full sm:w-auto"
+                                error={validationErrors.marquee_id}
+                                hint={validationErrors.marquee_id}
+                            />
+                            <span
+                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                          <ChevronDownIcon/>
+                        </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div className="mb-5">
-                <Label>Slide *</Label>
-                <Input
-                    name="slide_id"
-                    defaultValue={form.slide_id}
-                    onChange={handleChange}
-                    error={validationErrors.slide_id}
-                    hint={validationErrors.slide_id}
-                />
-            </div>
-            <div className="mb-5">
-                <Label>User *</Label>
-                <Input
-                    name="users_id"
-                    defaultValue={form.users_id}
-                    onChange={handleChange}
-                    error={validationErrors.users_id}
-                    hint={validationErrors.users_id}
-                />
-            </div>
+            <ComponentCard title="Settings" className="mb-6">
+                <div className="gap-3 flex flex-row justify-between">
+                    <div className="mb-5">
+                        <CheckboxImage
+                            checked={form.as_presentation}
+                            onChange={handleAsPresentationChange}
+                            label="Presentation Mode"
+                            image={<RiSlideshowLine size={30}/>}
+                        />
+                    </div>
+                    <div className="flex flex-row gap-2 mb-5">
+                        <RadioImage
+                            id="landscape"
+                            name="portrait"
+                            value="0"
+                            checked={!form.portrait}
+                            label="Landscape Mode"
+                            onChange={handlePortraitChange}
+                            image={<MdOutlineStayCurrentLandscape size={20}/>}
+                        />
+
+                        <RadioImage
+                            id="portrait"
+                            name="portrait"
+                            value="1"
+                            checked={form.portrait}
+                            label="Portrait Mode"
+                            onChange={handlePortraitChange}
+                            image={<MdOutlineStayCurrentPortrait size={20}/>}
+                        />
+                    </div>
+                </div>
+            </ComponentCard>
+
             {/* Agrega más campos aquí si es necesario */}
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/devices")}>Cancelar</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { device ? "Guardar cambios" : "Crear"}
+                    {device ? "Guardar cambios" : "Crear"}
                 </Button>
             </div>
         </Form>

@@ -21,6 +21,17 @@ export const fetchMarquees = async () => {
     }
 };
 
+export const fetchMarqueesByUser = async (userId) => {
+    try {
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees_by_user/${userId}`);
+    } catch (error) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Failed to sign out.",
+        };
+    }
+};
+
 export const fetchMarqueesByBusiness = async (business) => {
     try {
         return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees`);

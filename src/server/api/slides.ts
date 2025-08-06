@@ -21,6 +21,17 @@ export const fetchSlides = async () => {
     }
 };
 
+export const fetchSlidesByUser = async (userId) => {
+    try {
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides_by_user/${userId}`);
+    } catch (error) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Failed to sign out.",
+        };
+    }
+};
+
 export const fetchSlidesByBusiness = async (business) => {
     try {
         return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/businesses/${business}/slides`);
