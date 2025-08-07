@@ -380,7 +380,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     );
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-white rounded shadow">
             <div className="mb-5">
                 <Label>Seleccionar Media *</Label>
                 <div className="flex flex-col gap-2">

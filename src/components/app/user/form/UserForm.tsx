@@ -14,6 +14,7 @@ import {MdPhone} from "react-icons/md";
 import Cookies from "js-cookie";
 import {getDataUserAuth} from "@/server/api/auth";
 import Form from "@/components/form/Form";
+import Checkbox from "@/components/form/input/Checkbox";
 
 interface UserFormProps {
     user?: any;
@@ -28,7 +29,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
         phone: user?.phone || "",
         password: "",
         password_confirmation: "",
-        enabled: user?.enabled || 1,
+        enabled: user?.enabled || false,
         role: user?.role || "",
         // Agrega más campos según tu modelo
     });
@@ -197,6 +198,13 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                     </div>
 
                 </div>
+            </div>
+            <div className="mb-5">
+                <Checkbox
+                    checked={form.enabled}
+                    onChange={() => { setForm({ ...form, enabled: !form.enabled }) }}
+                    label="Enabled"
+                />
             </div>
             {/* Agrega más campos aquí si es necesario */}
             <div className="flex gap-2 justify-end">

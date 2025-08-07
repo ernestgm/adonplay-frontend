@@ -65,7 +65,7 @@ const ActivateUserForm = () => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => u.role !== "admin");
+                const filtered = allUsers.filter(u => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
             } catch (err) {
                 setError("Error al cargar usuarios para owner");

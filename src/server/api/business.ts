@@ -38,7 +38,7 @@ export const createBusiness = async (data) => {
     } catch (error) {
         throw {
             status: error.response?.status || 500,
-            data: error.response?.data || "Error al crear usuario.",
+            data: error.response?.data || "Error al crear el Negocio.",
         };
     }
 };
@@ -49,7 +49,7 @@ export const updateBusiness = async (id, data) => {
     } catch (error) {
         throw {
             status: error.response?.status || 500,
-            data: error.response?.data || "Error al actualizar usuario.",
+            data: error.response?.data || "Error al actualizar el Negocio.",
         };
     }
 };

@@ -57,7 +57,7 @@ export const deleteMedia = async (ids) => {
 
 export const createMedia = async (data) => {
     try {
-        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`, data);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/media`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,

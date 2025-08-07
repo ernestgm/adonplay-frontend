@@ -17,6 +17,14 @@ const apiRequest = async (method: string, url: string, data: any = null, headers
         });
         return response.data;
     } catch (error) {
+        if (error.status === 401 && !isPublic) {
+            // Redirige al login
+            if (typeof window !== 'undefined' && window.location.href != '/signin') {
+                Cookies.remove("auth_token")
+                Cookies.remove("user")
+                window.location.href = '/signin';
+            }
+        }
         throw error;
     }
 };
