@@ -836,7 +836,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     <Label>Posición de Descripción</Label>
                                     <div className="relative mb-5">
                                         <Select
-                                            value={form.description_position}
+                                            defaultValue={form.description_position}
                                             onChange={handlePositionChange}
                                             options={descriptionPositions.map(u => ({
                                                 value: u.value,
@@ -852,7 +852,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     <Label>Tamaño de Texto</Label>
                                     <div className="relative">
                                         <Select
-                                            value={form.text_size}
+                                            defaultValue={form.text_size}
                                             onChange={handleTextSizeChange}
                                             options={textSizes.map(u => ({value: u.value, label: u.label}))}
                                             className="w-full"

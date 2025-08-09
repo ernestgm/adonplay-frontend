@@ -25,7 +25,7 @@ import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import Cookies from "js-cookie";
 import filterItems from "@/utils/filterItems";
-import {fetchDevices} from "@/server/api/devices";
+import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
 
 
 const DevicesTable = () => {
@@ -68,7 +68,7 @@ const DevicesTable = () => {
     const confirmDeleteDevices = async () => {
         if (selectedDevices.length > 0) {
             try {
-                const response = await deleteUsersAPI(selectedDevices);
+                const response = await deleteDevicesAPI(selectedDevices);
                 setDevices((prev) => prev.filter((device) => !selectedDevices.includes(device.id)));
                 setSelectedDevices([]);
                 setMessage(response.message);
