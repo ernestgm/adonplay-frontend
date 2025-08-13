@@ -74,6 +74,13 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         if (!isOwner) setForm({...form, marquee_id: value});
     };
 
+    const userSelectUpdateForm = () => {
+        if (form.users_id != device?.users_id) {
+            setForm({...form, slide_id: "", qr_id: "", marquee_id: ""});
+        } else {
+            setForm({...form, slide_id: device?.slide_id, qr_id: device?.qr_id, marquee_id: device?.marquee_id});
+        }
+    }
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
@@ -122,13 +129,14 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         fetchSlides();
         fetchQrs();
         fetchMarquees();
+        userSelectUpdateForm()
     }, [form.users_id]);
 
     useEffect(() => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => u.role !== "admin");
+                const filtered = allUsers.filter(u => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
             } catch (err) {
                 setError("Error al cargar usuarios para owner");
@@ -185,6 +193,8 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 onChange={handleSlidesChange}
                                 options={slides.map(u => ({value: u.id, label: u.name}))}
                                 className="w-full sm:w-auto"
+                                placeholder="No Slide"
+                                disabledPlaceholder={false}
                                 error={validationErrors.users_id}
                                 hint={validationErrors.users_id}
                             />
