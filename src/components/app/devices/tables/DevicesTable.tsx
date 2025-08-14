@@ -47,7 +47,7 @@ const DevicesTable = () => {
                 const data = await fetchDevices();
                 setDevices(data);
             } catch (err) {
-                setError(err.data?.message || err.message || "Error al iniciar sesión");
+                setError(err.data?.message || err.message || "Error!!!");
             } finally {
                 setLoading(false);
             }
@@ -105,7 +105,7 @@ const DevicesTable = () => {
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
                 title="Warning"
-                message="¿Estás seguro de que deseas eliminar este usuario?"
+                message="¿Estás seguro de que deseas eliminar este Device?"
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
                     {label: "Eliminar", onClick: confirmDeleteDevices, variant: "danger"},
@@ -115,7 +115,7 @@ const DevicesTable = () => {
                 <div className="flex items-center justify-between mb-4">
                     {selectedDevices.length > 0 && (
                         <div className={selectedDevices.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Delete Selected Users">
+                            <Tooltip content="Delete Selected Devices">
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedDevices}
@@ -146,7 +146,7 @@ const DevicesTable = () => {
                 { loading ? (
                     <div>Loading...</div>
                 ) : paginatedDevices.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay usuarios para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">No hay Devices para mostrar.</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">

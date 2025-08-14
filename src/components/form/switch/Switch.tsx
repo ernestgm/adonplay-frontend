@@ -2,14 +2,16 @@
 import React, { useState } from "react";
 
 interface SwitchProps {
+  id: any,
   label: string;
   defaultChecked?: boolean;
   disabled?: boolean;
-  onChange?: (checked: boolean) => void;
+  onChange?: (checked: boolean, id: any) => void;
   color?: "blue" | "gray"; // Added prop to toggle color theme
 }
 
 const Switch: React.FC<SwitchProps> = ({
+    id,
   label,
   defaultChecked = false,
   disabled = false,
@@ -23,7 +25,7 @@ const Switch: React.FC<SwitchProps> = ({
     const newCheckedState = !isChecked;
     setIsChecked(newCheckedState);
     if (onChange) {
-      onChange(newCheckedState);
+      onChange(newCheckedState, id);
     }
   };
 

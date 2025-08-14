@@ -5,15 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "../context/SidebarContext";
 import {
-  BoxCubeIcon,
   ChevronDownIcon,
-  GridIcon,
   HorizontaLDots,
-  ListIcon,
-  PageIcon,
-  PieChartIcon,
-  PlugInIcon,
-  UserCircleIcon,
 } from "../icons/index";
 import {getDataUserAuth} from "@/server/api/auth";
 import {
@@ -22,7 +15,8 @@ import {
   MdOutlineQrCode2, MdOutlineSupervisedUserCircle, MdOutlineTextRotationNone, MdOutlineTv,
   MdOutlineVideoLibrary, MdOutlineViewCarousel,
   MdVideoLibrary
-} from "react-icons/md"; // Importar nookies para manejar cookies
+} from "react-icons/md";
+import {TbDeviceImacCheck} from "react-icons/tb"; // Importar nookies para manejar cookies
 
 type NavItem = {
   name: string;
@@ -82,6 +76,12 @@ const othersItems: NavItem[] = [
     icon: <MdOutlineSupervisedUserCircle size={25} />,
     name: "User Management",
     path: "/users",
+    roles: ["admin"],
+  },
+  {
+    icon: <TbDeviceImacCheck  size={25} />,
+    name: "Devices Permissions",
+    path: "/devices-permissions",
     roles: ["admin"],
   },
 ];

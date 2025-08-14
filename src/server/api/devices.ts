@@ -42,3 +42,25 @@ export const deleteDevicesAPI = async (userIds: number[]) => {
       };
     }
 };
+
+export const fetchDevicesPermissions = async () => {
+  try {
+    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes`);
+  } catch (error) {
+    throw {
+      status: error.response?.status || 500,
+      data: error.response?.data || "Failed to sign out.",
+    };
+  }
+};
+
+export const updateDevicePermissions = async (id, data: any  ) => {
+  try {
+    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes/${id}`, data);
+  } catch (error) {
+    throw {
+      status: error.response?.status || 500,
+      data: error.response?.data || "Failed to sign out.",
+    };
+  }
+};
