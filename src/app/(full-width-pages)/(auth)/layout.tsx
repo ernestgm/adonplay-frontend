@@ -21,10 +21,14 @@ export default function AuthLayout({
               {/* <!-- ===== Common Grid Shape Start ===== --> */}
               <GridShape />
               <div className="flex flex-col items-center max-w-xs">
-                <Link href="/public" className="block mb-4">
-                  <h1 className="mb-2 font-semibold text-white text-title-sm dark:text-white/90 sm:text-title-md">{ process.env.NAME_PAGE }</h1>
-                </Link>
-                <p className="text-center text-gray-400 dark:text-white/60">---</p>
+                <Image
+                    className="dark:hidden"
+                    src="/images/logo/logo-notext.png"
+                    alt="Logo"
+                    width={250}
+                    height={250}
+                />
+                <h1 className="mb-2 font-semibold text-white text-title-sm dark:text-white/90 sm:text-title-md">{ process.env.NAME_PAGE }</h1>
               </div>
             </div>
           </div>
