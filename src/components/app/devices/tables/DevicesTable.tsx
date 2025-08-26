@@ -26,11 +26,14 @@ import ActionModal from "@/components/ui/modal/ActionModal";
 import Cookies from "js-cookie";
 import filterItems from "@/utils/filterItems";
 import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
+import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
+import OnlineBadge from "@/components/ui/badge/OnlineBadge";
 
 
 const DevicesTable = () => {
     const router = useRouter();
     const [devices, setDevices] = useState([]);
+    const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
     const [selectedDevices, setSelectedDevices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -95,9 +98,13 @@ const DevicesTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (deviceId) => {
+    const handleEdit = (deviceId: any) => {
         router.push(`/devices/edit/${deviceId}`);
     };
+
+    useStatusActionsChannel("frontend", async (data: any) => {
+        setDevicesOnline(data.devices);
+    })
 
     return (
         <>
@@ -204,7 +211,10 @@ const DevicesTable = () => {
                                             { device.user?.name || "-" }
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                            {device.device_id}
+                                            <div className="flex items-center gap-2">
+                                                <OnlineBadge devices={devicesOnline} deviceId={device.device_id} />
+                                                {device.device_id}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {device.name}
