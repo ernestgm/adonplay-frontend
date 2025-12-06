@@ -16,7 +16,7 @@ RUN npm install
 
 COPY . .
 
-RUN if [ "$NODE_ENV" = "production" ]; then yarn build; fi
+RUN if [ "$NODE_ENV" = "production" ]; then npm build; fi
 
 EXPOSE 3000
 
