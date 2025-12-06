@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getMedia = async (id) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media/${id}`);
+        return await apiGet(`${process.env.API_URL}/media/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -13,7 +13,7 @@ export const getMedia = async (id) => {
 
 export const fetchMedia = async () => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media`);
+        return await apiGet(`${process.env.API_URL}/media`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -24,7 +24,7 @@ export const fetchMedia = async () => {
 
 export const fetchMediaExcepted = async (slideId) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/media_excepted/${slideId}`);
+        return await apiGet(`${process.env.API_URL}/media_excepted/${slideId}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -35,7 +35,7 @@ export const fetchMediaExcepted = async (slideId) => {
 
 export const fetchAudioMediaExcepted = async (slideId) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/all_audio_excepted/${slideId}`);
+        return await apiGet(`${process.env.API_URL}/all_audio_excepted/${slideId}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -46,7 +46,7 @@ export const fetchAudioMediaExcepted = async (slideId) => {
 
 export const deleteMedia = async (ids) => {
     try {
-        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/media`, {'ids': ids});
+        return await apiDelete(`${process.env.API_URL}/media`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -57,7 +57,7 @@ export const deleteMedia = async (ids) => {
 
 export const createMedia = async (data) => {
     try {
-        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/media`, data);
+        return await apiPost(`${process.env.API_URL}/media`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -68,7 +68,7 @@ export const createMedia = async (data) => {
 
 export const updateMedia = async (id, data) => {
     try {
-        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/media/${id}`, data);
+        return await apiPut(`${process.env.API_URL}/media/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,

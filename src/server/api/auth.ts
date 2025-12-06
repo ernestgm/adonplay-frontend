@@ -3,7 +3,7 @@ import {apiPost} from "@/server/api/apiClient";
 
 export const signIn = async (email: string, password: string) => {
   try {
-    return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/login`, {email, password}, {}, true);
+    return await apiPost(`${process.env.API_URL}/login`, {email, password}, {}, true);
   } catch (error) {
     throw {
       status: error.response?.status || 500,

@@ -17,7 +17,7 @@ export const initializeActionCable = (deviceId: any) => {
 
     // Conectar a la URL del WebSocket incluyendo el app_id como parámetro
     // Asegúrate de que la URL base sea correcta para tu entorno (desarrollo/producción)
-    const cableUrl = `${process.env.NEXT_PUBLIC_RAILS_ACTION_CABLE_URL}?device_id=${deviceId}` || `ws://ws-adonplay.local/cable?device_id=${deviceId}`;
+    const cableUrl = `${process.env.RAILS_ACTION_CABLE_URL}?device_id=${deviceId}` || `ws://ws-adonplay.local/cable?device_id=${deviceId}`;
     consumer = createConsumer(cableUrl);
 
     // Solo forzar reintento en desarrollo

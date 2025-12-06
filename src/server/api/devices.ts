@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getDevice = async (id) => {
   try {
-    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/devices/${id}`);
+    return await apiGet(`${process.env.API_URL}/devices/${id}`);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getDevice = async (id) => {
 };
 export const fetchDevices = async () => {
   try {
-    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/devices`);
+    return await apiGet(`${process.env.API_URL}/devices`);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchDevices = async () => {
 
 export const updateDevices = async (id, device) => {
   try {
-    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/devices/${id}`, device);
+    return await apiPut(`${process.env.API_URL}/devices/${id}`, device);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const updateDevices = async (id, device) => {
 
 export const deleteDevicesAPI = async (userIds: number[]) => {
     try {
-      return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/devices`, {'ids': userIds});
+      return await apiDelete(`${process.env.API_URL}/devices`, {'ids': userIds});
     } catch (error) {
       throw {
         status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const deleteDevicesAPI = async (userIds: number[]) => {
 
 export const fetchDevicesPermissions = async () => {
   try {
-    return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes`);
+    return await apiGet(`${process.env.API_URL}/devices_verify_codes`);
   } catch (error) {
     throw {
       status: error.response?.status || 500,
@@ -56,7 +56,7 @@ export const fetchDevicesPermissions = async () => {
 
 export const updateDevicePermissions = async (id, data: any  ) => {
   try {
-    return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes/${id}`, data);
+    return await apiPut(`${process.env.API_URL}/devices_verify_codes/${id}`, data);
   } catch (error) {
     throw {
       status: error.response?.status || 500,

@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getMarquees = async (id) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees/${id}`);
+        return await apiGet(`${process.env.API_URL}/marquees/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getMarquees = async (id) => {
 };
 export const fetchMarquees = async () => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees`);
+        return await apiGet(`${process.env.API_URL}/marquees`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchMarquees = async () => {
 
 export const fetchMarqueesByUser = async (userId) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees_by_user/${userId}`);
+        return await apiGet(`${process.env.API_URL}/marquees_by_user/${userId}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const fetchMarqueesByUser = async (userId) => {
 
 export const fetchMarqueesByBusiness = async (business) => {
     try {
-        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/marquees`);
+        return await apiGet(`${process.env.API_URL}/marquees`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const fetchMarqueesByBusiness = async (business) => {
 
 export const deleteMarquees = async (ids) => {
     try {
-        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/marquees`, {'ids': ids});
+        return await apiDelete(`${process.env.API_URL}/marquees`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -56,7 +56,7 @@ export const deleteMarquees = async (ids) => {
 
 export const createMarquees = async (data) => {
     try {
-        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/marquees`, data);
+        return await apiPost(`${process.env.API_URL}/marquees`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -67,7 +67,7 @@ export const createMarquees = async (data) => {
 
 export const updateMarquees = async (id, data) => {
     try {
-        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/marquees/${id}`, data);
+        return await apiPut(`${process.env.API_URL}/marquees/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
