@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getSlideMedias = async (id) => {
     try {
-        return await apiGet(`${process.env.API_URL}/slide_media/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slide_media/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getSlideMedias = async (id) => {
 };
 export const fetchSlideMedias = async (slide) => {
     try {
-        return await apiGet(`${process.env.API_URL}/slides/${slide}/media`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slide}/media`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchSlideMedias = async (slide) => {
 
 export const deleteSlideMedias = async (ids) => {
     try {
-        return await apiDelete(`${process.env.API_URL}/slide_media`, {'ids': ids});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/slide_media`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const deleteSlideMedias = async (ids) => {
 
 export const createSlideMedias = async (data) => {
     try {
-        return await apiPost(`${process.env.API_URL}/slide_media`, data);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slide_media`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const createSlideMedias = async (data) => {
 
 export const updateSlideMedias = async (id, data) => {
     try {
-        return await apiPut(`${process.env.API_URL}/slide_media/${id}`, data);
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/slide_media/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,

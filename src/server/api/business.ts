@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getBusiness = async (id) => {
     try {
-        return await apiGet(`${process.env.API_URL}/businesses/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/businesses/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getBusiness = async (id) => {
 };
 export const fetchBusinesses = async () => {
     try {
-        return await apiGet(`${process.env.API_URL}/businesses`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/businesses`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchBusinesses = async () => {
 
 export const deleteBusinessesAPI = async (ids) => {
     try {
-        return await apiDelete(`${process.env.API_URL}/businesses`, {'ids': ids});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/businesses`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const deleteBusinessesAPI = async (ids) => {
 
 export const createBusiness = async (data) => {
     try {
-        return await apiPost(`${process.env.API_URL}/businesses`, data);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/businesses`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const createBusiness = async (data) => {
 
 export const updateBusiness = async (id, data) => {
     try {
-        return await apiPut(`${process.env.API_URL}/businesses/${id}`, data);
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/businesses/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,

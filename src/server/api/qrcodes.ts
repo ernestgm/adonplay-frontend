@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getQrCode = async (id) => {
     try {
-        return await apiGet(`${process.env.API_URL}/qrs/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/qrs/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getQrCode = async (id) => {
 };
 export const fetchQrCode = async () => {
     try {
-        return await apiGet(`${process.env.API_URL}/qrs`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/qrs`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchQrCode = async () => {
 
 export const fetchQrCodeByUser = async (userId) => {
     try {
-        return await apiGet(`${process.env.API_URL}/qrs_by_user/${userId}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/qrs_by_user/${userId}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const fetchQrCodeByUser = async (userId) => {
 
 export const createQrCode = async (user) => {
     try {
-        return await apiPost(`${process.env.API_URL}/qrs`, user);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/qrs`, user);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const createQrCode = async (user) => {
 
 export const updateQrCode = async (id, user) => {
     try {
-        return await apiPut(`${process.env.API_URL}/qrs/${id}`, user);
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/qrs/${id}`, user);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -56,7 +56,7 @@ export const updateQrCode = async (id, user) => {
 
 export const deleteQrCode = async (userIds: number[]) => {
     try {
-        return await apiDelete(`${process.env.API_URL}/qrs`, {'ids': userIds});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/qrs`, {'ids': userIds});
     } catch (error) {
         throw {
             status: error.response?.status || 500,

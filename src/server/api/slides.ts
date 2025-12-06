@@ -2,7 +2,7 @@ import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
 export const getSlide = async (id) => {
     try {
-        return await apiGet(`${process.env.API_URL}/slides/${id}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides/${id}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -12,7 +12,7 @@ export const getSlide = async (id) => {
 };
 export const fetchSlides = async () => {
     try {
-        return await apiGet(`${process.env.API_URL}/slides`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -23,7 +23,7 @@ export const fetchSlides = async () => {
 
 export const fetchSlidesByUser = async (userId) => {
     try {
-        return await apiGet(`${process.env.API_URL}/slides_by_user/${userId}`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/slides_by_user/${userId}`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -34,7 +34,7 @@ export const fetchSlidesByUser = async (userId) => {
 
 export const fetchSlidesByBusiness = async (business) => {
     try {
-        return await apiGet(`${process.env.API_URL}/businesses/${business}/slides`);
+        return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/businesses/${business}/slides`);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -45,7 +45,7 @@ export const fetchSlidesByBusiness = async (business) => {
 
 export const deleteSlides = async (ids) => {
     try {
-        return await apiDelete(`${process.env.API_URL}/slides`, {'ids': ids});
+        return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/slides`, {'ids': ids});
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -56,7 +56,7 @@ export const deleteSlides = async (ids) => {
 
 export const createSlide = async (data) => {
     try {
-        return await apiPost(`${process.env.API_URL}/slides`, data);
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
@@ -67,7 +67,7 @@ export const createSlide = async (data) => {
 
 export const updateSlide = async (id, data) => {
     try {
-        return await apiPut(`${process.env.API_URL}/slides/${id}`, data);
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/slides/${id}`, data);
     } catch (error) {
         throw {
             status: error.response?.status || 500,
