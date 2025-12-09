@@ -2,8 +2,7 @@
 
 import BusinessForm from '@/components/app/business/form/BusinessForm';
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React from 'react';
-import type {Metadata} from "next";
+import React, {Suspense} from 'react';
 import {useRouter} from "next/navigation";
 
 

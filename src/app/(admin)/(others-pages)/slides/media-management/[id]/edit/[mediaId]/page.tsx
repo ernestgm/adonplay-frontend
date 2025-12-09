@@ -25,7 +25,7 @@ const SlideMediaEditPage = () => {
             try {
                 const data = await getSlideMedias(mediaId);
                 setMedia(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar media");
             } finally {
                 setLoading(false);

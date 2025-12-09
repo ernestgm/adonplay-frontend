@@ -13,7 +13,7 @@ import Form from "@/components/form/Form";
 import TextArea from "@/components/form/input/TextArea";
 import config from "@/config/globalConfig";
 import {ChevronDownIcon} from "@/icons";
-import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import PositionExample from "@/components/common/PositionExample";
 import handleDownloadQr from "@/utils/qrCode";
 
@@ -27,9 +27,14 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
         position: qrcode?.position || "bl",
         business_id: qrcode?.business_id || "",
     });
-    const [business, setBusiness] = useState([]);
+    const [business, setBusiness] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
+    const [validationErrors, setValidationErrors] = useState({
+        name: "",
+        business_id: "",
+        info: "",
+        position: ""
+    });
     const setError = useError().setError;
     const router = useRouter();
 
@@ -38,33 +43,33 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
             try {
                 const allBusiness = await fetchBusinesses();
                 setBusiness(allBusiness);
-            } catch (err) {
-                setError("Error al cargar negocios");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar negocios");
             }
         };
         getBusiness();
     }, [setError]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSelectChange = (value) => {
+    const handleSelectChange = (value: any) => {
         setForm({ ...form, business_id: value });
     };
 
-    const handlePositionChange = (value) => {
+    const handlePositionChange = (value: any) => {
         setForm({...form, position: value});
     };
 
-    const handleTextAreaChange = (value) => {
+    const handleTextAreaChange = (value: any) => {
         setForm({ ...form, info: value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({business_id: "", info: "", name: "", position: ""});
         try {
             if (qrcode) {
                 await updateQrCode(qrcode.id, form);
@@ -72,7 +77,7 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
                 await createQrCode(form);
             }
             router.push("/qrcodes");
-        } catch (err) {
+        } catch (err: any) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
@@ -91,7 +96,7 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    error={validationErrors?.name}
+                    error={validationErrors?.name !== ""}
                     hint={validationErrors?.name}
                 />
             </div>
@@ -103,7 +108,7 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
                         onChange={handleSelectChange}
                         options={business.map(b => ({ value: b.id, label: b.name }))}
                         className="w-full"
-                        error={validationErrors?.business_id}
+                        error={validationErrors?.business_id !== ""}
                         hint={validationErrors?.business_id}
                     />
                     <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -119,7 +124,7 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
                             value={form.info}
                             onChange={handleTextAreaChange}
                             rows={6}
-                            error={validationErrors?.info}
+                            error={validationErrors?.info !== ""}
                             hint={validationErrors?.info}
                         />
                     </div>
@@ -149,7 +154,7 @@ const QrCodeForm:React.FC<QrCodeFormProps> = ({ qrcode }) => {
                                 onChange={handlePositionChange}
                                 options={config.positions.map(u => ({value: u.value, label: u.label}))}
                                 className="w-full"
-                                error={validationErrors.position}
+                                error={validationErrors.position !== ""}
                                 hint={validationErrors.position}
                             />
                             <span

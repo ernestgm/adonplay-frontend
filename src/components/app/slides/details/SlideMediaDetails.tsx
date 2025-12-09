@@ -1,11 +1,10 @@
 "use client";
 
 import React, {useState} from "react";
-import Button from "@/components/ui/button/Button";
-import { MdArrowBack, MdAudioFile, MdVideoFile } from "react-icons/md";
+import { MdAudioFile } from "react-icons/md";
 import { QRCodeCanvas } from "qrcode.react";
-import config from "@/config/globalConfig";
 import mediaUrl from "@/utils/files";
+import Image from "next/image";
 
 // Base URL for media files
 
@@ -14,10 +13,10 @@ interface MediaDetailsProps {
 }
 
 const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
-    const [media, setMedia] = useState(slideMedia?.media || null);
+    const [media] = useState(slideMedia?.media || null);
     if (!slideMedia) return null;
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: any) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
         return date.toLocaleString();
@@ -97,12 +96,13 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
                                         />
                                     </div>
                                 )}
-                                
-                                <img 
+
+                                <Image
                                     src={mediaUrl(media?.file_path)}
-                                    alt="Image preview" 
+                                    alt="Image preview"
                                     className="w-full h-auto object-contain"
                                 />
+
                             </div>
                             {slideMedia?.audio_media?.file_path && (
                                 <div className="w-full max-w-md">

@@ -4,8 +4,6 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
 import {useParams, useRouter} from "next/navigation";
-import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
-import {getMarquees} from "@/server/api/marquees";
 import {getQrCode} from "@/server/api/qrcodes";
 import QrCodeForm from "@/components/app/qrcodes/form/QrCodeForm";
 
@@ -30,7 +28,7 @@ const QrCodeEditPage = () => {
             try {
                 const data = await getQrCode(id);
                 setQrCode(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

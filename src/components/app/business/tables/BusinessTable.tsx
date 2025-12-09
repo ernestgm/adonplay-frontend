@@ -28,8 +28,8 @@ import filterItems from "@/utils/filterItems";
 const BusinessTable = () => {
     const isOwner = getIsOwner()
     const router = useRouter();
-    const [businesses, setBusinesses] = useState([]);
-    const [selectedBusinesses, setSelectedBusinesses] = useState([]);
+    const [businesses, setBusinesses] = useState<any[]>([]);
+    const [selectedBusinesses, setSelectedBusinesses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -43,7 +43,7 @@ const BusinessTable = () => {
             try {
                 const data = await fetchBusinesses();
                 setBusinesses(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar negocios");
             } finally {
                 setLoading(false);
@@ -52,7 +52,7 @@ const BusinessTable = () => {
         fetchData();
     }, []);
 
-    const toggleSelectBusiness = (id) => {
+    const toggleSelectBusiness = (id: any) => {
         setSelectedBusinesses((prev) =>
             prev.includes(id) ? prev.filter((bId) => bId !== id) : [...prev, id]
         );
@@ -62,7 +62,7 @@ const BusinessTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (businessId) => {
+    const openWarningModal = (businessId: any) => {
         setSelectedBusinesses([businessId]);
         setIsWarningModalOpen(true);
     };
@@ -74,7 +74,7 @@ const BusinessTable = () => {
                 setBusinesses((prev) => prev.filter((b) => !selectedBusinesses.includes(b.id)));
                 setSelectedBusinesses([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
             } finally {
                 setIsWarningModalOpen(false);
@@ -89,7 +89,7 @@ const BusinessTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (businessId) => {
+    const handleEdit = (businessId: any) => {
         router.push(`/business/edit/${businessId}`);
     };
 
@@ -102,7 +102,7 @@ const BusinessTable = () => {
                 message="¿Estás seguro de que deseas eliminar este negocio?"
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteBusiness, variant: "danger"},
+                    {label: "Eliminar", onClick: confirmDeleteBusiness, variant: "primary"},
                 ]}
             />
             <div>
@@ -114,7 +114,7 @@ const BusinessTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedBusinesses}
                                     disabled={selectedBusinesses.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -171,7 +171,7 @@ const BusinessTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedBusinesses.map((business) => (
+                                {paginatedBusinesses.map((business: any) => (
                                     <TableRow key={business.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -193,7 +193,7 @@ const BusinessTable = () => {
                                                     <Tooltip content="Eliminar">
                                                         <Button
                                                             onClick={() => openWarningModal(business.id)}
-                                                            variant="danger"
+                                                            variant="primary"
                                                             size="sm"
                                                         >
                                                             <MdDelete size={18}/>

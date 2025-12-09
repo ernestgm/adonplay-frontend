@@ -1,6 +1,6 @@
 "use client";
 
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, ReactNode} from "react";
 import {
     Table,
     TableBody,
@@ -17,6 +17,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
+import Image from 'next/image'
 import {
     MdSearch,
     MdDelete,
@@ -24,7 +25,6 @@ import {
     MdInfo,
     MdAudioFile,
     MdVideoFile,
-    MdImage,
     MdArrowUpward,
     MdArrowDownward
 } from "react-icons/md";
@@ -32,15 +32,17 @@ import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
-import {fetchMedia, deleteMedia} from "@/server/api/media";
 import mediaUrl from "@/utils/files";
 import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
 import {QRCodeCanvas} from "qrcode.react";
 
-const SlideMediaTable = ({slide}) => {
+interface SlideMediaTableProps {
+    slide?: any; // Optional className for styling
+}
+const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
     const router = useRouter();
-    const [media, setMedia] = useState([]); // This will now store the array of slide_media objects
-    const [selectedMedia, setSelectedMedia] = useState([]);
+    const [media, setMedia] = useState<any[]>([]); // This will now store the array of slide_media objects
+    const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -57,7 +59,7 @@ const SlideMediaTable = ({slide}) => {
                 // Sort the media by order
                 const sortedData = [...data].sort((a, b) => parseInt(a.order) - parseInt(b.order));
                 setMedia(sortedData);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar media");
             } finally {
                 setLoading(false);
@@ -67,7 +69,7 @@ const SlideMediaTable = ({slide}) => {
     }, [slide, setError]); // Added slide and setError to dependency array
 
     // Function to handle moving an item up in order
-    const handleMoveUp = async (item, index) => {
+    const handleMoveUp = async (item: any, index: number) => {
         if (index === 0) return; // Already at the top
 
         try {
@@ -99,13 +101,13 @@ const SlideMediaTable = ({slide}) => {
             }
 
             setMessage("Orden actualizado correctamente");
-        } catch (err) {
+        } catch (err: any) {
             setError(err.data?.message || err.message || "Error al actualizar el orden");
         }
     };
 
     // Function to handle moving an item down in order
-    const handleMoveDown = async (item, index) => {
+    const handleMoveDown = async (item: any, index: number) => {
         if (index === paginatedMedia.length - 1) return; // Already at the bottom
 
         try {
@@ -137,12 +139,12 @@ const SlideMediaTable = ({slide}) => {
             }
 
             setMessage("Orden actualizado correctamente");
-        } catch (err) {
+        } catch (err: any) {
             setError(err.data?.message || err.message || "Error al actualizar el orden");
         }
     };
 
-    const toggleSelectMedia = (id) => {
+    const toggleSelectMedia = (id: any) => {
         setSelectedMedia((prev) =>
             prev.includes(id) ? prev.filter((mediaId) => mediaId !== id) : [...prev, id]
         );
@@ -152,7 +154,7 @@ const SlideMediaTable = ({slide}) => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (mediaId) => {
+    const openWarningModal = (mediaId: any) => {
         setSelectedMedia([mediaId]);
         setIsWarningModalOpen(true);
     };
@@ -165,7 +167,7 @@ const SlideMediaTable = ({slide}) => {
                 setMedia((prev) => prev.filter((item) => !selectedMedia.includes(item.id)));
                 setSelectedMedia([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar media");
             } finally {
                 setIsWarningModalOpen(false);
@@ -180,12 +182,12 @@ const SlideMediaTable = ({slide}) => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (slideMediaId) => {
+    const handleEdit = (slideMediaId: any) => {
         router.push(`/slides/media-management/${slide}/edit/${slideMediaId}`);
     };
 
     // This handleViewDetails now redirects to the slide media details page
-    const handleViewDetails = (slideMediaId) => {
+    const handleViewDetails = (slideMediaId: any) => {
         router.push(`/slides/media-management/${slide}/details/${slideMediaId}`);
     };
 
@@ -198,7 +200,7 @@ const SlideMediaTable = ({slide}) => {
                 message="¿Estás seguro de que deseas eliminar este elemento?"
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteMedia, variant: "danger"},
+                    {label: "Eliminar", onClick: confirmDeleteMedia, variant: "primary"},
                 ]}
             />
             <div>
@@ -210,7 +212,7 @@ const SlideMediaTable = ({slide}) => {
                                     size="sm"
                                     onClick={deleteSelectedMedia}
                                     disabled={selectedMedia.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -279,7 +281,7 @@ const SlideMediaTable = ({slide}) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedMedia.map((item, index) => (
+                                {paginatedMedia.map((item: any, index: number) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -295,7 +297,7 @@ const SlideMediaTable = ({slide}) => {
                                                     <Tooltip content="Mover arriba">
                                                         <Button
                                                             onClick={() => handleMoveUp(item, index)}
-                                                            variant="ghost"
+                                                            variant="primary"
                                                             size="sm"
                                                             disabled={index === 0}
                                                             className="p-1 h-6"
@@ -306,7 +308,7 @@ const SlideMediaTable = ({slide}) => {
                                                     <Tooltip content="Mover abajo">
                                                         <Button
                                                             onClick={() => handleMoveDown(item, index)}
-                                                            variant="ghost"
+                                                            variant="primary"
                                                             size="sm"
                                                             disabled={index === paginatedMedia.length - 1}
                                                             className="p-1 h-6"
@@ -331,9 +333,9 @@ const SlideMediaTable = ({slide}) => {
                                             {/* Access media_type and file_path from nested media object */}
                                             {item.media.media_type === "image" ? (
                                                 <div className="w-16 h-16 border rounded overflow-hidden">
-                                                    <img
+                                                    <Image
                                                         src={mediaUrl(item.media.file_path)}
-                                                        alt="Image preview"
+                                                        alt="Picture of the author"
                                                         className="w-full h-full object-cover"
                                                     />
                                                 </div>
@@ -408,7 +410,7 @@ const SlideMediaTable = ({slide}) => {
                                                     <Button
                                                         // Pass the slide_media ID to openWarningModal
                                                         onClick={() => openWarningModal(item.id)}
-                                                        variant="danger"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

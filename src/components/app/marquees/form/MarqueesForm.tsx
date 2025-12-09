@@ -5,10 +5,9 @@ import Select from "@/components/form/Select";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Label from "@/components/form/Label";
-import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import {useError} from "@/context/ErrorContext";
 import {useRouter} from "next/navigation";
-import {createBusiness, fetchBusinesses, updateBusiness} from "@/server/api/business";
+import {fetchBusinesses} from "@/server/api/business";
 import Form from "@/components/form/Form";
 import {createMarquees, updateMarquees} from "@/server/api/marquees";
 import TextArea from "@/components/form/input/TextArea";
@@ -17,8 +16,6 @@ interface MarqueeFormProps {
     marquee?: any;
 }
 const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
-    const userData = getDataUserAuth();
-    const isOwner = getIsOwner();
     const [form, setForm] = useState({
         name: marquee?.name || "",
         message: marquee?.message || "",
@@ -26,9 +23,15 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
         background_color: marquee?.background_color || "#000000",
         text_color: marquee?.text_color || "#ffffff",
     });
-    const [business, setBusiness] = useState([]);
+    const [business, setBusiness] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
+    const [validationErrors, setValidationErrors] = useState({
+        name: "",
+        business_id: "",
+        message: "",
+        background_color: "",
+        text_color: ""
+    });
     const setError = useError().setError;
     const router = useRouter();
 
@@ -37,30 +40,38 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
             try {
                 const allBusiness = await fetchBusinesses();
                 setBusiness(allBusiness);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         getBusiness();
     }, [setError]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleSelectChange = (value) => {
+    const handleSelectChange = (value: any) => {
         setForm({ ...form, business_id: value });
     };
 
-    const handleTextAreaChange = (value) => {
+    const handleTextAreaChange = (value: any) => {
         setForm({ ...form, message: value });
     };
 
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors(
+            {
+                text_color: "",
+                background_color: "",
+                message: "",
+                business_id: "",
+                name: ""
+            }
+            );
         try {
             if (marquee) {
                 await updateMarquees(marquee.id, form);
@@ -68,7 +79,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 await createMarquees(form);
             }
             router.push("/marquees");
-        } catch (err) {
+        } catch (err: any) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
@@ -88,7 +99,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    error={validationErrors?.name}
+                    error={validationErrors?.name !== ""}
                     hint={validationErrors?.name}
                 />
             </div>
@@ -99,7 +110,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     onChange={handleSelectChange}
                     options={business.map(b => ({ value: b.id, label: b.name }))}
                     className="w-full"
-                    error={validationErrors?.business_id}
+                    error={validationErrors?.business_id !== ""}
                     hint={validationErrors?.business_id}
                 />
             </div>
@@ -109,7 +120,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     value={form.message}
                     onChange={handleTextAreaChange}
                     rows={6}
-                    error={validationErrors?.message}
+                    error={validationErrors?.message !== ""}
                     hint={validationErrors?.message}
                 />
             </div>
@@ -121,7 +132,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                         name="background_color"
                         value={form.background_color}
                         onChange={handleChange}
-                        error={validationErrors?.background_color}
+                        error={validationErrors?.background_color !== ""}
                         hint={validationErrors?.background_color}
                         className="w-full"
                     />
@@ -133,7 +144,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                         name="text_color"
                         value={form.text_color}
                         onChange={handleChange}
-                        error={validationErrors?.text_color}
+                        error={validationErrors?.text_color !== "" }
                         hint={validationErrors?.text_color}
                         className="w-full"
                     />

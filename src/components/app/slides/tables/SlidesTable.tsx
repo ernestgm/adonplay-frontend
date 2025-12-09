@@ -4,18 +4,16 @@ import React, {useState, useEffect} from "react";
 import Checkbox from "@/components/form/input/Checkbox";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
-import {fetchBusinesses, deleteBusinessesAPI} from "@/server/api/business";
 import Pagination from "../../../tables/Pagination";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit, MdSettings, MdSlideshow, MdCollections} from "react-icons/md";
+import {MdSearch, MdDelete, MdSettings, MdCollections} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
-import {getDataUserAuth} from "@/server/api/auth";
 import {deleteSlides, fetchSlides} from "@/server/api/slides";
 import {
     Table,
@@ -28,8 +26,8 @@ import filterItems from "@/utils/filterItems";
 
 const SlidesTable = () => {
     const router = useRouter();
-    const [slides, setSlides] = useState([]);
-    const [selectedSlides, setSelectedSlides] = useState([]);
+    const [slides, setSlides] = useState<any[]>([]);
+    const [selectedSlides, setSelectedSlides] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -43,16 +41,16 @@ const SlidesTable = () => {
             try {
                 const data = await fetchSlides();
                 setSlides(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar negocios");
             } finally {
                 setLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [ setSlides, setLoading, setError]);
 
-    const toggleSelectSlides = (id) => {
+    const toggleSelectSlides = (id: any) => {
         setSelectedSlides((prev) =>
             prev.includes(id) ? prev.filter((bId) => bId !== id) : [...prev, id]
         );
@@ -62,7 +60,7 @@ const SlidesTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (businessId) => {
+    const openWarningModal = (businessId: any) => {
         setSelectedSlides([businessId]);
         setIsWarningModalOpen(true);
     };
@@ -74,7 +72,7 @@ const SlidesTable = () => {
                 setSlides((prev) => prev.filter((b) => !selectedSlides.includes(b.id)));
                 setSelectedSlides([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
             } finally {
                 setIsWarningModalOpen(false);
@@ -89,11 +87,11 @@ const SlidesTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleSettings = (slide) => {
+    const handleSettings = (slide: any) => {
         router.push(`/slides/settings/${slide}`);
     };
 
-    const handleEdit = (slide) => {
+    const handleEdit = (slide: any) => {
         router.push(`/slides/media-management/${slide}`);
     };
 
@@ -104,7 +102,7 @@ const SlidesTable = () => {
                 onClose={() => setIsWarningModalOpen(false)}
                 title="Warning"
                 message="¿Estás seguro de que deseas eliminar este Slide?"
-                actions={[{label: "Cancelar", onClick: () => setIsWarningModalOpen(false)}, {label: "Eliminar", onClick: confirmDeleteSlides, variant: "danger"}]}
+                actions={[{label: "Cancelar", onClick: () => setIsWarningModalOpen(false)}, {label: "Eliminar", onClick: confirmDeleteSlides, variant: "primary"}]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
@@ -115,7 +113,7 @@ const SlidesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedSlides}
                                     disabled={selectedSlides.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -167,7 +165,7 @@ const SlidesTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedBusinesses.map((slides) => (
+                                {paginatedBusinesses.map((slides: any) => (
                                     <TableRow key={slides.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -191,7 +189,7 @@ const SlidesTable = () => {
                                                     </Button>
                                                 </Tooltip>
                                                 <Tooltip content="Eliminar">
-                                                    <Button size="sm" variant="danger" onClick={() => openWarningModal(slides.id)}>
+                                                    <Button size="sm" variant="primary" onClick={() => openWarningModal(slides.id)}>
                                                         <MdDelete size={18}/>
                                                     </Button>
                                                 </Tooltip>

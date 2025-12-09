@@ -7,7 +7,7 @@ interface FileInputProps {
   required?: boolean;
   disabled?: boolean;
   className?: string;
-  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (event: any) => void;
   error?: boolean;
   hint?: string;
 }

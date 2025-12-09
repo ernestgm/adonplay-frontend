@@ -1,14 +1,18 @@
 import { useEffect } from "react";
 import {initializeActionCable} from "@/websockets/actionCable";
 
-export function useStatusActionsChannel(deviceId: any, onReceived: any) {
+export function useStatusActionsChannel(
+    deviceId: string | number,
+    onReceived: (data: unknown) => void
+) {
     useEffect(() => {
         if (!deviceId) return;
         const cable = initializeActionCable(deviceId)
+        if (!cable) return;
         const subscription = cable.subscriptions.create(
             { channel: "StatusActionsChannel", device_id: deviceId },
             {
-                received(data: any) {
+                received(data: unknown) {
                     console.log("📡 Acción recibida:", data);
                     if (onReceived) onReceived(data);
                 },
@@ -24,5 +28,5 @@ export function useStatusActionsChannel(deviceId: any, onReceived: any) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [deviceId]);
+    }, [deviceId, onReceived]);
 }

@@ -27,7 +27,7 @@ const SlidesEditPage = () => {
             try {
                 const data = await getSlide(id);
                 setSlide(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

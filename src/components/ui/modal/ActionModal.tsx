@@ -6,10 +6,10 @@ interface ActionModalProps {
     onClose: () => void;
     title: string;
     message: string;
-    actions?: { label: string; onClick: () => void; variant?: "primary" | "danger" }[];
+    actions?: { label: string; onClick: () => void; variant?: "primary" | "outline" }[];
 }
 
-const ActionModal: React.FC<ActionModalProps> = ({isOpen, onClose, title, message, actions = []}) => {
+const ActionModal: React.FC<ActionModalProps> = ({isOpen, title, message, actions = []}) => {
     if (!isOpen) return null;
 
     return (

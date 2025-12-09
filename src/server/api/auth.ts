@@ -4,7 +4,7 @@ import {apiPost} from "@/server/api/apiClient";
 export const signIn = async (email: string, password: string) => {
   try {
     return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/login`, {email, password}, {}, true);
-  } catch (error) {
+  } catch (error: any) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Failed to sign in.",

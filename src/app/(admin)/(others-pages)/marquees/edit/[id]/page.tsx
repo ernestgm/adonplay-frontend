@@ -4,8 +4,6 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
 import {useParams, useRouter} from "next/navigation";
-import {getSlide} from "@/server/api/slides";
-import SlidesForm from "@/components/app/slides/form/SlidesForm";
 import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
 import {getMarquees} from "@/server/api/marquees";
 
@@ -28,7 +26,7 @@ const MarqueesEditPage = () => {
             try {
                 const data = await getMarquees(id);
                 setMarquee(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

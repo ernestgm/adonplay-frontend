@@ -3,15 +3,12 @@
 import React, { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { DropdownItem } from "../ui/dropdown/DropdownItem";
-import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import {getDataUserAuth, signOut} from "@/server/api/auth";
-import { useError } from "@/context/ErrorContext";
 import {MdDevices} from "react-icons/md";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
-  const setError = useError().setError;
   const router = useRouter();
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {

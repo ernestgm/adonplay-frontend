@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import Button from "@/components/ui/button/Button";
-import { MdArrowBack, MdAudioFile, MdVideoFile } from "react-icons/md";
-import { QRCodeCanvas } from "qrcode.react";
-import config from "@/config/globalConfig";
+import { MdAudioFile } from "react-icons/md";
 import mediaUrl from "@/utils/files";
+import Image from "next/image";
 
 
 interface MediaDetailsProps {
@@ -15,7 +13,7 @@ interface MediaDetailsProps {
 const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
     if (!media) return null;
 
-    const formatDate = (dateString) => {
+    const formatDate = (dateString: string | number | Date) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
         return date.toLocaleString();
@@ -30,9 +28,9 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
                     {media.media_type === "image" ? (
                         <div className="flex flex-col items-center">
                             <div className="w-full max-w-md border rounded overflow-hidden mb-4 relative">
-                                <img 
+                                <Image
                                     src={mediaUrl(media.file_path)}
-                                    alt="Image preview" 
+                                    alt="Image preview"
                                     className="w-full h-auto object-contain"
                                 />
                             </div>

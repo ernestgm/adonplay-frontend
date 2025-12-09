@@ -1,8 +1,7 @@
 "use client"
 
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React from 'react';
-import type {Metadata} from "next";
+import React, {Suspense} from 'react';
 import SlidesForm from "@/components/app/slides/form/SlidesForm";
 import {useRouter} from "next/navigation";
 

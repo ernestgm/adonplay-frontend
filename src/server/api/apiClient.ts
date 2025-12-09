@@ -2,7 +2,7 @@
 import axios from "axios";
 import Cookies from "js-cookie";
 
-const getAuthHeaders = () => {
+const getAuthHeaders = (): Record<string, string> => {
     const token = Cookies.get("auth_token");
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
@@ -16,7 +16,7 @@ const apiRequest = async (method: string, url: string, data: any = null, headers
             headers: isPublic ? { ...headers } : { ...getAuthHeaders(), ...headers },
         });
         return response.data;
-    } catch (error) {
+    } catch (error: any) {
         if (error.status === 401 && !isPublic) {
             // Redirige al login
             if (typeof window !== 'undefined' && window.location.href != '/signin') {

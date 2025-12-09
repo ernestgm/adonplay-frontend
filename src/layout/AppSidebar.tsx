@@ -13,8 +13,7 @@ import {
   MdOutlineBusinessCenter,
   MdOutlineGridView,
   MdOutlineQrCode2, MdOutlineSupervisedUserCircle, MdOutlineTextRotationNone, MdOutlineTv,
-  MdOutlineVideoLibrary, MdOutlineViewCarousel,
-  MdVideoLibrary
+  MdOutlineVideoLibrary, MdOutlineViewCarousel
 } from "react-icons/md";
 import {TbDeviceImacCheck} from "react-icons/tb"; // Importar nookies para manejar cookies
 

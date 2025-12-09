@@ -17,18 +17,19 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile, MdImage} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
 import { fetchMedia, deleteMedia } from "@/server/api/media";
 import mediaUrl from "@/utils/files";
+import Image from "next/image";
 
 const MediaTable = () => {
     const router = useRouter();
-    const [media, setMedia] = useState([]);
-    const [selectedMedia, setSelectedMedia] = useState([]);
+    const [media, setMedia] = useState<any[]>([]);
+    const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -42,7 +43,7 @@ const MediaTable = () => {
             try {
                 const data = await fetchMedia();
                 setMedia(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar media");
             } finally {
                 setLoading(false);
@@ -51,7 +52,7 @@ const MediaTable = () => {
         fetchData();
     }, []);
 
-    const toggleSelectMedia = (id) => {
+    const toggleSelectMedia = (id: any) => {
         setSelectedMedia((prev) =>
             prev.includes(id) ? prev.filter((mediaId) => mediaId !== id) : [...prev, id]
         );
@@ -61,7 +62,7 @@ const MediaTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (mediaId) => {
+    const openWarningModal = (mediaId: any) => {
         setSelectedMedia([mediaId]);
         setIsWarningModalOpen(true);
     };
@@ -73,7 +74,7 @@ const MediaTable = () => {
                 setMedia((prev) => prev.filter((item) => !selectedMedia.includes(item.id)));
                 setSelectedMedia([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar media");
             } finally {
                 setIsWarningModalOpen(false);
@@ -88,11 +89,11 @@ const MediaTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (mediaId) => {
+    const handleEdit = (mediaId: any) => {
         router.push(`/media-library/edit/${mediaId}`);
     };
     
-    const handleViewDetails = (mediaId) => {
+    const handleViewDetails = (mediaId: any) => {
         router.push(`/media-library/details/${mediaId}`);
     };
 
@@ -105,7 +106,7 @@ const MediaTable = () => {
                 message="¿Estás seguro de que deseas eliminar este elemento?"
                 actions={[
                     { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteMedia, variant: "danger" },
+                    { label: "Eliminar", onClick: confirmDeleteMedia, variant: "primary" },
                 ]}
             />
             <div>
@@ -117,7 +118,7 @@ const MediaTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedMedia}
                                     disabled={selectedMedia.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -170,7 +171,7 @@ const MediaTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedMedia.map((item) => (
+                                {paginatedMedia.map((item: any) => (
                                     <TableRow key={item.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -182,9 +183,9 @@ const MediaTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {item.media_type === "image" ? (
                                                 <div className="w-16 h-16 border rounded overflow-hidden">
-                                                    <img 
+                                                    <Image
                                                         src={mediaUrl(item.file_path)}
-                                                        alt="Image preview" 
+                                                        alt="Image preview"
                                                         className="w-full h-full object-cover"
                                                     />
                                                 </div>
@@ -224,7 +225,7 @@ const MediaTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(item.id)}
-                                                        variant="danger"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

@@ -12,29 +12,29 @@ import {
 import Checkbox from "@/components/form/input/Checkbox";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
-import {fetchUsers, deleteUsersAPI} from "@/server/api/users";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit, MdDevices} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
-import Cookies from "js-cookie";
 import filterItems from "@/utils/filterItems";
 import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
 import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
 import OnlineBadge from "@/components/ui/badge/OnlineBadge";
 
 
+type Device = { id: number } & Record<string, unknown>;
+
 const DevicesTable = () => {
     const router = useRouter();
-    const [devices, setDevices] = useState([]);
+    const [devices, setDevices] = useState<Device[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
-    const [selectedDevices, setSelectedDevices] = useState([]);
+    const [selectedDevices, setSelectedDevices] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -42,14 +42,13 @@ const DevicesTable = () => {
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
-    const [deviceToDelete, setDeviceToDelete] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetchDevices();
-                setDevices(data);
-            } catch (err) {
+                setDevices(data as Device[]);
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error!!!");
             } finally {
                 setLoading(false);
@@ -63,7 +62,7 @@ const DevicesTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (deviceId) => {
+    const openWarningModal = (deviceId: number) => {
         setSelectedDevices([deviceId])
         setIsWarningModalOpen(true);
     };
@@ -75,16 +74,15 @@ const DevicesTable = () => {
                 setDevices((prev) => prev.filter((device) => !selectedDevices.includes(device.id)));
                 setSelectedDevices([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar Devices");
             } finally {
                 setIsWarningModalOpen(false);
-                setDeviceToDelete(null);
             }
         }
     };
 
-    const toggleSelectDevices = (id) => {
+    const toggleSelectDevices = (id: number) => {
         setSelectedDevices((prev) =>
             prev.includes(id) ? prev.filter((deviceId) => deviceId !== id) : [...prev, id]
         );
@@ -98,12 +96,17 @@ const DevicesTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (deviceId: any) => {
+    const handleEdit = (deviceId: number | string) => {
         router.push(`/devices/edit/${deviceId}`);
     };
 
-    useStatusActionsChannel("frontend", async (data: any) => {
-        setDevicesOnline(data.devices);
+    useStatusActionsChannel("frontend", (data) => {
+        if (data && typeof data === 'object' && 'devices' in data) {
+            const value = (data as { devices?: unknown }).devices;
+            if (Array.isArray(value) && value.every((v) => typeof v === 'string')) {
+                setDevicesOnline(value as string[]);
+            }
+        }
     })
 
     return (
@@ -115,7 +118,7 @@ const DevicesTable = () => {
                 message="¿Estás seguro de que deseas eliminar este Device?"
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteDevices, variant: "danger"},
+                    {label: "Eliminar", onClick: confirmDeleteDevices, variant: "primary"},
                 ]}
             />
             <div>
@@ -127,7 +130,7 @@ const DevicesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedDevices}
                                     disabled={selectedDevices.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -199,7 +202,7 @@ const DevicesTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedDevices.map((device) => (
+                                {paginatedDevices.map((device: any) => (
                                     <TableRow key={device.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -213,7 +216,7 @@ const DevicesTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             <div className="flex items-center gap-2">
                                                 <OnlineBadge devices={devicesOnline} deviceId={device.device_id} />
-                                                {device.device_id}
+                                                { device.device_id || "-"}
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
@@ -243,7 +246,7 @@ const DevicesTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(device.id)}
-                                                        variant="danger"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

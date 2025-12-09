@@ -1,9 +1,9 @@
 // src/utils/actionCable.js (O donde manejes tu lógica de Action Cable)
-import { createConsumer } from "@rails/actioncable";
+import { createConsumer, type Consumer } from "@rails/actioncable";
 
-let consumer: any = null;
+let consumer: Consumer | null = null;
 
-export const initializeActionCable = (deviceId: any) => {
+export const initializeActionCable = (deviceId: string | number) => {
     if (typeof window === "undefined") {
         // Evitar ejecutar en el lado del servidor durante la renderización de Next.js
         return;
@@ -21,21 +21,21 @@ export const initializeActionCable = (deviceId: any) => {
     consumer = createConsumer(cableUrl);
 
     // Solo forzar reintento en desarrollo
-    if (process.env.NODE_ENV === "development") {
-        console.log("En develop");
-        const originalDisconnected = consumer.connection.disconnected;
-
-        consumer.connection.disconnected = function (...args: any[]) {
-            console.log("Cable desconectado (dev mode), reintentando...");
-            setTimeout(() => {
-                consumer.connect();
-            }, 2000);
-
-            if (typeof originalDisconnected === "function") {
-                originalDisconnected.apply(this, args);
-            }
-        };
-    }
+    // if (process.env.NODE_ENV === "development") {
+    //     console.log("En develop");
+    //     const originalDisconnected = consumer.connection.disconnected;
+    //
+    //     consumer.connection.disconnected = function (...args: unknown[]) {
+    //         console.log("Cable desconectado (dev mode), reintentando...");
+    //         setTimeout(() => {
+    //             consumer?.connect();
+    //         }, 2000);
+    //
+    //         if (typeof originalDisconnected === "function") {
+    //             originalDisconnected.apply(this, args);
+    //         }
+    //     };
+    // }
 
     return consumer;
 };

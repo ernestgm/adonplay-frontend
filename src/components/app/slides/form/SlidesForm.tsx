@@ -8,11 +8,9 @@ import {useError} from "@/context/ErrorContext";
 import {fetchBusinesses} from "@/server/api/business";
 import Select from "@/components/form/Select";
 import Label from "@/components/form/Label";
-import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
 import {createSlide, updateSlide} from "@/server/api/slides";
-import Radio from "@/components/form/input/Radio";
 import ComponentCard from "@/components/common/ComponentCard";
 import config from "@/config/globalConfig";
 import PositionExample from "@/components/common/PositionExample";
@@ -30,8 +28,14 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
     });
 
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
-    const [business, setBusiness] = useState([]);
+    const [validationErrors, setValidationErrors] = useState({
+        name: "",
+        description: "",
+        description_position: "",
+        description_size: "",
+        business_id: ""
+    });
+    const [business, setBusiness] = useState<any[]>([]);
     const setError = useError().setError;
     const router = useRouter();
 
@@ -40,33 +44,33 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
             try {
                 const allBusiness = await fetchBusinesses();
                 setBusiness(allBusiness);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         getBusiness();
     }, [setError]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
-    const handleBusinessChange = (value) => {
+    const handleBusinessChange = (value: any) => {
         setForm({...form, business_id: value});
     };
 
-    const handlePositionChange = (value) => {
+    const handlePositionChange = (value: any) => {
         setForm({...form, description_position: value});
     };
 
-    const handleTextSizeChange = (value) => {
+    const handleTextSizeChange = (value: any) => {
         setForm({...form, description_size: value});
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({business_id: "", description: "", description_position: "", description_size: "", name: ""});
         try {
             if (slides) {
                 await updateSlide(slides.id, form);
@@ -74,7 +78,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 await createSlide(form);
             }
             router.push("/slides");
-        } catch (err) {
+        } catch (err: any) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
@@ -94,7 +98,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    error={validationErrors.name}
+                    error={validationErrors.name !== ""}
                     hint={validationErrors.name}
                 />
             </div>
@@ -104,7 +108,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    error={validationErrors.description}
+                    error={validationErrors.description !== ""}
                     hint={validationErrors.description}
                 />
             </div>
@@ -117,7 +121,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                             onChange={handleBusinessChange}
                             options={business.map(u => ({value: u.id, label: u.name}))}
                             className="w-full sm:w-auto"
-                            error={validationErrors.business_id}
+                            error={validationErrors.business_id !== ""}
                             hint={validationErrors.business_id}
                         />
                         <span
@@ -139,7 +143,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                         onChange={handlePositionChange}
                                         options={config.positions.map(u => ({value: u.value, label: u.label}))}
                                         className="w-full"
-                                        error={validationErrors.description_position}
+                                        error={validationErrors.description_position !== ""}
                                         hint={validationErrors.description_position}
                                     />
                                     <span
@@ -154,7 +158,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                         onChange={handleTextSizeChange}
                                         options={config.text_sizes.map(u => ({value: u.value, label: u.label}))}
                                         className="w-full"
-                                        error={validationErrors.description_size}
+                                        error={validationErrors.description_size !== ""}
                                         hint={validationErrors.description_size}
                                     />
                                     <span

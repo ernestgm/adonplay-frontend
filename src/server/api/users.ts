@@ -1,9 +1,9 @@
 import {apiDelete, apiGet, apiPost, apiPut} from "@/server/api/apiClient";
 
-export const getUser = async (id) => {
+export const getUser = async (id: any) => {
   try {
     return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`);
-  } catch (error) {
+  } catch (error: any) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Failed to sign out.",
@@ -13,7 +13,7 @@ export const getUser = async (id) => {
 export const fetchUsers = async () => {
   try {
     return await apiGet(`${process.env.NEXT_PUBLIC_API_URL}/users`);
-  } catch (error) {
+  } catch (error: any) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Failed to sign out.",
@@ -21,10 +21,10 @@ export const fetchUsers = async () => {
   }
 };
 
-export const createUser = async (user) => {
+export const createUser = async (user: any) => {
   try {
     return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/users`, user);
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
     throw {
       status: error.response?.status || 500,
@@ -33,10 +33,10 @@ export const createUser = async (user) => {
   }
 };
 
-export const updateUser = async (id, user) => {
+export const updateUser = async (id: any, user: any) => {
   try {
     return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/users/${id}`, user);
-  } catch (error) {
+  } catch (error: any) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Error al actualizar usuario.",
@@ -47,7 +47,7 @@ export const updateUser = async (id, user) => {
 export const deleteUsersAPI = async (userIds: number[]) => {
     try {
       return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/users`, {'ids': userIds});
-    } catch (error) {
+    } catch (error: any) {
       throw {
         status: error.response?.status || 500,
         data: error.response?.data || "Error al eliminar usuarios.",
@@ -55,10 +55,10 @@ export const deleteUsersAPI = async (userIds: number[]) => {
     }
 };
 
-export const activateDevice = async (data) => {
+export const activateDevice = async (data: any) => {
   try {
     return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/activate_device`, data);
-  } catch (error) {
+  } catch (error: any) {
     throw {
       status: error.response?.status || 500,
       data: error.response?.data || "Error al activar dispositivo.",

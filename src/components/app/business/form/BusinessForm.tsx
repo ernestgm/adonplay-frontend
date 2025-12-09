@@ -26,8 +26,12 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         owner_id: business?.owner_id || "",
     });
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
-    const [users, setUsers] = useState([]);
+    const [validationErrors, setValidationErrors] = useState({
+        name: "",
+        description: "",
+        owner_id: ""
+    });
+    const [users, setUsers] = useState<any>([]);
     const setError = useError().setError;
     const router = useRouter();
 
@@ -35,27 +39,27 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => u.role !== "admin");
+                const filtered = allUsers.filter((u: { role: string; }) => u.role !== "admin");
                 setUsers(filtered);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         fetchOwners();
     }, [setError]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-    const handleOwnerChange = (value) => {
+    const handleOwnerChange = (value: any) => {
         if (!isOwner) setForm({ ...form, owner_id: value });
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({name: "", description: "", owner_id: ""});
         try {
             if (business) {
                 await updateBusiness(business.id, form);
@@ -63,7 +67,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 await createBusiness(form);
             }
             router.push("/business");
-        } catch (err) {
+        } catch (err: any) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
@@ -83,7 +87,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                     name="name"
                     value={form.name}
                     onChange={handleChange}
-                    error={validationErrors.name}
+                    error={validationErrors.name !== ""}
                     hint={validationErrors.name}
                 />
             </div>
@@ -93,7 +97,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                     name="description"
                     value={form.description}
                     onChange={handleChange}
-                    error={validationErrors.description}
+                    error={validationErrors.description !== ""}
                     hint={validationErrors.description}
                 />
             </div>
@@ -106,10 +110,10 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                             onChange={handleOwnerChange}
                             options={ isOwner
                                 ? [{ value: userData.id, label: userData.name }]
-                                : users.map(u => ({ value: u.id, label: u.name }))}
+                                : users.map((u: { id: any; name: any; }) => ({ value: u.id, label: u.name }))}
                             disabled={isOwner}
                             className="w-full sm:w-auto"
-                            error={validationErrors.owner_id}
+                            error={validationErrors.owner_id !== ""}
                             hint={validationErrors.owner_id}
                         />
                         <span

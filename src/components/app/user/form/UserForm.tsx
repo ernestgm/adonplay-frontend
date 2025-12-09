@@ -11,7 +11,6 @@ import config from "@/config/globalConfig";
 import Label from "@/components/form/Label";
 import {ChevronDownIcon, EnvelopeIcon, EyeCloseIcon, EyeIcon} from "@/icons";
 import {MdPhone} from "react-icons/md";
-import Cookies from "js-cookie";
 import {getDataUserAuth} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import Checkbox from "@/components/form/input/Checkbox";
@@ -34,12 +33,19 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
         // Agrega más campos según tu modelo
     });
     const [loading, setLoading] = React.useState(false);
-    const [validationErrors, setValidationErrors] = React.useState({});
+    const [validationErrors, setValidationErrors] = React.useState({
+        name: undefined,
+        email: undefined,
+        phone: undefined,
+        password: undefined,
+        password_confirmation: undefined,
+        role: undefined
+    });
     const router = useRouter();
 
     const isAuthenticatedUserEditing = user?.id === userData.id; // Verificar si el usuario autenticado está editando su propio perfil
 
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
@@ -49,16 +55,25 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
         }
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({
+            email: undefined,
+            name: undefined,
+            password: undefined,
+            password_confirmation: undefined,
+            phone: undefined,
+            role: undefined
+        });
         try {
             if (user) {
                 const updatedForm = { ...form };
                 // Solo incluir la contraseña si los campos no están vacíos
                 if (!updatedForm.password || !updatedForm.password_confirmation) {
+                    // @ts-expect-error
                     delete updatedForm.password;
+                    // @ts-expect-error
                     delete updatedForm.password_confirmation;
                 }
                 await updateUser(user.id, updatedForm);
@@ -66,7 +81,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 await createUser(form);
             }
             router.push("/users");
-        } catch (error) {
+        } catch (error: any) {
             console.log(error);
             if (error.data.errors) {
                 setValidationErrors(error.data.errors)
@@ -86,7 +101,6 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                     name="name"
                     defaultValue={form.name}
                     onChange={handleChange}
-                    required
                     error={validationErrors.name}
                     hint={validationErrors.name}
                 />
@@ -99,7 +113,6 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                         type="email"
                         defaultValue={form.email}
                         onChange={handleChange}
-                        required
                         error={validationErrors.email}
                         hint={validationErrors.email}
                         className="pl-[62px]"
@@ -134,7 +147,6 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                         name="password"
                         defaultValue={form.password || ''}
                         onChange={handleChange}
-                        required={!user} // Solo requerido al crear
                         error={validationErrors.password}
                         hint={validationErrors.password}
                     />
@@ -158,7 +170,6 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                     name="password_confirmation"
                     defaultValue={form.password_confirmation || ''}
                     onChange={handleChange}
-                    required={!user} // Solo requerido al crear
                     error={validationErrors.password_confirmation}
                     hint={validationErrors.password_confirmation}
                 />

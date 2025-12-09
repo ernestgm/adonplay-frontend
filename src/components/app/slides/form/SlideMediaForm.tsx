@@ -9,9 +9,8 @@ import TextArea from "@/components/form/input/TextArea";
 import {useError} from "@/context/ErrorContext";
 import {useMessage} from "@/context/MessageContext";
 import {createSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
-import {fetchAudioMediaExcepted, fetchMedia, fetchMediaExcepted, getMedia} from "@/server/api/media";
+import {fetchAudioMediaExcepted, fetchMediaExcepted} from "@/server/api/media";
 import {fetchQrCode} from "@/server/api/qrcodes";
-import {getDataUserAuth} from "@/server/api/auth";
 import config from "@/config/globalConfig";
 import Form from "@/components/form/Form";
 import Label from "@/components/form/Label";
@@ -30,20 +29,14 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Checkbox from "@/components/form/input/Checkbox";
-import {MdSearch, MdAudioFile, MdVideoFile, MdImage} from "react-icons/md";
+import {MdSearch, MdAudioFile, MdVideoFile} from "react-icons/md";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
+import Image from "next/image";
 
-// Base URL for media files
-const typeOptions = [
-    {value: "image", label: "Imagen"},
-    {value: "video", label: "Video"},
-    {value: "audio", label: "Audio"},
-];
 
 const descriptionPositions = config.positions;
 const textSizes = config.text_sizes;
-const qrPositions = descriptionPositions;
 
 interface MediaFormProps {
     slideMedia?: any;
@@ -63,8 +56,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     });
 
     // State for media selection
-    const [allMedia, setAllMedia] = useState([]);
-    const [allAudios, setAllAudios] = useState([]);
+    const [allMedia, setAllMedia] = useState<any[]>([]);
+    const [allAudios, setAllAudios] = useState<any[]>([]);
     const [selectedMediaId, setSelectedMediaId] = useState(slideMedia?.media_id || "");
     const [selectedMedia, setSelectedMedia] = useState(slideMedia?.media || null);
     const [selectedAudioId, setSelectedAudioId] = useState(slideMedia?.audio_media_id || "");
@@ -74,16 +67,16 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     const [audioSearchTerm, setAudioSearchTerm] = useState("");
     const [currentMediaPage, setCurrentMediaPage] = useState(1);
     const [currentAudioPage, setCurrentAudioPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(5);
+    const [itemsPerPage] = useState(5);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     const [showAudioSelector, setShowAudioSelector] = useState(false);
     const [uploadNewMedia, setUploadNewMedia] = useState(false);
     const [uploadNewAudio, setUploadNewAudio] = useState(false);
 
     // State for QR codes
-    const [qrCodes, setQrCodes] = useState([]);
+    const [qrCodes, setQrCodes] = useState<any[]>([]);
     const [selectedQrId, setSelectedQrId] = useState(slideMedia?.qr_id || "");
-    const [selectedQr, setSelectedQr] = useState(null);
+    const [selectedQr, setSelectedQr] = useState<any>(null);
     const [qrSearchTerm, setQrSearchTerm] = useState("");
     const [showQrSelector, setShowQrSelector] = useState(false);
 
@@ -92,7 +85,6 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     const [audio, setAudioFile] = useState<File | null>(null);
     const [fileError, setFileError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
     const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
@@ -118,7 +110,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
                 // Set selected QR if it exists
                 if (slideMedia?.qr_id) {
-                    const qr = qrData.find(q => q.id === parseInt(slideMedia.qr_id));
+                    const qr = qrData.find((q: { id: number; }) => q.id === parseInt(slideMedia.qr_id));
                     setSelectedQr(qr);
                 }
 
@@ -130,7 +122,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     setSelectedAudio(slideMedia.audio_media);
                 }
 
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar datos");
             }
         };
@@ -201,19 +193,19 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         };
     }, [imagePreviewUrl, videoPreviewUrl, audioPreviewUrl]);
 
-    const handleChange = (e) => {
+    const handleChange = (e: any) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
-    const handleDescriptionChange = (value) => {
+    const handleDescriptionChange = (value: any) => {
         setForm({...form, description: value});
     };
 
-    const handlePositionChange = (value) => {
+    const handlePositionChange = (value: any) => {
         setForm({...form, description_position: value});
     };
 
-    const handleTextSizeChange = (value) => {
+    const handleTextSizeChange = (value: any) => {
         setForm({...form, text_size: value});
     };
 
@@ -234,7 +226,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         setShowQrSelector(false);
     };
 
-    const handleSelectQr = (qrId) => {
+    const handleSelectQr = (qrId: string) => {
         setSelectedQrId(qrId.toString());
         setForm({...form, qr_id: qrId.toString()});
 
@@ -245,7 +237,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         setShowQrSelector(false);
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: { target: { files: any; }; }) => {
         setFileError("");
         const files = e.target.files;
 
@@ -280,7 +272,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         }
     };
 
-    const handleAudioChange = (e) => {
+    const handleAudioChange = (e: { target: { files: any; }; }) => {
         const audios = e.target.files;
         if (!audios || audios.length === 0) return;
 
@@ -295,22 +287,21 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         }
     }
 
-    const handleSelectMedia = (mediaId) => {
+    const handleSelectMedia = (mediaId: any) => {
         setSelectedMediaId(mediaId.toString());
         setForm({...form, media_id: mediaId.toString()});
         setShowMediaSelector(false);
     };
 
-    const handleSelectAudio = (audioId) => {
+    const handleSelectAudio = (audioId: any) => {
         setSelectedAudioId(audioId.toString());
         setForm({...form, audio_media_id: audioId.toString()});
         setShowAudioSelector(false);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
         setFileError("");
 
         try {
@@ -350,9 +341,10 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
             // Redirect back to the slide media management page
             router.push(`/slides/media-management/${slideId}`);
-        } catch (err) {
+        } catch (err: any) {
             if (err.response && err.response.data) {
-                setValidationErrors(err.response.data.errors || {});
+                // setValidationErrors(err.response.data.errors || {});
+                setError("Error al guardar el slide media");
             } else {
                 setError("Error al guardar el slide media");
             }
@@ -411,7 +403,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         <div className="w-16 h-16 flex-shrink-0">
                                             {selectedMedia.media_type === "image" ? (
                                                 <div className="w-full h-full border rounded overflow-hidden">
-                                                    <img
+                                                    <Image
                                                         src={mediaUrl(selectedMedia.file_path)}
                                                         alt="Selected media"
                                                         className="w-full h-full object-cover"
@@ -502,13 +494,12 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             <TableBody className="bg-white divide-y divide-gray-200">
                                                 {paginatedMedia.length === 0 ? (
                                                     <TableRow>
-                                                        <TableCell colSpan={3}
-                                                                   className="px-3 py-2 text-center text-sm text-gray-500">
+                                                        <TableCell className="px-3 py-2 text-center text-sm text-gray-500">
                                                             No hay media disponible
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (
-                                                    paginatedMedia.map((item) => (
+                                                    paginatedMedia.map((item: any) => (
                                                         <TableRow key={item.id}>
                                                             <TableCell
                                                                 className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
@@ -527,7 +518,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                                 {item.media_type === "image" ? (
                                                                     <div
                                                                         className="w-12 h-12 border rounded overflow-hidden">
-                                                                        <img
+                                                                        <Image
                                                                             src={mediaUrl(item.file_path)}
                                                                             alt="Image preview"
                                                                             className="w-full h-full object-cover"
@@ -579,11 +570,11 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                 <div className="mt-3 p-3 border rounded-md">
                                     <div className="font-medium mb-2">Vista previa de la imagen</div>
                                     <div className="border rounded overflow-hidden">
-                                        <img
+                                        <Image
                                             src={imagePreviewUrl}
                                             alt="Image preview"
-                                            className="w-full h-auto max-h-[200px] object-contain"
-                                        />
+                                            className="w-full h-auto max-h-[200px] object-cover"
+                                            />
                                     </div>
                                 </div>
                             )}
@@ -718,13 +709,13 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             <TableBody className="bg-white divide-y divide-gray-200">
                                                 {paginatedAudio.length === 0 ? (
                                                     <TableRow>
-                                                        <TableCell colSpan={3}
+                                                        <TableCell
                                                                    className="px-3 py-2 text-center text-sm text-gray-500">
                                                             No hay audios disponibles
                                                         </TableCell>
                                                     </TableRow>
                                                 ) : (
-                                                    paginatedAudio.map((item) => (
+                                                    paginatedAudio.map((item: any) => (
                                                         <TableRow key={item.id}>
                                                             <TableCell
                                                                 className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
@@ -813,7 +804,6 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                         min="1"
                         value={form.duration}
                         onChange={handleChange}
-                        required
                     />
                 </div>
             )}
@@ -965,7 +955,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     <TableBody className="bg-white divide-y divide-gray-200">
                                         {qrCodes.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={3}
+                                                <TableCell
                                                            className="px-3 py-2 text-center text-sm text-gray-500">
                                                     No hay QR codes disponibles
                                                 </TableCell>

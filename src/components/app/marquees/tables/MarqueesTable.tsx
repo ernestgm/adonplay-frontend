@@ -1,7 +1,7 @@
 "use client";
 import React, {useState, useEffect} from "react";
 import {ChevronDownIcon} from "@/icons";
-import {fetchMarquees, deleteMarquee, deleteMarquees} from "@/server/api/marquees";
+import {fetchMarquees, deleteMarquees} from "@/server/api/marquees";
 import {useRouter} from "next/navigation";
 import Button from "@/components/ui/button/Button";
 import Input from "@/components/form/input/InputField";
@@ -21,18 +21,18 @@ const MarqueesTable = () => {
     const router = useRouter();
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
-    const [marquees, setMarquees] = useState([]);
+    const [marquees, setMarquees] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
-    const [selectedMarquee, setSelectedMarquee] = useState([]);
+    const [selectedMarquee, setSelectedMarquee] = useState<number[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetchMarquees();
                 setMarquees(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar marquees");
             } finally {
                 setLoading(false);
@@ -41,19 +41,19 @@ const MarqueesTable = () => {
         fetchData();
     }, [setError]);
 
-    const handleEdit = (marquee) => {
+    const handleEdit = (marquee: any) => {
         router.push(`/marquees/edit/${marquee}`);
     };
 
     const deleteSelectedMarquees = async () => {
         setIsWarningModalOpen(true);
     };
-    const toggleSelectMarquees = (id) => {
+    const toggleSelectMarquees = (id: number) => {
         setSelectedMarquee((prev) =>
             prev.includes(id) ? prev.filter((bId) => bId !== id) : [...prev, id]
         );
     };
-    const openWarningModal = (marquee) => {
+    const openWarningModal = (marquee: number) => {
         setSelectedMarquee([marquee]);
         setIsWarningModalOpen(true);
     };
@@ -65,7 +65,7 @@ const MarqueesTable = () => {
                 setMarquees((prev) => prev.filter((b) => !selectedMarquee.includes(b.id)));
                 setSelectedMarquee([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar negocio");
             } finally {
                 setIsWarningModalOpen(false);
@@ -91,7 +91,7 @@ const MarqueesTable = () => {
                 onClose={() => setIsWarningModalOpen(false)}
                 actions={[
                     {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteMarquees, variant: "danger"},
+                    {label: "Eliminar", onClick: confirmDeleteMarquees, variant: "primary"},
                 ]}
                 title="Eliminar Marquee"
                 message={`¿Estás seguro de que deseas eliminar el marquee"? Esta acción no se puede deshacer.`}
@@ -105,7 +105,7 @@ const MarqueesTable = () => {
                                 size="sm"
                                 onClick={deleteSelectedMarquees}
                                 disabled={selectedMarquee.length === 0}
-                                variant="danger"
+                                variant="primary"
                             >
                                 <MdDelete size={20}/>
                             </Button>
@@ -160,7 +160,7 @@ const MarqueesTable = () => {
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-white divide-y divide-gray-200">
-                            {paginatedMarquees.map((m) => (
+                            {paginatedMarquees.map((m: any) => (
                                 <TableRow key={m.id}>
                                     <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                         <Checkbox
@@ -190,7 +190,7 @@ const MarqueesTable = () => {
                                             <Tooltip content="Eliminar">
                                                 <Button
                                                     onClick={() => openWarningModal(m.id)}
-                                                    variant="danger"
+                                                    variant="primary"
                                                     size="sm"
                                                 >
                                                     <MdDelete size={18}/>

@@ -14,32 +14,36 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdSearch} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
-import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import filterItems from "@/utils/filterItems";
 import {fetchDevicesPermissions, updateDevicePermissions} from "@/server/api/devices";
 import Switch from "@/components/form/switch/Switch";
 
 
+type DevicePermissionItem = {
+    id: number;
+    device_id: string;
+    code: string;
+    registered: boolean;
+} & Record<string, unknown>;
+
 const DevicesPermissionsTable = () => {
-    const router = useRouter();
-    const [devices, setDevices] = useState([]);
+    const [devices, setDevices] = useState<DevicePermissionItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
-    const [deviceToDelete, setDeviceToDelete] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetchDevicesPermissions();
-                setDevices(data);
-            } catch (err) {
+                setDevices(data as DevicePermissionItem[]);
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al iniciar sesión");
             } finally {
                 setLoading(false);
@@ -49,13 +53,13 @@ const DevicesPermissionsTable = () => {
         fetchData();
     }, []);
 
-    const handleSwitchChange = async (checked: boolean, id: any) => {
+    const handleSwitchChange = async (checked: boolean, id: number) => {
         try {
             const formData = new FormData();
             formData.append("registered", checked ? "true" : "false");
             const response = await updateDevicePermissions(id, formData);
             setMessage(response.message);
-        } catch (err) {
+        } catch (err: any) {
             setError(err.data?.message || err.message || "Error al Actualizar");
         } finally {
             setLoading(false);
@@ -113,7 +117,7 @@ const DevicesPermissionsTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedDevices.map((device) => (
+                                {paginatedDevices.map((device: any) => (
                                     <TableRow key={device.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {device.device_id}

@@ -1,8 +1,6 @@
 "use client";
 
 import React, {useEffect, useState} from "react";
-import UserForm from "@/components/app/user/form/UserForm";
-import { getUser } from "@/server/api/users";
 import { useError } from "@/context/ErrorContext";
 import {useParams, useRouter} from "next/navigation";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
@@ -27,7 +25,7 @@ const EditUserPage = () => {
             try {
                 const data = await getDevice(id);
                 setDevice(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

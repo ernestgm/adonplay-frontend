@@ -17,7 +17,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit, MdDevices} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import { useRouter } from "next/navigation";
@@ -29,15 +29,14 @@ import filterItems from "@/utils/filterItems";
 
 const UserTable = () => {
     const router = useRouter();
-    const [users, setUsers] = useState([]);
-    const [selectedUsers, setSelectedUsers] = useState([]);
+    const [users, setUsers] = useState<any[]>([]);
+    const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
-    const [userToDelete, setUserToDelete] = useState(null);
-    const [authenticatedUserId, setAuthenticatedUserId] = useState(null);
+    const [authenticatedUserId, setAuthenticatedUserId] = useState<any>(null);
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
 
@@ -46,7 +45,7 @@ const UserTable = () => {
             try {
                 const data = await fetchUsers();
                 setUsers(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al iniciar sesión");
             } finally {
                 setLoading(false);
@@ -54,18 +53,18 @@ const UserTable = () => {
         };
 
         fetchData();
-    }, []);
+    }, [setUsers, setError]);
 
     useEffect(() => {
         const fetchAuthenticatedUserId = async () => {
-            const userId = Cookies.get("user").id;
-            setAuthenticatedUserId(userId);
+            const userId: any = Cookies.get("user");
+            setAuthenticatedUserId(userId.id);
         };
 
         fetchAuthenticatedUserId();
     }, []);
 
-    const toggleSelectUser = (id) => {
+    const toggleSelectUser = (id: any) => {
         setSelectedUsers((prev) =>
             prev.includes(id) ? prev.filter((userId) => userId !== id) : [...prev, id]
         );
@@ -75,7 +74,7 @@ const UserTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (userId) => {
+    const openWarningModal = (userId: any) => {
         setSelectedUsers([userId])
         setIsWarningModalOpen(true);
     };
@@ -87,17 +86,16 @@ const UserTable = () => {
                 setUsers((prev) => prev.filter((user) => !selectedUsers.includes(user.id)));
                 setSelectedUsers([]);
                 setMessage(response.message);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar usuario");
             } finally {
                 setIsWarningModalOpen(false);
-                setUserToDelete(null);
             }
         }
     };
 
     const filteredUsers = filterItems(users, searchTerm).filter(
-        (user) => user.id !== authenticatedUserId
+        (user: { id: null; }) => user.id !== authenticatedUserId
     );
 
     const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -106,13 +104,13 @@ const UserTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (userId) => {
+    const handleEdit = (userId: any) => {
         router.push(`/users/edit/${userId}`);
     };
 
-    const handleActivateDevice = (userId) => {
-        router.push(`/activate/${userId}`);
-    };
+    // const handleActivateDevice = (userId) => {
+    //     router.push(`/activate/${userId}`);
+    // };
 
     return (
         <>
@@ -123,7 +121,7 @@ const UserTable = () => {
                 message="¿Estás seguro de que deseas eliminar este usuario?"
                 actions={[
                     { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteUser, variant: "danger" },
+                    { label: "Eliminar", onClick: confirmDeleteUser, variant: "primary" },
                 ]}
             />
             <div>
@@ -135,7 +133,7 @@ const UserTable = () => {
                                         size="sm"
                                         onClick={deleteSelectedUsers}
                                         disabled={selectedUsers.length === 0}
-                                        variant="danger"
+                                        variant="primary"
                                     >
                                         <MdDelete size={20}/>
                                     </Button>
@@ -215,7 +213,7 @@ const UserTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedUsers.map((user) => (
+                                {paginatedUsers.map((user: any) => (
                                     <TableRow key={user.id} className={user.enabled ? "" : "bg-red-100"}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -256,7 +254,7 @@ const UserTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(user.id)}
-                                                        variant="danger"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

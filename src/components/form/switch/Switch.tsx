@@ -2,11 +2,11 @@
 import React, { useState } from "react";
 
 interface SwitchProps {
-  id: any,
+  id: number,
   label: string;
   defaultChecked?: boolean;
   disabled?: boolean;
-  onChange?: (checked: boolean, id: any) => void;
+  onChange?: (checked: boolean, id: number) => void;
   color?: "blue" | "gray"; // Added prop to toggle color theme
 }
 

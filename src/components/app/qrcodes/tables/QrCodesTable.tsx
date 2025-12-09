@@ -27,8 +27,8 @@ import {QRCodeCanvas} from "qrcode.react";
 
 const QrCodesTable = () => {
     const router = useRouter();
-    const [qrcodes, setQrCodes] = useState([]);
-    const [selectedQrCodes, setSelectedQrCodes] = useState([]);
+    const [qrcodes, setQrCodes] = useState<any[]>([]);
+    const [selectedQrCodes, setSelectedQrCodes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -42,7 +42,7 @@ const QrCodesTable = () => {
             try {
                 const data = await fetchQrCode();
                 setQrCodes(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.message || "Error al obtener QRCodes");
             } finally {
                 setLoading(false);
@@ -51,7 +51,7 @@ const QrCodesTable = () => {
         fetchData();
     }, []);
 
-    const toggleSelectQrCode = (id) => {
+    const toggleSelectQrCode = (id: any) => {
         setSelectedQrCodes((prev) =>
             prev.includes(id) ? prev.filter((qrId) => qrId !== id) : [...prev, id]
         );
@@ -61,7 +61,7 @@ const QrCodesTable = () => {
         setIsWarningModalOpen(true);
     };
 
-    const openWarningModal = (qrId) => {
+    const openWarningModal = (qrId: any) => {
         setSelectedQrCodes([qrId]);
         setIsWarningModalOpen(true);
     };
@@ -73,7 +73,7 @@ const QrCodesTable = () => {
                 setQrCodes((prev) => prev.filter((qr) => !selectedQrCodes.includes(qr.id)));
                 setSelectedQrCodes([]);
                 setMessage("QRCodes eliminados correctamente");
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.message || "Error al eliminar QRCodes");
             } finally {
                 setIsWarningModalOpen(false);
@@ -88,7 +88,7 @@ const QrCodesTable = () => {
         currentPage * itemsPerPage
     );
 
-    const handleEdit = (qrId) => {
+    const handleEdit = (qrId: any) => {
         router.push(`/qrcodes/edit/${qrId}`);
     };
 
@@ -101,7 +101,7 @@ const QrCodesTable = () => {
                 message="¿Estás seguro de que deseas eliminar este QRCode?"
                 actions={[
                     { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteQrCode, variant: "danger" },
+                    { label: "Eliminar", onClick: confirmDeleteQrCode, variant: "primary" },
                 ]}
             />
             <div>
@@ -113,7 +113,7 @@ const QrCodesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedQrCodes}
                                     disabled={selectedQrCodes.length === 0}
-                                    variant="danger"
+                                    variant="primary"
                                 >
                                     <MdDelete size={20} />
                                 </Button>
@@ -178,7 +178,7 @@ const QrCodesTable = () => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
-                                {paginatedQrCodes.map((qr) => (
+                                {paginatedQrCodes.map((qr: any) => (
                                     <TableRow key={qr.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <Checkbox
@@ -220,7 +220,7 @@ const QrCodesTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(qr.id)}
-                                                        variant="danger"
+                                                        variant="primary"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18} />

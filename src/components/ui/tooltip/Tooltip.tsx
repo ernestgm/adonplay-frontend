@@ -11,8 +11,12 @@ const Tooltip: React.FC<TooltipProps> = ({ content, children }) => {
   const timeout = useRef<NodeJS.Timeout | null>(null);
 
   const show = (e: React.MouseEvent | React.FocusEvent) => {
-    const evt = 'clientX' in e ? e : (e as any).nativeEvent;
-    setCoords({ x: evt.clientX, y: evt.clientY });
+    if ('clientX' in e) {
+      setCoords({ x: e.clientX, y: e.clientY });
+    } else {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      setCoords({ x: rect.left + rect.width / 2, y: rect.top });
+    }
     timeout.current = setTimeout(() => setVisible(true), 100);
   };
   const move = (e: React.MouseEvent) => {

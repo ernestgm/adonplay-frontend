@@ -5,7 +5,6 @@ import React, {useEffect, useState} from 'react';
 import {useError} from "@/context/ErrorContext";
 import {useParams, useRouter} from "next/navigation";
 import {getMedia} from "@/server/api/media";
-import SlideMediaDetails from "@/components/app/slides/details/SlideMediaDetails";
 import MediaDetails from "@/components/app/media/details/MediaDetails";
 
 const MediaDetailsPage = () => {
@@ -24,7 +23,7 @@ const MediaDetailsPage = () => {
                 const data = await getMedia(id);
                 console.log(data);
                 setMedia(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener media");
             } finally {
                 setLoading(false);

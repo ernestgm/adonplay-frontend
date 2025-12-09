@@ -26,7 +26,7 @@ const EditUserPage = () => {
                 const data = await getUser(id);
                 console.log(data);
                 setUser(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

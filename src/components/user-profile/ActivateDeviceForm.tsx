@@ -14,17 +14,20 @@ import {ChevronDownIcon} from "@/icons";
 const ActivateUserForm = () => {
     const userData = getDataUserAuth();
     const isOwner = getIsOwner();
-    const [users, setUsers] = useState([]);
+    const [users, setUsers] = useState<any[]>([]);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
         user_id: isOwner ? userData.id : "",
         code: "",
     });
     const [loading, setLoading] = React.useState(false);
-    const [validationErrors, setValidationErrors] = React.useState({});
+    const [validationErrors, setValidationErrors] = React.useState({
+        code: "",
+        owner_id: ""
+    });
     const setMessage = useMessage().setMessage;
 
-    const handleChange = (e) => {
+    const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
@@ -33,17 +36,17 @@ const ActivateUserForm = () => {
         console.log(form)
     }
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({code: "", owner_id: ""});
         try {
             if (isOwner) {
                 setForm({...form, user_id: userData.id});
             }
             const response = await activateDevice(form);
             setMessage(response.message);
-        } catch (error) {
+        } catch (error: any) {
             if (error.data.errors) {
                 Object.entries(error.data.errors).forEach(([field, messages]) => {
                     setValidationErrors(prev => ({...prev, [field]: messages}));
@@ -57,7 +60,7 @@ const ActivateUserForm = () => {
         }
     };
 
-    const handleOwnerChange = (value) => {
+    const handleOwnerChange = (value: any) => {
         if (!isOwner) setForm({ ...form, user_id: value });
     };
 
@@ -65,10 +68,10 @@ const ActivateUserForm = () => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => u.role !== "admin" && u.enabled);
+                const filtered = allUsers.filter((u: { role: string; enabled: any; }) => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (error: any) {
+                setError(error.data?.message || error.message|| error.data?.error || "Error al cargar usuarios para owner");
             }
         };
         console.log(userData)
@@ -76,7 +79,7 @@ const ActivateUserForm = () => {
         if (!isOwner) {
             fetchOwners();
         };
-    }, [setError]);
+    }, [setError, userData, isOwner]);
 
     return (
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
@@ -87,7 +90,7 @@ const ActivateUserForm = () => {
                     value={form.code}
                     defaultValue={form.code}
                     onChange={handleChange}
-                    error={validationErrors.code}
+                    error={validationErrors.code !== ""}
                     hint={validationErrors.code}
                 />
             </div>
@@ -103,7 +106,7 @@ const ActivateUserForm = () => {
                                     : users.map(u => ({ value: u.id, label: u.name }))}
                                 disabled={isOwner}
                                 className="w-full sm:w-auto"
-                                error={validationErrors.owner_id}
+                                error={validationErrors.owner_id !== ""}
                                 hint={validationErrors.owner_id}
                             />
                             <span

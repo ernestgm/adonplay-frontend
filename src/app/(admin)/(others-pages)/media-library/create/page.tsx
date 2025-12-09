@@ -1,15 +1,11 @@
 "use client";
 
 import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React from 'react';
-import {useParams, useRouter} from "next/navigation";
-import SlideMediaForm from "@/components/app/slides/form/SlideMediaForm";
+import React, {Suspense} from 'react';
+import {useRouter} from "next/navigation";
 import MediaForm from "@/components/app/media/form/MediaForm";
 
 const MediaCreatePage = () => {
-    const params = useParams();
-    const id = params.id; // El ID de la URL
-
     const router = useRouter();
     const handleBack = () => {
         router.push(`/media-library`);

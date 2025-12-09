@@ -6,7 +6,6 @@ import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React from "react";
 import {MessageProvider} from "@/context/MessageContext";
-import GlobalLoadingIndicator from "@/components/ui/loading/globalLoadingIndicator";
 
 export default function AdminLayout({
                                         children,

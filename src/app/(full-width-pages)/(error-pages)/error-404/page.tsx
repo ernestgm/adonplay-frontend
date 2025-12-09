@@ -1,13 +1,13 @@
 import GridShape from "@/components/common/GridShape";
-import { Metadata } from "next";
+import {Metadata} from "next";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import React, {Suspense} from "react";
 
 export const metadata: Metadata = {
-  title: "Next.js Error 404 | TailAdmin - Next.js Dashboard Template",
-  description:
-    "This is Next.js Error 404 page for TailAdmin - Next.js Tailwind CSS Admin Dashboard Template",
+    title: "Error 404 | AdOnPlay",
+    description:
+        "Error 404 page for AdOnPLay",
 };
 
 export default function Error404() {
@@ -19,24 +19,24 @@ export default function Error404() {
           ERROR
         </h1>
 
-        <Image
-          src="/images/error/404.svg"
-          alt="404"
-          className="dark:hidden"
-          width={472}
-          height={152}
-        />
-        <Image
-          src="/images/error/404-dark.svg"
-          alt="404"
-          className="hidden dark:block"
-          width={472}
-          height={152}
-        />
+                    <Image
+                        src="/images/error/404.svg"
+                        alt="404"
+                        className="dark:hidden"
+                        width={472}
+                        height={152}
+                    />
+                    <Image
+                        src="/images/error/404-dark.svg"
+                        alt="404"
+                        className="hidden dark:block"
+                        width={472}
+                        height={152}
+                    />
 
-        <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
-          We can’t seem to find the page you are looking for!
-        </p>
+                    <p className="mt-10 mb-6 text-base text-gray-700 dark:text-gray-400 sm:text-lg">
+                        We can’t seem to find the page you are looking for!
+                    </p>
 
         <Link
           href="/public"

@@ -28,10 +28,10 @@ interface UserFormProps {
 const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     const userData = getDataUserAuth()
     const isOwner = getIsOwner()
-    const [users, setUsers] = useState([]);
-    const [slides, setSlides] = useState([]);
-    const [marquees, setMarquees] = useState([]);
-    const [qrs, setQrs] = useState([]);
+    const [users, setUsers] = useState<any[]>([]);
+    const [slides, setSlides] = useState<any[]>([]);
+    const [marquees, setMarquees] = useState<any[]>([]);
+    const [qrs, setQrs] = useState<any[]>([]);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
         name: device?.name || "",
@@ -43,34 +43,39 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         as_presentation: device?.as_presentation || false,
     });
     const [loading, setLoading] = React.useState(false);
-    const [validationErrors, setValidationErrors] = React.useState({});
+    const [validationErrors, setValidationErrors] = React.useState({
+        name: "",
+        users_id: "",
+        qr_id: "",
+        marquee_id: ""
+    });
     const router = useRouter();
 
-    const handleChange = (e) => {
+    const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({...form, [e.target.name]: e.target.value});
     };
 
-    const handlePortraitChange = (value) => {
+    const handlePortraitChange = (value: string) => {
         setForm({...form, portrait: value == "1"});
     };
 
-    const handleAsPresentationChange = (value) => {
+    const handleAsPresentationChange = (value: any) => {
         setForm({...form, as_presentation: value});
     };
 
-    const handleUserChange = (value) => {
+    const handleUserChange = (value: any) => {
         if (!isOwner) setForm({...form, users_id: value});
     };
 
-    const handleSlidesChange = (value) => {
+    const handleSlidesChange = (value: any) => {
         if (!isOwner) setForm({...form, slide_id: value});
     };
 
-    const handleQrChange = (value) => {
+    const handleQrChange = (value: any) => {
         if (!isOwner) setForm({...form, qr_id: value});
     };
 
-    const handleMarqueeChange = (value) => {
+    const handleMarqueeChange = (value: any) => {
         if (!isOwner) setForm({...form, marquee_id: value});
     };
 
@@ -81,14 +86,14 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
             setForm({...form, slide_id: device?.slide_id, qr_id: device?.qr_id, marquee_id: device?.marquee_id});
         }
     }
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({marquee_id: "", qr_id: "", users_id: "", name: ""});
         try {
             await updateDevices(device.id, form);
             router.push("/devices");
-        } catch (err) {
+        } catch (err: any) {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
@@ -105,24 +110,24 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
             try {
                 const slides = await fetchSlidesByUser(form.users_id);
                 setSlides(slides);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         const fetchQrs = async () => {
             try {
                 const qrs = await fetchQrCodeByUser(form.users_id);
                 setQrs(qrs);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         const fetchMarquees = async () => {
             try {
                 const marquees = await fetchMarqueesByUser(form.users_id);
                 setMarquees(marquees);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
 
@@ -136,10 +141,10 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter(u => u.role !== "admin" && u.enabled);
+                const filtered = allUsers.filter((u: { role: string; enabled: any; }) => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
-            } catch (err) {
-                setError("Error al cargar usuarios para owner");
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
             }
         };
         fetchOwners();
@@ -157,7 +162,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     name="name"
                     defaultValue={form.name}
                     onChange={handleChange}
-                    error={validationErrors.name}
+                    error={validationErrors.name !== ""}
                     hint={validationErrors.name}
                 />
             </div>
@@ -174,7 +179,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                     : users.map(u => ({value: u.id, label: u.name}))}
                                 disabled={isOwner}
                                 className="w-full sm:w-auto"
-                                error={validationErrors.users_id}
+                                error={validationErrors.users_id !== ""}
                                 hint={validationErrors.users_id}
                             />
                             <span
@@ -195,7 +200,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 className="w-full sm:w-auto"
                                 placeholder="No Slide"
                                 disabledPlaceholder={false}
-                                error={validationErrors.users_id}
+                                error={validationErrors.users_id !== ""}
                                 hint={validationErrors.users_id}
                             />
                             <span
@@ -218,7 +223,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 className="w-full sm:w-auto"
                                 placeholder="No Qr"
                                 disabledPlaceholder={false}
-                                error={validationErrors.qr_id}
+                                error={validationErrors.qr_id !== ""}
                                 hint={validationErrors.qr_id}
                             />
                             <span
@@ -239,7 +244,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 placeholder="No Marquee"
                                 disabledPlaceholder={false}
                                 className="w-full sm:w-auto"
-                                error={validationErrors.marquee_id}
+                                error={validationErrors.marquee_id !== ""}
                                 hint={validationErrors.marquee_id}
                             />
                             <span

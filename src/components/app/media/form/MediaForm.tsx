@@ -2,10 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Select from "@/components/form/Select";
-import TextArea from "@/components/form/input/TextArea";
 import { useError } from "@/context/ErrorContext";
 import { useMessage } from "@/context/MessageContext";
 import { createMedia, updateMedia } from "@/server/api/media";
@@ -15,12 +13,9 @@ import config from "@/config/globalConfig";
 import Form from "@/components/form/Form";
 import Label from "@/components/form/Label";
 import { ChevronDownIcon } from "@/icons";
-import ComponentCard from "@/components/common/ComponentCard";
-import PositionExample from "@/components/common/PositionExample";
 import FileInput from "@/components/form/input/FileInput";
-import {QRCodeCanvas} from "qrcode.react";
-import handleDownloadQr from "@/utils/qrCode";
 import mediaUrl from "@/utils/files";
+import Image from "next/image";
 
 const typeOptions = config.typeOptions;
 
@@ -43,10 +38,13 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [audioError, setAudioError] = useState("");
     const [audioErrors, setAudioErrors] = useState<Map<number, string>>(new Map());
     const [loading, setLoading] = useState(false);
-    const [validationErrors, setValidationErrors] = useState({});
+    const [validationErrors, setValidationErrors] = useState({
+        media_type: "",
+        owner_id: ""
+    });
     const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
-    const [users, setUsers] = useState([]);
-    const [currentUser, setCurrentUser] = useState(null);
+    const [users, setUsers] = useState<any[]>([]);
+    const [currentUser, setCurrentUser] = useState<any>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
@@ -130,11 +128,11 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         };
     }, [videoPreviewUrl, imagePreviewUrls, audioPreviewUrls]);
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+    // const handleChange = (e) => {
+    //     setForm({ ...form, [e.target.name]: e.target.value });
+    // };
 
-    const handleTypeChange = (value) => {
+    const handleTypeChange = (value: string) => {
         // Update both type and media_type fields for consistency
         setForm({ ...form, media_type: value });
         
@@ -165,7 +163,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setFile(null);
     };
 
-    const handleFileChange = (e) => {
+    const handleFileChange = (e: { target: { files: any; }; }) => {
         setFileError("");
         const files = e.target.files;
         
@@ -195,7 +193,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         
         // Clear audio files and errors when new files are selected
         setAudioErrors(new Map());
-        
+
         const isEditing = !!media?.id;
         
         if (form.media_type === "image") {
@@ -295,7 +293,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     };
 
     // Legacy audio handler (kept for backward compatibility)
-    const handleAudioChange = (e) => {
+    const handleAudioChange = (e: any) => {
         setAudioError("");
         const file = e.target.files[0];
         if (file && !file.type.match("audio/mp3|audio/mpeg")) {
@@ -305,10 +303,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setAudio(file);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({});
+        setValidationErrors({owner_id: "", media_type: ""});
         setFileError("");
         setAudioError("");
         
@@ -399,7 +397,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             }
             
             router.push(`/media-library`);
-        } catch (err) {
+        } catch (err: any) {
             if (err.response && err.response.data) {
                 setValidationErrors(err.response.data.errors || {});
             } else {
@@ -420,8 +418,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         onChange={handleTypeChange}
                         options={typeOptions}
                         className="w-full"
-                        error={validationErrors['media_type']}
-                        hint={validationErrors['media_type']}
+                        error={validationErrors.media_type !== ""}
+                        hint={validationErrors.media_type}
                         disabled={media}
                     />
                     <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -439,7 +437,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             onChange={(value) => setForm({ ...form, owner_id: value })}
                             options={users.map(user => ({ value: user.id, label: user.name || user.email }))}
                             className="w-full"
-                            error={validationErrors.owner_id}
+                            error={validationErrors.owner_id !== ""}
                             hint={validationErrors.owner_id}
                         />
                         <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -551,9 +549,9 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                     {/* Image preview */}
                                     <div className="w-full">
                                         <div className="border rounded overflow-hidden">
-                                            <img 
-                                                src={imagePreviewUrls.get(0) || ''} 
-                                                alt="Imagen" 
+                                            <Image
+                                                src={imagePreviewUrls.get(0) || ''}
+                                                alt="Imagen"
                                                 className="w-full h-auto object-contain"
                                                 style={{ maxHeight: '250px' }}
                                             />
@@ -570,11 +568,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                         {/* Image preview */}
                                         <div className="w-full">
                                             <div className="border rounded overflow-hidden">
-                                                <img
+                                                <Image
                                                     src={previewUrl}
                                                     alt={`Imagen ${index + 1}`}
                                                     className="w-full h-auto object-contain"
-                                                    style={{ maxHeight: '150px' }}
                                                 />
                                             </div>
                                         </div>

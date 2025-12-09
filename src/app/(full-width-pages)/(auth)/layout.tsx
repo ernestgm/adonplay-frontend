@@ -1,9 +1,7 @@
 import GridShape from "@/components/common/GridShape";
-import ThemeTogglerTwo from "@/components/common/ThemeTogglerTwo";
 
 import { ThemeProvider } from "@/context/ThemeContext";
 import Image from "next/image";
-import Link from "next/link";
 import React from "react";
 
 export default function AuthLayout({
@@ -28,7 +26,7 @@ export default function AuthLayout({
                     width={250}
                     height={250}
                 />
-                <h1 className="mb-2 font-semibold text-white text-title-sm dark:text-white/90 sm:text-title-md">{ process.env.NAME_PAGE }</h1>
+                <h1 className="mb-2 font-semibold text-white text-title-sm dark:text-white/90 sm:text-title-md">{ process.env.NEXT_PUBLIC_NAME_PAGE }</h1>
               </div>
             </div>
           </div>

@@ -1,9 +1,7 @@
 "use client"
 
-import React from "react";
-import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
+import React, {Suspense} from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import type {Metadata} from "next";
 import QrCodeForm from "@/components/app/qrcodes/form/QrCodeForm";
 import {useRouter} from "next/navigation";
 

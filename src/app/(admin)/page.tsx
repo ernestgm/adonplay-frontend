@@ -8,8 +8,8 @@ import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
 
 export const metadata: Metadata = {
-    title: `Home | ${process.env.NAME_PAGE}`,
-    description: `This is HomePage in ${process.env.NAME_PAGE}`,
+    title: `Home | ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
+    description: `This is HomePage in ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
 };
 
 export default function Ecommerce() {

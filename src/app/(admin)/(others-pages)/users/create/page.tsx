@@ -1,8 +1,7 @@
 "use client"
 
-import React from "react";
+import React, {Suspense} from "react";
 import UserForm from "@/components/app/user/form/UserForm";
-import type {Metadata} from "next";
 import {useRouter} from "next/navigation";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 

@@ -19,7 +19,6 @@ const RadioImage: React.FC<RadioImageProps> = ({
                                                    checked,
                                                    label,
                                                    onChange,
-                                                   className = "",
                                                    disabled = false,
                                                    image = null
                                                }) => {

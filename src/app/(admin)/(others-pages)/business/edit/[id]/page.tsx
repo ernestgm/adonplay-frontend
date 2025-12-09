@@ -5,7 +5,6 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {getBusiness} from '@/server/api/business';
 import {useError} from "@/context/ErrorContext";
-import type {Metadata} from "next";
 import {useParams, useRouter} from "next/navigation";
 
 const BusinessEditPage = () => {
@@ -27,7 +26,7 @@ const BusinessEditPage = () => {
             try {
                 const data = await getBusiness(id);
                 setBusiness(data);
-            } catch (err) {
+            } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al obtener usuario");
             } finally {
                 setLoading(false);

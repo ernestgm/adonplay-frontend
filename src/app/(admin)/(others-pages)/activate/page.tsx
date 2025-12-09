@@ -3,7 +3,7 @@
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
 import ActivateDeviceForm from "@/components/user-profile/ActivateDeviceForm";
-import {useParams} from "next/navigation";
+import {Suspense} from "react";
 
 export default function DevicesPage() {
   return (

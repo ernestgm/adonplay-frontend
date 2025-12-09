@@ -1,4 +1,3 @@
-import ChartTab from "@/components/common/ChartTab";
 
 const getPositionStyle = (position: string): React.CSSProperties => {
     const base: React.CSSProperties = {
