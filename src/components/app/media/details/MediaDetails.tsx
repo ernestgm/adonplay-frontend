@@ -32,6 +32,8 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
                                     src={mediaUrl(media.file_path)}
                                     alt="Image preview"
                                     className="w-full h-auto object-contain"
+                                    width={400}
+                                    height={400}
                                 />
                             </div>
                         </div>

@@ -7,6 +7,7 @@ import Select from "@/components/form/Select";
 import { useError } from "@/context/ErrorContext";
 import { useMessage } from "@/context/MessageContext";
 import { createMedia, updateMedia } from "@/server/api/media";
+import { uploadFileToStorage, uploadFileToExactPath, getStoragePathFromDownloadURL, deleteFileByDownloadURL } from "@/utils/firebaseStorage";
 import { getDataUserAuth } from "@/server/api/auth";
 import { fetchUsers } from "@/server/api/users";
 import config from "@/config/globalConfig";
@@ -311,88 +312,83 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setAudioError("");
         
         try {
-            const formData = new FormData();
-            
-            // Add form fields
-            Object.entries(form).forEach(([key, value]) => {
-                if (value) formData.append(key, value);
-            });
-            
             // Ensure owner_id is set
-            if (!form.owner_id && currentUser) {
-                formData.append("owner_id", currentUser.id);
-            }
-            
+            const ownerId = form.owner_id || currentUser?.id;
+
             // Check if we're editing or creating
             const isEditing = !!media?.id;
             
             if (isEditing) {
-                // When editing, only include files that have been changed
-                if (form.media_type === "image") {
-                    // For images, only include file if it has been selected
-                    if (file && !Array.isArray(file)) {
-                        // User has selected a new image file
-                        formData.append("file", file as File);
-                    } else {
-                        // No new image file, keep existing file_path
-                        formData.append("keep_file", "true");
-                    }
-                } else if (form.media_type === "video") {
-                    // For video, only include file if it has been selected
-                    if (file) {
-                        // User has selected a new video file
-                        formData.append("file", file as File);
-                    } else {
-                        // No new video file, keep existing file_path
-                        formData.append("keep_file", "true");
-                    }
-                } else if (form.media_type === "audio") {
-                    // For audio, only include file if it has been selected
-                    if (file) {
-                        // User has selected a new audio file
-                        formData.append("file", file as File);
-                    } else {
-                        // No new audio file, keep existing file_path
-                        formData.append("keep_file", "true");
+                // Build payload for update
+                let file_path = media?.file_path;
+                const newFile = file ? (Array.isArray(file) ? file[0] : (file as File)) : null;
+
+                if (newFile) {
+                    const existingStoragePath = getStoragePathFromDownloadURL(media?.file_path);
+                    try {
+                        if (existingStoragePath) {
+                            if (media?.file_path) {
+                                try { await deleteFileByDownloadURL(media.file_path); } catch {}
+                            }
+                            // Overwrite same path -> URL usually remains valid
+                            const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                            file_path = uploaded.downloadURL || media?.file_path;
+                        } else {
+                            // If we can't detect Firebase path, upload a new one
+                            const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                            file_path = uploaded.downloadURL;
+                            // Best effort: try to delete old if it was Firebase URL
+                            if (media?.file_path) {
+                                try { await deleteFileByDownloadURL(media.file_path); } catch {}
+                            }
+                        }
+                    } catch (e) {
+                        // If overwrite fails, fall back to new upload and delete old file
+                        const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                        const oldPath = media?.file_path;
+                        file_path = uploaded.downloadURL;
+                        if (oldPath) {
+                            try { await deleteFileByDownloadURL(oldPath); } catch {}
+                        }
                     }
                 }
-                
-                // Update the media
-                await updateMedia(media.id, formData);
+
+                const payload: any = {
+                    media_type: form.media_type,
+                    owner_id: ownerId,
+                    file_path,
+                };
+
+                await updateMedia(media.id, payload);
                 setMessage("Item actualizado correctamente");
             } else {
-                // When creating, include all files
-                if (form.media_type === "image") {
-                    // For images, check if we have multiple files
-                    if (file && Array.isArray(file)) {
-                        // Add each file with its index
-                        file.forEach((f, index) => {
-                            formData.append(`file[${index}]`, f);
-                        });
-                    } else if (file) {
-                        // Single file case (shouldn't happen when creating, but handle it anyway)
-                        formData.append("file", file as File);
-                    }
-                } else if (form.media_type === "video") {
-                    // For video, just add the single file
-                    if (file) {
-                        formData.append("file", file as File);
-                    }
-                } else if (form.media_type === "audio") {
-                    // For audio, check if we have multiple files
-                    if (file && Array.isArray(file)) {
-                        // Add each file with its index
-                        file.forEach((f, index) => {
-                            formData.append(`file[${index}]`, f);
-                        });
-                    } else if (file) {
-                        // Single file case (shouldn't happen when creating, but handle it anyway)
-                        formData.append("file", file as File);
-                    }
+                // When creating, upload to Firebase and send only references
+                if (!file) {
+                    setFileError("Debes seleccionar un archivo");
+                    setLoading(false);
+                    return;
                 }
-                
-                // Create the media
-                await createMedia(formData);
+
+                if (form.media_type === "image" && Array.isArray(file)) {
+                    // Multiple images: create one media per file
+                    for (const f of file) {
+                        const uploaded = await uploadFileToStorage(f, `media/image`);
+                        await createMedia({
+                            media_type: "image",
+                            owner_id: ownerId,
+                            file_path: uploaded.downloadURL,
+                        });
+                    }
+                } else {
+                    const toUpload = Array.isArray(file) ? file[0] : (file as File);
+                    const mediaType = form.media_type;
+                    const uploaded = await uploadFileToStorage(toUpload, `media/${mediaType}`);
+                    await createMedia({
+                        media_type: mediaType,
+                        owner_id: ownerId,
+                        file_path: uploaded.downloadURL,
+                    });
+                }
                 setMessage("Item creado correctamente");
             }
             
@@ -479,7 +475,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     }
                     multiple={(form.media_type === "image" || form.media_type === "audio") && !media} // Multiple for images and audio when creating
                     onChange={handleFileChange}
-                    error={fileError ? true : false}
+                    error={!!fileError}
                     hint={fileError}
                     required={!media} // Only required when creating new media
                 />
@@ -533,7 +529,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     name="audio"
                     accept=".mp3,audio/mpeg"
                     onChange={handleAudioChange}
-                    error={audioError ? true : false}
+                    error={!!audioError}
                     hint={audioError}
                 />
             </div>
@@ -554,6 +550,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                                 alt="Imagen"
                                                 className="w-full h-auto object-contain"
                                                 style={{ maxHeight: '250px' }}
+                                                width={100}
+                                                height={100}
                                             />
                                         </div>
                                     </div>
@@ -572,6 +570,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                                     src={previewUrl}
                                                     alt={`Imagen ${index + 1}`}
                                                     className="w-full h-auto object-contain"
+                                                    width={100}
+                                                    height={100}
                                                 />
                                             </div>
                                         </div>

@@ -9,7 +9,9 @@ import TextArea from "@/components/form/input/TextArea";
 import {useError} from "@/context/ErrorContext";
 import {useMessage} from "@/context/MessageContext";
 import {createSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
-import {fetchAudioMediaExcepted, fetchMediaExcepted} from "@/server/api/media";
+import {createMedia, fetchAudioMediaExcepted, fetchMediaExcepted} from "@/server/api/media";
+import { uploadFileToStorage } from "@/utils/firebaseStorage";
+import { getDataUserAuth } from "@/server/api/auth";
 import {fetchQrCode} from "@/server/api/qrcodes";
 import config from "@/config/globalConfig";
 import Form from "@/components/form/Form";
@@ -305,37 +307,66 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         setFileError("");
 
         try {
-            const formData = new FormData();
             const isEditing = !!slideMedia?.id;
 
-            // Add form fields
-            Object.entries(form).forEach(([key, value]) => {
-                if (isEditing) {
-                    formData.append(key, value);
-                } else if(value) {
-                    formData.append(key, value);
+            const payload: any = { ...form };
+
+            // If user chose to upload new media/audio, upload to Firebase and create media records
+            const currentUser = getDataUserAuth();
+            const owner_id = currentUser?.id;
+
+            if (uploadNewMedia) {
+                if (!file) {
+                    setFileError("Debes seleccionar un archivo de media");
+                    setLoading(false);
+                    return;
                 }
+                const mediaType = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : undefined;
+                if (!mediaType) {
+                    setFileError("Formato de archivo no soportado");
+                    setLoading(false);
+                    return;
+                }
+                const uploaded = await uploadFileToStorage(file, `media/${mediaType}`);
+                const created = await createMedia({
+                    media_type: mediaType,
+                    owner_id,
+                    file_path: uploaded.downloadURL,
+                });
+                payload.media_id = created.id;
+            }
+
+            if (uploadNewAudio) {
+                if (!audio) {
+                    setFileError("Debes seleccionar un archivo de audio");
+                    setLoading(false);
+                    return;
+                }
+                if (!audio.type.match("audio/mp3|audio/mpeg")) {
+                    setFileError("Solo se permite audio MP3");
+                    setLoading(false);
+                    return;
+                }
+                const uploadedAudio = await uploadFileToStorage(audio, `media/audio`);
+                const createdAudio = await createMedia({
+                    media_type: "audio",
+                    owner_id,
+                    file_path: uploadedAudio.downloadURL,
+                });
+                payload.audio_media_id = createdAudio.id;
+                setAudioUsed(true);
+            }
+
+            // Clean undefined/empty optional fields
+            Object.keys(payload).forEach((k) => {
+                if (payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
             });
 
-            // Add file if uploading new media
-            if (uploadNewMedia && file) {
-                formData.append("file", file);
-            }
-
-            if (uploadNewAudio && audio) {
-                formData.append("audio", audio);
-            }
-
-            // Check if we're editing or creating
-
-
             if (isEditing) {
-                // Update the slide media
-                await updateSlideMedias(slideMedia.id, formData);
+                await updateSlideMedias(slideMedia.id, payload);
                 setMessage("Slide media actualizado correctamente");
             } else {
-                // Create new slide media
-                await createSlideMedias(formData);
+                await createSlideMedias(payload);
                 setMessage("Slide media creado correctamente");
             }
 
@@ -407,6 +438,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                         src={mediaUrl(selectedMedia.file_path)}
                                                         alt="Selected media"
                                                         className="w-full h-full object-cover"
+                                                        width={128}
+                                                        height={128}
                                                     />
                                                 </div>
                                             ) : selectedMedia.media_type === "video" ? (
@@ -522,6 +555,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                                             src={mediaUrl(item.file_path)}
                                                                             alt="Image preview"
                                                                             className="w-full h-full object-cover"
+                                                                            width={100}
+                                                                            height={100}
                                                                         />
                                                                     </div>
                                                                 ) : item.media_type === "video" ? (
@@ -561,7 +596,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                 name="file"
                                 accept=".jpg,.mp4"
                                 onChange={handleFileChange}
-                                error={fileError ? true : false}
+                                error={!!fileError}
                                 hint={fileError}
                                 required={!slideMedia}
                             />
@@ -574,6 +609,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             src={imagePreviewUrl}
                                             alt="Image preview"
                                             className="w-full h-auto max-h-[200px] object-cover"
+                                            width={1280}
+                                            height={720}
                                             />
                                     </div>
                                 </div>
@@ -759,7 +796,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                 name="audio"
                                 accept=".mp3"
                                 onChange={handleAudioChange}
-                                error={fileError ? true : false}
+                                error={!!fileError}
                                 hint={fileError}
                                 required={!slideMedia}
                             />

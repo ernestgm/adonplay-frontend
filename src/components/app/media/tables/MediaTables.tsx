@@ -25,6 +25,7 @@ import filterItems from "@/utils/filterItems";
 import { fetchMedia, deleteMedia } from "@/server/api/media";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
+import { deleteFileByDownloadURL } from "@/utils/firebaseStorage";
 
 const MediaTable = () => {
     const router = useRouter();
@@ -70,10 +71,24 @@ const MediaTable = () => {
     const confirmDeleteMedia = async () => {
         if (selectedMedia.length > 0) {
             try {
+                // Capture the file URLs to delete from Firebase before mutating local state
+                const urlsToDelete = media
+                    .filter((item) => selectedMedia.includes(item.id))
+                    .map((item) => item.file_path)
+                    .filter(Boolean);
+
                 const response = await deleteMedia(selectedMedia);
+
+                // Update local state
                 setMedia((prev) => prev.filter((item) => !selectedMedia.includes(item.id)));
                 setSelectedMedia([]);
                 setMessage(response.message);
+
+                // Best-effort: remove files from Firebase Storage
+                // Do this after successful API deletion and do not block UI on errors
+                Promise.allSettled(
+                    urlsToDelete.map((url: string) => deleteFileByDownloadURL(url))
+                ).then(() => {/* noop */});
             } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al eliminar media");
             } finally {
@@ -187,6 +202,8 @@ const MediaTable = () => {
                                                         src={mediaUrl(item.file_path)}
                                                         alt="Image preview"
                                                         className="w-full h-full object-cover"
+                                                        width={160}
+                                                        height={160}
                                                     />
                                                 </div>
                                             ) : item.media_type === "video" ? (

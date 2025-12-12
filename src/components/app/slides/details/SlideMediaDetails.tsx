@@ -101,6 +101,8 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
                                     src={mediaUrl(media?.file_path)}
                                     alt="Image preview"
                                     className="w-full h-auto object-contain"
+                                    width={1024}
+                                    height={720}
                                 />
 
                             </div>

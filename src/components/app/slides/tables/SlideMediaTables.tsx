@@ -337,6 +337,8 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                         src={mediaUrl(item.media.file_path)}
                                                         alt="Picture of the author"
                                                         className="w-full h-full object-cover"
+                                                        width={100}
+                                                        height={90}
                                                     />
                                                 </div>
                                             ) : item.media.media_type === "video" ? (
