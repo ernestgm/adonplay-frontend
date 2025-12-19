@@ -130,7 +130,7 @@ const DevicesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedDevices}
                                     disabled={selectedDevices.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -246,7 +246,7 @@ const DevicesTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(device.id)}
-                                                        variant="primary"
+                                                        variant="danger"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

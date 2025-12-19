@@ -133,7 +133,7 @@ const UserTable = () => {
                                         size="sm"
                                         onClick={deleteSelectedUsers}
                                         disabled={selectedUsers.length === 0}
-                                        variant="primary"
+                                        variant="danger"
                                     >
                                         <MdDelete size={20}/>
                                     </Button>
@@ -254,7 +254,7 @@ const UserTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(user.id)}
-                                                        variant="primary"
+                                                        variant="danger"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

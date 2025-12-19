@@ -114,7 +114,7 @@ const BusinessTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedBusinesses}
                                     disabled={selectedBusinesses.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -193,7 +193,7 @@ const BusinessTable = () => {
                                                     <Tooltip content="Eliminar">
                                                         <Button
                                                             onClick={() => openWarningModal(business.id)}
-                                                            variant="primary"
+                                                            variant="danger"
                                                             size="sm"
                                                         >
                                                             <MdDelete size={18}/>

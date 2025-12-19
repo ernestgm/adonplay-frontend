@@ -105,7 +105,7 @@ const MarqueesTable = () => {
                                 size="sm"
                                 onClick={deleteSelectedMarquees}
                                 disabled={selectedMarquee.length === 0}
-                                variant="primary"
+                                variant="danger"
                             >
                                 <MdDelete size={20}/>
                             </Button>
@@ -190,7 +190,7 @@ const MarqueesTable = () => {
                                             <Tooltip content="Eliminar">
                                                 <Button
                                                     onClick={() => openWarningModal(m.id)}
-                                                    variant="primary"
+                                                    variant="danger"
                                                     size="sm"
                                                 >
                                                     <MdDelete size={18}/>

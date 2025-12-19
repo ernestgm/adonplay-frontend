@@ -212,7 +212,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                     size="sm"
                                     onClick={deleteSelectedMedia}
                                     disabled={selectedMedia.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -297,10 +297,10 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                     <Tooltip content="Mover arriba">
                                                         <Button
                                                             onClick={() => handleMoveUp(item, index)}
-                                                            variant="primary"
-                                                            size="sm"
+                                                            variant="outline"
+                                                            size="normal"
                                                             disabled={index === 0}
-                                                            className="p-1 h-6"
+                                                            className="p-0 h-6"
                                                         >
                                                             <MdArrowUpward size={16}/>
                                                         </Button>
@@ -308,10 +308,10 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                     <Tooltip content="Mover abajo">
                                                         <Button
                                                             onClick={() => handleMoveDown(item, index)}
-                                                            variant="primary"
-                                                            size="sm"
+                                                            variant="outline"
+                                                            size="normal"
                                                             disabled={index === paginatedMedia.length - 1}
-                                                            className="p-1 h-6"
+                                                            className="p-0 h-6 mt-1"
                                                         >
                                                             <MdArrowDownward size={16}/>
                                                         </Button>
@@ -412,7 +412,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                     <Button
                                                         // Pass the slide_media ID to openWarningModal
                                                         onClick={() => openWarningModal(item.id)}
-                                                        variant="primary"
+                                                        variant="danger"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>

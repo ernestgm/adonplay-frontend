@@ -113,7 +113,7 @@ const SlidesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedSlides}
                                     disabled={selectedSlides.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>

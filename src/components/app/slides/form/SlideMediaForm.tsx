@@ -9,9 +9,7 @@ import TextArea from "@/components/form/input/TextArea";
 import {useError} from "@/context/ErrorContext";
 import {useMessage} from "@/context/MessageContext";
 import {createSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
-import {createMedia, fetchAudioMediaExcepted, fetchMediaExcepted} from "@/server/api/media";
-import { uploadFileToStorage } from "@/utils/firebaseStorage";
-import { getDataUserAuth } from "@/server/api/auth";
+import {fetchAudioMediaExcepted, fetchMediaExcepted, getMedia} from "@/server/api/media";
 import {fetchQrCode} from "@/server/api/qrcodes";
 import config from "@/config/globalConfig";
 import Form from "@/components/form/Form";
@@ -19,9 +17,10 @@ import Label from "@/components/form/Label";
 import {ChevronDownIcon} from "@/icons";
 import ComponentCard from "@/components/common/ComponentCard";
 import PositionExample from "@/components/common/PositionExample";
-import FileInput from "@/components/form/input/FileInput";
+// import FileInput from "@/components/form/input/FileInput";
 import {QRCodeCanvas} from "qrcode.react";
 import handleDownloadQr from "@/utils/qrCode";
+import { Modal } from "@/components/ui/modal";
 import mediaUrl from "@/utils/files";
 import {
     Table,
@@ -31,7 +30,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Checkbox from "@/components/form/input/Checkbox";
-import {MdSearch, MdAudioFile, MdVideoFile} from "react-icons/md";
+import {MdSearch} from "react-icons/md";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
 import Image from "next/image";
@@ -46,6 +45,7 @@ interface MediaFormProps {
 }
 
 const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
+    const isEditing = !!slideMedia?.id;
     const [form, setForm] = useState({
         slide_id: slideId,
         media_id: slideMedia?.media_id || "",
@@ -60,20 +60,29 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     // State for media selection
     const [allMedia, setAllMedia] = useState<any[]>([]);
     const [allAudios, setAllAudios] = useState<any[]>([]);
-    const [selectedMediaId, setSelectedMediaId] = useState(slideMedia?.media_id || "");
-    const [selectedMedia, setSelectedMedia] = useState(slideMedia?.media || null);
-    const [selectedAudioId, setSelectedAudioId] = useState(slideMedia?.audio_media_id || "");
-    const [selectedAudio, setSelectedAudio] = useState(slideMedia?.audio_media || null);
+
+    // Multi-selection of media (images and videos)
+    const [selectedMediaIds, setSelectedMediaIds] = useState<string[]>(
+        slideMedia?.media_id ? [slideMedia.media_id.toString()] : []
+    );
+
+    // Map of mediaId -> audioId (both as string)
+    const [mediaAudioMap, setMediaAudioMap] = useState<Record<string, string>>(() => {
+        if (slideMedia?.audio_media_id && slideMedia?.media_id) {
+            return { [slideMedia.media_id.toString()]: slideMedia.audio_media_id.toString() };
+        }
+        return {};
+    });
+
     const [audioUsed, setAudioUsed] = useState(slideMedia?.audio_media != null);
     const [mediaSearchTerm, setMediaSearchTerm] = useState("");
-    const [audioSearchTerm, setAudioSearchTerm] = useState("");
     const [currentMediaPage, setCurrentMediaPage] = useState(1);
-    const [currentAudioPage, setCurrentAudioPage] = useState(1);
     const [itemsPerPage] = useState(5);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
-    const [showAudioSelector, setShowAudioSelector] = useState(false);
-    const [uploadNewMedia, setUploadNewMedia] = useState(false);
-    const [uploadNewAudio, setUploadNewAudio] = useState(false);
+    // Per-image audio assignment modal
+    const [showAssignAudioModal, setShowAssignAudioModal] = useState(false);
+    const [audioModalMediaId, setAudioModalMediaId] = useState<string | null>(null);
+    const [audioModalSelectedId, setAudioModalSelectedId] = useState<string>("");
 
     // State for QR codes
     const [qrCodes, setQrCodes] = useState<any[]>([]);
@@ -82,13 +91,10 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     const [qrSearchTerm, setQrSearchTerm] = useState("");
     const [showQrSelector, setShowQrSelector] = useState(false);
 
-    // State for file upload
-    const [file, setFile] = useState<File | null>(null);
-    const [audio, setAudioFile] = useState<File | null>(null);
+    // Removed upload states (no longer supported by requirement)
     const [fileError, setFileError] = useState("");
     const [loading, setLoading] = useState(false);
     const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
-    const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
     const [audioPreviewUrl, setAudioPreviewUrl] = useState<string | null>(null);
 
     const setError = useError().setError;
@@ -100,7 +106,21 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         const fetchData = async () => {
             try {
                 // Fetch media
-                const mediaData = await fetchMediaExcepted(slideId);
+                let mediaData = await fetchMediaExcepted(slideId);
+                // When editing, the current media is excluded by the endpoint. Ensure it is available.
+                if (isEditing && slideMedia?.media_id) {
+                    const exists = mediaData.some((m: any) => m.id === parseInt(slideMedia.media_id));
+                    if (!exists) {
+                        try {
+                            const currentMedia = await getMedia(slideMedia.media_id);
+                            if (currentMedia) {
+                                mediaData = [currentMedia, ...mediaData];
+                            }
+                        } catch (e) {
+                            // ignore if fails
+                        }
+                    }
+                }
                 setAllMedia(mediaData);
 
                 const mediaAudioData = await fetchAudioMediaExcepted(slideId);
@@ -116,13 +136,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     setSelectedQr(qr);
                 }
 
-                if (slideMedia?.media) {
-                    setSelectedMedia(slideMedia.media);
-                }
-
-                if (slideMedia?.audio_media) {
-                    setSelectedAudio(slideMedia.audio_media);
-                }
+                // Selected media/audio are handled by selectedMediaIds and mediaAudioMap
 
             } catch (err: any) {
                 setError(err.data?.message || err.message || "Error al cargar datos");
@@ -131,54 +145,19 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         fetchData();
     }, []);
 
-    // Set selected media and audio when media_id or audio_media_id changes
+    // Keep a small preview if exactly one media is selected
     useEffect(() => {
-        if (selectedMediaId && allMedia.length > 0) {
-            let media = null
-            if (!slideMedia) {
-                media = allMedia.find(m => m.id === parseInt(selectedMediaId));
-                setSelectedMedia(media);
-            } else if(slideMedia && selectedMediaId !== slideMedia.media_id.toString()) {
-                media = allMedia.find(m => m.id === parseInt(selectedMediaId));
-                setSelectedMedia(media);
+        if (selectedMediaIds.length === 1) {
+            const media = allMedia.find(m => m.id === parseInt(selectedMediaIds[0]));
+            if (media && media.media_type === "image") {
+                setImagePreviewUrl(mediaUrl(media.file_path));
+            } else {
+                setImagePreviewUrl(null);
             }
-
-
-            // Set preview URL based on media type
-            if (media) {
-                if (media.media_type === "image") {
-                    setImagePreviewUrl(mediaUrl(media.file_path));
-                    setVideoPreviewUrl(null);
-                    setAudioPreviewUrl(null);
-                } else if (media.media_type === "video") {
-                    setVideoPreviewUrl(mediaUrl(media.file_path));
-                    setImagePreviewUrl(null);
-                    setAudioPreviewUrl(null);
-                } else if (media.media_type === "audio") {
-                    setAudioPreviewUrl(mediaUrl(media.file_path));
-                    setImagePreviewUrl(null);
-                    setVideoPreviewUrl(null);
-                }
-            }
+        } else {
+            setImagePreviewUrl(null);
         }
-    }, [selectedMediaId, allMedia]);
-
-    useEffect(() => {
-        if (selectedAudioId && allAudios.length > 0) {
-            if (!slideMedia) {
-                const audio = allAudios.find(m => m.id === parseInt(selectedAudioId));
-                setAudioPreviewUrl(mediaUrl(audio.file_path));
-                setSelectedAudio(audio);
-                setAudioUsed(true);
-            } else if(slideMedia && selectedAudioId !== slideMedia?.audio_media_id?.toString()) {
-                const audio = allAudios.find(m => m.id === parseInt(selectedAudioId));
-                setAudioPreviewUrl(mediaUrl(audio.file_path));
-                setSelectedAudio(audio);
-                setAudioUsed(true);
-            }
-        }
-        console.log(audioUsed);
-    }, [selectedAudioId]);
+    }, [selectedMediaIds, allMedia]);
 
     // Clean up preview URLs when component unmounts
     useEffect(() => {
@@ -186,14 +165,11 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             if (imagePreviewUrl && !imagePreviewUrl.startsWith('http')) {
                 URL.revokeObjectURL(imagePreviewUrl);
             }
-            if (videoPreviewUrl && !videoPreviewUrl.startsWith('http')) {
-                URL.revokeObjectURL(videoPreviewUrl);
-            }
             if (audioPreviewUrl && !audioPreviewUrl.startsWith('http')) {
                 URL.revokeObjectURL(audioPreviewUrl);
             }
         };
-    }, [imagePreviewUrl, videoPreviewUrl, audioPreviewUrl]);
+    }, [imagePreviewUrl, audioPreviewUrl]);
 
     const handleChange = (e: any) => {
         setForm({...form, [e.target.name]: e.target.value});
@@ -212,12 +188,9 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     };
 
     const clearAudioFile = () => {
-        setSelectedAudioId("");
-        setAudioFile(null);
-        setForm({...form, audio_media_id: ''});
-        setSelectedAudio(null);
+        // Clear all audio assignments
+        setMediaAudioMap({});
         setAudioPreviewUrl(null);
-        setUploadNewAudio(false);
         setAudioUsed(false);
     };
 
@@ -239,66 +212,57 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         setShowQrSelector(false);
     };
 
-    const handleFileChange = (e: { target: { files: any; }; }) => {
-        setFileError("");
-        const files = e.target.files;
-
-        if (!files || files.length === 0) return;
-
-        // Clean up previous preview URLs
-        if (imagePreviewUrl && !imagePreviewUrl.startsWith('http')) {
-            URL.revokeObjectURL(imagePreviewUrl);
-            setImagePreviewUrl(null);
+    // Toggle selection for a media id
+    const toggleSelectMedia = (mediaId: number) => {
+        const id = mediaId.toString();
+        if (isEditing) {
+            // single selection in edit mode
+            setSelectedMediaIds([id]);
+            setMediaAudioMap((prev) => (prev[id] ? { [id]: prev[id] } : {}));
+            setAudioUsed((prev) => !!(mediaAudioMap[id]));
+            return;
         }
-        if (videoPreviewUrl && !videoPreviewUrl.startsWith('http')) {
-            URL.revokeObjectURL(videoPreviewUrl);
-            setVideoPreviewUrl(null);
-        }
-        if (audioPreviewUrl && !audioPreviewUrl.startsWith('http')) {
-            URL.revokeObjectURL(audioPreviewUrl);
-            setAudioPreviewUrl(null);
-        }
+        setSelectedMediaIds((prev) => {
+            if (prev.includes(id)) {
+                const next = prev.filter((m) => m !== id);
+                // Also remove any audio assignment for this media
+                setMediaAudioMap((map) => {
+                    const { [id]: _, ...rest } = map;
+                    setAudioUsed(Object.keys(rest).length > 0);
+                    return rest;
+                });
+                return next;
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
 
-        const file = files[0];
-        setFile(file);
-
-        // Create preview URL based on file type
-        if (file.type.match("image/jpeg")) {
-            const previewUrl = URL.createObjectURL(file);
-            setImagePreviewUrl(previewUrl);
-        } else if (file.type.match("video/mp4")) {
-            const previewUrl = URL.createObjectURL(file);
-            setVideoPreviewUrl(previewUrl);
+    const assignAudioToMedia = (mediaId: string, audioId: string) => {
+        if (!audioId) {
+            // remove assignment
+            setMediaAudioMap((prev) => {
+                const { [mediaId]: _, ...rest } = prev;
+                setAudioUsed(Object.keys(rest).length > 0);
+                return rest;
+            });
         } else {
-            setFileError("Formato de archivo no soportado");
+            setMediaAudioMap((prev) => ({ ...prev, [mediaId]: audioId }));
+            setAudioUsed(true);
         }
     };
 
-    const handleAudioChange = (e: { target: { files: any; }; }) => {
-        const audios = e.target.files;
-        if (!audios || audios.length === 0) return;
-
-        const audio = audios[0];
-        setAudioFile(audio);
-        if (audio.type.match("audio/mp3|audio/mpeg")) {
-            const previewUrl = URL.createObjectURL(audio);
-            setAudioPreviewUrl(previewUrl);
-            setAudioUsed(true)
-        } else {
-            setFileError("Formato de archivo no soportado");
-        }
-    }
-
-    const handleSelectMedia = (mediaId: any) => {
-        setSelectedMediaId(mediaId.toString());
-        setForm({...form, media_id: mediaId.toString()});
-        setShowMediaSelector(false);
+    const openAudioModalForMedia = (mediaId: string) => {
+        setAudioModalMediaId(mediaId);
+        setAudioModalSelectedId(mediaAudioMap[mediaId] || "");
+        setShowAssignAudioModal(true);
     };
 
-    const handleSelectAudio = (audioId: any) => {
-        setSelectedAudioId(audioId.toString());
-        setForm({...form, audio_media_id: audioId.toString()});
-        setShowAudioSelector(false);
+    const saveAudioModalSelection = () => {
+        if (!audioModalMediaId) return;
+        assignAudioToMedia(audioModalMediaId, audioModalSelectedId);
+        setShowAssignAudioModal(false);
+        setAudioModalMediaId(null);
     };
 
     const handleSubmit = async (e: any) => {
@@ -309,64 +273,65 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         try {
             const isEditing = !!slideMedia?.id;
 
-            const payload: any = { ...form };
-
-            // If user chose to upload new media/audio, upload to Firebase and create media records
-            const currentUser = getDataUserAuth();
-            const owner_id = currentUser?.id;
-
-            if (uploadNewMedia) {
-                if (!file) {
-                    setFileError("Debes seleccionar un archivo de media");
-                    setLoading(false);
-                    return;
-                }
-                const mediaType = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : undefined;
-                if (!mediaType) {
-                    setFileError("Formato de archivo no soportado");
-                    setLoading(false);
-                    return;
-                }
-                const uploaded = await uploadFileToStorage(file, `media/${mediaType}`);
-                const created = await createMedia({
-                    media_type: mediaType,
-                    owner_id,
-                    file_path: uploaded.downloadURL,
-                });
-                payload.media_id = created.id;
-            }
-
-            if (uploadNewAudio) {
-                if (!audio) {
-                    setFileError("Debes seleccionar un archivo de audio");
-                    setLoading(false);
-                    return;
-                }
-                if (!audio.type.match("audio/mp3|audio/mpeg")) {
-                    setFileError("Solo se permite audio MP3");
-                    setLoading(false);
-                    return;
-                }
-                const uploadedAudio = await uploadFileToStorage(audio, `media/audio`);
-                const createdAudio = await createMedia({
-                    media_type: "audio",
-                    owner_id,
-                    file_path: uploadedAudio.downloadURL,
-                });
-                payload.audio_media_id = createdAudio.id;
-                setAudioUsed(true);
-            }
-
-            // Clean undefined/empty optional fields
-            Object.keys(payload).forEach((k) => {
-                if (payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
-            });
-
             if (isEditing) {
+                // For edit, use the first selected media (if any) and its audio mapping
+                const mediaId = selectedMediaIds[0] || form.media_id;
+                if (!mediaId) {
+                    setError("Debes seleccionar un media");
+                    setLoading(false);
+                    return;
+                }
+                const payload: any = {
+                    slide_id: form.slide_id,
+                    media_id: mediaId,
+                    duration: form.duration,
+                    qr_id: form.qr_id || undefined,
+                    description: form.description,
+                    text_size: form.text_size,
+                    description_position: form.description_position,
+                };
+                // only assign audio if the selected media is an image
+                const editingMedia = allMedia.find((m) => m.id === parseInt(mediaId));
+                const maybeAudio = mediaAudioMap[mediaId];
+                if (editingMedia?.media_type === "image" && maybeAudio) {
+                    payload.audio_media_id = maybeAudio;
+                } else {
+                    payload.audio_media_id = null;
+                }
+                // Clean undefined/empty optional fields
+                // Object.keys(payload).forEach((k) => {
+                //     if (payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
+                // });
+
                 await updateSlideMedias(slideMedia.id, payload);
                 setMessage("Slide media actualizado correctamente");
             } else {
-                await createSlideMedias(payload);
+                // Create multiple slide media, one per selected image
+                if (selectedMediaIds.length === 0) {
+                    setError("Debes seleccionar al menos un media");
+                    setLoading(false);
+                    return;
+                }
+                // Sequentially create to keep API simpler
+                for (const mediaId of selectedMediaIds) {
+                    const payload: any = {
+                        slide_id: form.slide_id,
+                        media_id: mediaId,
+                        duration: form.duration,
+                        qr_id: form.qr_id || undefined,
+                        description: form.description,
+                        text_size: form.text_size,
+                        description_position: form.description_position,
+                    };
+                    const audioId = mediaAudioMap[mediaId];
+                    const m = allMedia.find((mm) => mm.id === parseInt(mediaId));
+                    if (m?.media_type === "image" && audioId) payload.audio_media_id = audioId;
+                    // Clean undefined/empty optional fields
+                    Object.keys(payload).forEach((k) => {
+                        if (payload[k] === undefined || payload[k] === null || payload[k] === "") delete payload[k];
+                    });
+                    await createSlideMedias(payload);
+                }
                 setMessage("Slide media creado correctamente");
             }
 
@@ -385,8 +350,10 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     };
 
     // Filter media for selectors
-    const filteredMedia = filterItems(allMedia, mediaSearchTerm);
-    const filteredAudio = filterItems(allAudios, mediaSearchTerm);
+    const filteredMedia = filterItems(
+        allMedia.filter((m) => m.media_type === "image" || m.media_type === "video"),
+        mediaSearchTerm
+    );
 
     // Paginate media
     const totalMediaPages = Math.ceil(filteredMedia.length / itemsPerPage);
@@ -395,445 +362,159 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         currentMediaPage * itemsPerPage
     );
 
-    // Paginate audio
-    const totalAudioPages = Math.ceil(filteredAudio.length / itemsPerPage);
-    const paginatedAudio = filteredAudio.slice(
-        (currentAudioPage - 1) * itemsPerPage,
-        currentAudioPage * itemsPerPage
-    );
+    // No audio pagination in the new modal-based assignment
 
     return (
         <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-white rounded shadow">
             <div className="mb-5">
                 <Label>Seleccionar Media *</Label>
                 <div className="flex flex-col gap-2">
-                    <div className="flex gap-2">
+                    <div>
                         <Button
                             type="button"
-                            variant={!uploadNewMedia ? "primary" : "outline"}
-                            onClick={() => setUploadNewMedia(false)}
-                            className="flex-1"
+                            variant="outline"
+                            onClick={() => setShowMediaSelector(true)}
+                            className="w-full"
                         >
-                            Seleccionar Existente
-                        </Button>
-                        <Button
-                            type="button"
-                            variant={uploadNewMedia ? "primary" : "outline"}
-                            onClick={() => setUploadNewMedia(true)}
-                            className="flex-1"
-                        >
-                            Subir Nuevo
+                            {selectedMediaIds.length > 0 ? (isEditing ? "Cambiar selección" : `Cambiar selección (${selectedMediaIds.length})`) : "Seleccionar Media"}
                         </Button>
                     </div>
 
-                    {!uploadNewMedia ? (
-                        <div>
-                            {selectedMedia ? (
-                                <div className="p-3 border rounded-md mb-2">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 flex-shrink-0">
-                                            {selectedMedia.media_type === "image" ? (
-                                                <div className="w-full h-full border rounded overflow-hidden">
-                                                    <Image
-                                                        src={mediaUrl(selectedMedia.file_path)}
-                                                        alt="Selected media"
-                                                        className="w-full h-full object-cover"
-                                                        width={128}
-                                                        height={128}
-                                                    />
-                                                </div>
-                                            ) : selectedMedia.media_type === "video" ? (
-                                                <div
-                                                    className="flex items-center justify-center w-full h-full bg-gray-100 rounded">
-                                                    <MdVideoFile size={32} className="text-blue-500"/>
-                                                </div>
+                    {selectedMediaIds.length > 0 && (
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                            {selectedMediaIds.map((id) => {
+                                const media = allMedia.find((m) => m.id === parseInt(id));
+                                if (!media) return null;
+                                return (
+                                    <div key={id} className="border rounded p-2">
+                                        <div className="w-full aspect-video relative overflow-hidden rounded">
+                                            {media.media_type === "image" ? (
+                                                <Image src={mediaUrl(media.file_path)} alt="preview" fill className="object-cover" />
                                             ) : (
-                                                <div
-                                                    className="flex items-center justify-center w-full h-full bg-gray-100 rounded">
-                                                    <MdAudioFile size={32} className="text-blue-500"/>
-                                                </div>
+                                                <video src={mediaUrl(media.file_path)} className="w-full h-full object-cover" controls muted />
                                             )}
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="font-medium">Media seleccionado</div>
-                                            <div className="text-sm text-gray-500">
-                                                {selectedMedia.media_type === "image" ? "Imagen" :
-                                                    selectedMedia.media_type === "video" ? "Video" : "Audio"}
+                                        {media.media_type === "image" && (
+                                            <div className="mt-2 flex items-center justify-between gap-2">
+                                                <div className="text-xs text-gray-600">
+                                                    {mediaAudioMap[id] ? `Audio asignado: #${mediaAudioMap[id]}` : "Sin audio"}
+                                                </div>
+                                                <Button type="button" variant="outline" size="sm" onClick={() => openAudioModalForMedia(id)}>
+                                                    Asignar audio
+                                                </Button>
                                             </div>
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowMediaSelector(true)}
-                                        >
-                                            Cambiar
-                                        </Button>
+                                        )}
                                     </div>
-                                </div>
-                            ) : (
+                                );
+                            })}
+                        </div>
+                    )}
+
+                    {showMediaSelector && (
+                        <div className="mt-2 border rounded-md p-3">
+                            <div className="mb-3 flex justify-between items-center">
+                                <h3 className="font-medium">Seleccionar Media</h3>
                                 <Button
                                     type="button"
                                     variant="outline"
-                                    onClick={() => setShowMediaSelector(true)}
-                                    className="w-full"
+                                    size="sm"
+                                    onClick={() => setShowMediaSelector(false)}
                                 >
-                                    Seleccionar Media
+                                    Cerrar
                                 </Button>
-                            )}
+                            </div>
+                            <div className="relative mb-3">
+                                <Input
+                                    placeholder="Buscar media..."
+                                    value={mediaSearchTerm}
+                                    onChange={(e) => setMediaSearchTerm(e.target.value)}
+                                    type="text"
+                                    className="pl-[62px]"
+                                />
+                                <span
+                                    className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
+                                    <MdSearch size={20}/>
+                                </span>
+                            </div>
 
-                            {showMediaSelector && (
-                                <div className="mt-2 border rounded-md p-3">
-                                    <div className="mb-3 flex justify-between items-center">
-                                        <h3 className="font-medium">Seleccionar Media</h3>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowMediaSelector(false)}
-                                        >
-                                            Cerrar
-                                        </Button>
-                                    </div>
-                                    <div className="relative mb-3">
-                                        <Input
-                                            placeholder="Buscar media..."
-                                            value={mediaSearchTerm}
-                                            onChange={(e) => setMediaSearchTerm(e.target.value)}
-                                            type="text"
-                                            className="pl-[62px]"
-                                        />
-                                        <span
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                            <MdSearch size={20}/>
-                                        </span>
-                                    </div>
-
-                                    <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-                                        <Table className="min-w-full divide-y divide-gray-200">
-                                            <TableHeader className="bg-gray-50">
-                                                <TableRow>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                                        Seleccionar
+                            <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
+                                <Table className="min-w-full divide-y divide-gray-200">
+                                    <TableHeader className="bg-gray-50">
+                                        <TableRow>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seleccionar</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vista Previa</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</TableCell>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody className="bg-white divide-y divide-gray-200">
+                                        {paginatedMedia.length === 0 ? (
+                                            <TableRow>
+                                                <TableCell className="px-3 py-2 text-center text-sm text-gray-500" colSpan={3}>
+                                                    No hay media disponible
+                                                </TableCell>
+                                            </TableRow>
+                                        ) : (
+                                            paginatedMedia.map((item: any) => (
+                                                <TableRow key={item.id}>
+                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="radio"
+                                                                name="media-select"
+                                                                checked={selectedMediaIds.includes(item.id.toString())}
+                                                                onChange={() => toggleSelectMedia(item.id)}
+                                                            />
+                                                        ) : (
+                                                            <Checkbox
+                                                                checked={selectedMediaIds.includes(item.id.toString())}
+                                                                onChange={() => toggleSelectMedia(item.id)}
+                                                            />
+                                                        )}
                                                     </TableCell>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</TableCell>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vista
-                                                        Previa</TableCell>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody className="bg-white divide-y divide-gray-200">
-                                                {paginatedMedia.length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell className="px-3 py-2 text-center text-sm text-gray-500">
-                                                            No hay media disponible
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : (
-                                                    paginatedMedia.map((item: any) => (
-                                                        <TableRow key={item.id}>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                <Checkbox
-                                                                    checked={selectedMediaId === item.id.toString()}
-                                                                    onChange={() => handleSelectMedia(item.id)}
+                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                        <div className="w-16 h-16 border rounded overflow-hidden">
+                                                            {item.media_type === "image" ? (
+                                                                <Image
+                                                                    src={mediaUrl(item.file_path)}
+                                                                    alt="Image preview"
+                                                                    className="w-full h-full object-cover"
+                                                                    width={100}
+                                                                    height={100}
                                                                 />
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                {item.media_type === "image" ? "Imagen" :
-                                                                    item.media_type === "video" ? "Video" : "Audio"}
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                {item.media_type === "image" ? (
-                                                                    <div
-                                                                        className="w-12 h-12 border rounded overflow-hidden">
-                                                                        <Image
-                                                                            src={mediaUrl(item.file_path)}
-                                                                            alt="Image preview"
-                                                                            className="w-full h-full object-cover"
-                                                                            width={100}
-                                                                            height={100}
-                                                                        />
-                                                                    </div>
-                                                                ) : item.media_type === "video" ? (
-                                                                    <div className="flex items-center">
-                                                                        <MdVideoFile size={24}
-                                                                                     className="text-blue-500 mr-2"/>
-                                                                        <span>Video</span>
-                                                                    </div>
-                                                                ) : (
-                                                                    <div className="flex items-center">
-                                                                        <MdAudioFile size={24}
-                                                                                     className="text-blue-500 mr-2"/>
-                                                                        <span>Audio</span>
-                                                                    </div>
-                                                                )}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
+                                                            ) : (
+                                                                <video src={mediaUrl(item.file_path)} className="w-full h-full object-cover" muted />
+                                                            )}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                                        {item.media_type}
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </div>
 
-                                    <div className="mt-3 flex justify-center">
-                                        <Pagination
-                                            currentPage={currentMediaPage}
-                                            totalPages={totalMediaPages}
-                                            onPageChange={setCurrentMediaPage}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div>
-                            <FileInput
-                                name="file"
-                                accept=".jpg,.mp4"
-                                onChange={handleFileChange}
-                                error={!!fileError}
-                                hint={fileError}
-                                required={!slideMedia}
-                            />
-
-                            {imagePreviewUrl && (
-                                <div className="mt-3 p-3 border rounded-md">
-                                    <div className="font-medium mb-2">Vista previa de la imagen</div>
-                                    <div className="border rounded overflow-hidden">
-                                        <Image
-                                            src={imagePreviewUrl}
-                                            alt="Image preview"
-                                            className="w-full h-auto max-h-[200px] object-cover"
-                                            width={1280}
-                                            height={720}
-                                            />
-                                    </div>
-                                </div>
-                            )}
-
-                            {videoPreviewUrl && (
-                                <div className="mt-3 p-3 border rounded-md">
-                                    <div className="font-medium mb-2">Vista previa del video</div>
-                                    <div className="border rounded overflow-hidden">
-                                        <video
-                                            src={videoPreviewUrl}
-                                            controls
-                                            className="w-full h-auto max-h-[200px]"
-                                        />
-                                    </div>
-                                </div>
-                            )}
+                            <div className="mt-3 flex justify-center">
+                                <Pagination
+                                    currentPage={currentMediaPage}
+                                    totalPages={totalMediaPages}
+                                    onPageChange={setCurrentMediaPage}
+                                />
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            {(selectedMedia?.media_type === "image" || imagePreviewUrl) && (
-                <div className="mb-5">
-                    <Label>Asignar Audio (opcional)</Label>
-                    <div className="flex gap-2">
-                        <Button
-                            type="button"
-                            variant={!uploadNewAudio ? "primary" : "outline"}
-                            onClick={() => setUploadNewAudio(false)}
-                            className="w-full"
-                        >
-                            Seleccionar Audio
-                        </Button>
-                        <Button
-                            type="button"
-                            variant={uploadNewAudio ? "primary" : "outline"}
-                            onClick={() => setUploadNewAudio(true)}
-                            className="w-full"
-                        >
-                            Subir Audio Nuevo
-                        </Button>
-                    </div>
+            {/* Removed global audio assignment section; now per-image from preview */}
 
-                    {!uploadNewAudio ? (
-                        <div className="mt-3">
-                            {selectedAudio ? (
-                                <div className="p-3 border rounded-md mb-2">
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className="w-12 h-12 flex-shrink-0 flex items-center justify-center bg-gray-100 rounded">
-                                            <MdAudioFile size={24} className="text-blue-500"/>
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="font-medium">Audio seleccionado</div>
-                                            <audio
-                                                src={mediaUrl(selectedAudio.file_path)}
-                                                controls
-                                                className="w-full mt-1"
-                                            />
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowAudioSelector(true)}
-                                        >
-                                            Cambiar
-                                        </Button>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => clearAudioFile() }
-                                        >
-                                            Quitar
-                                        </Button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => setShowAudioSelector(true)}
-                                    className="w-full"
-                                >
-                                    Seleccionar Audio
-                                </Button>
-                            )}
-
-                            {showAudioSelector && (
-                                <div className="mt-2 border rounded-md p-3">
-                                    <div className="mb-3 flex justify-between items-center">
-                                        <h3 className="font-medium">Seleccionar Audio</h3>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setShowAudioSelector(false)}
-                                        >
-                                            Cerrar
-                                        </Button>
-                                    </div>
-                                    <div className="relative mb-3">
-                                        <Input
-                                            placeholder="Buscar audio..."
-                                            value={audioSearchTerm}
-                                            onChange={(e) => setAudioSearchTerm(e.target.value)}
-                                            type="text"
-                                            className="pl-[62px]"
-                                        />
-                                        <span
-                                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                                    <MdSearch size={20}/>
-                                                </span>
-                                    </div>
-
-                                    <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-                                        <Table className="min-w-full divide-y divide-gray-200">
-                                            <TableHeader className="bg-gray-50">
-                                                <TableRow>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                                        Seleccionar
-                                                    </TableCell>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
-                                                    <TableCell
-                                                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vista
-                                                        Previa</TableCell>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody className="bg-white divide-y divide-gray-200">
-                                                {paginatedAudio.length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell
-                                                                   className="px-3 py-2 text-center text-sm text-gray-500">
-                                                            No hay audios disponibles
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : (
-                                                    paginatedAudio.map((item: any) => (
-                                                        <TableRow key={item.id}>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                <Checkbox
-                                                                    checked={selectedAudioId === item.id.toString()}
-                                                                    onChange={() => handleSelectAudio(item.id)}
-                                                                />
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                Audio
-                                                            </TableCell>
-                                                            <TableCell
-                                                                className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                                <audio
-                                                                    src={mediaUrl(item.file_path)}
-                                                                    controls
-                                                                    className="w-full"
-                                                                />
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-
-                                    <div className="mt-3 flex justify-center">
-                                        <Pagination
-                                            currentPage={currentAudioPage}
-                                            totalPages={totalAudioPages}
-                                            onPageChange={setCurrentAudioPage}
-                                        />
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="mt-2 border rounded-md p-3">
-                            <FileInput
-                                name="audio"
-                                accept=".mp3"
-                                onChange={handleAudioChange}
-                                error={!!fileError}
-                                hint={fileError}
-                                required={!slideMedia}
-                            />
-
-                            {audioPreviewUrl && (
-                                <div className="mt-3 p-3 border rounded-md">
-                                    <div className="flex items-center gap-4">
-                                        <div className="flex-1">
-                                            <div className="font-medium mb-2">Vista previa del audio</div>
-                                            <audio
-                                                src={audioPreviewUrl}
-                                                controls
-                                                className="w-full"
-                                            />
-                                        </div>
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => clearAudioFile() }
-                                        >
-                                            Quitar
-                                        </Button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )
-                    }
-                </div>
-            )}
-
-            {(selectedMedia?.media_type === "image" || imagePreviewUrl) && (!audioUsed) && (
+            {selectedMediaIds.length > 0 && (!audioUsed) && (
                 <div className="mb-5">
                     <Label>Duración (segundos) *</Label>
                     <div className="text-xs text-gray-500 mb-1">
-                        Si la imagen tiene un audio asignado, la duración del audio tendrá prioridad.
+                        Si una imagen tiene un audio asignado, la duración del audio tendrá prioridad.
                     </div>
                     <Input
                         name="duration"
@@ -1063,6 +744,63 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     { slideMedia ? "Guardar Cambios" : "Crear"}
                 </Button>
             </div>
+            {/* Modal para asignar audio a una imagen (tabla con preview) */}
+            <Modal isOpen={showAssignAudioModal} onClose={() => setShowAssignAudioModal(false)} className="max-w-4xl w-[95%] p-6">
+                <h3 className="text-lg font-semibold mb-4">Seleccionar audio</h3>
+                <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
+                    <Table className="min-w-full divide-y divide-gray-200">
+                        <TableHeader className="bg-gray-50">
+                            <TableRow>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seleccionar</TableCell>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Preview</TableCell>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableRow>
+                                <TableCell className="px-3 py-2 text-sm text-gray-700">
+                                    <input
+                                        type="radio"
+                                        name="audio-select"
+                                        checked={audioModalSelectedId === ""}
+                                        onChange={() => setAudioModalSelectedId("")}
+                                    />
+                                </TableCell>
+                                <TableCell className="px-3 py-2 text-sm text-gray-700">Sin audio</TableCell>
+                                <TableCell className="px-3 py-2 text-sm text-gray-500">—</TableCell>
+                            </TableRow>
+                            {allAudios.length === 0 ? (
+                                <TableRow>
+                                    <TableCell className="px-3 py-4 text-center text-sm text-gray-500" colSpan={3}>
+                                        No hay audios disponibles
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                allAudios.map((a) => (
+                                    <TableRow key={a.id}>
+                                        <TableCell className="px-3 py-2">
+                                            <input
+                                                type="radio"
+                                                name="audio-select"
+                                                checked={audioModalSelectedId === a.id.toString()}
+                                                onChange={() => setAudioModalSelectedId(a.id.toString())}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-3 py-2 text-sm text-gray-700">Audio #{a.id}</TableCell>
+                                        <TableCell className="px-3 py-2">
+                                            <audio controls src={mediaUrl(a.file_path)} className="w-56" />
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+                <div className="mt-6 flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setShowAssignAudioModal(false)}>Cerrar</Button>
+                    <Button type="button" variant="primary" onClick={saveAudioModalSelection}>Guardar</Button>
+                </div>
+            </Modal>
         </Form>
     )
 };

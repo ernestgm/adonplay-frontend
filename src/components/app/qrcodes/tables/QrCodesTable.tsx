@@ -113,7 +113,7 @@ const QrCodesTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedQrCodes}
                                     disabled={selectedQrCodes.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20} />
                                 </Button>
@@ -220,7 +220,7 @@ const QrCodesTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(qr.id)}
-                                                        variant="primary"
+                                                        variant="danger"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18} />

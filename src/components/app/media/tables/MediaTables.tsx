@@ -133,7 +133,7 @@ const MediaTable = () => {
                                     size="sm"
                                     onClick={deleteSelectedMedia}
                                     disabled={selectedMedia.length === 0}
-                                    variant="primary"
+                                    variant="danger"
                                 >
                                     <MdDelete size={20}/>
                                 </Button>
@@ -242,7 +242,7 @@ const MediaTable = () => {
                                                 <Tooltip content="Eliminar">
                                                     <Button
                                                         onClick={() => openWarningModal(item.id)}
-                                                        variant="primary"
+                                                        variant="danger"
                                                         size="sm"
                                                     >
                                                         <MdDelete size={18}/>
