@@ -7,7 +7,7 @@ import Select from "@/components/form/Select";
 import { useError } from "@/context/ErrorContext";
 import { useMessage } from "@/context/MessageContext";
 import { createMedia, updateMedia } from "@/server/api/media";
-import { uploadFileToStorage, uploadFileToExactPath, getStoragePathFromDownloadURL, deleteFileByDownloadURL } from "@/utils/firebaseStorage";
+import { uploadFileToStorage, uploadFileToExactPath, getStoragePathFromDownloadURL, deleteFileByDownloadURL, uploadFileToStorageWithProgress } from "@/utils/firebaseStorage";
 import { getDataUserAuth } from "@/server/api/auth";
 import { fetchUsers } from "@/server/api/users";
 import config from "@/config/globalConfig";
@@ -17,6 +17,8 @@ import { ChevronDownIcon } from "@/icons";
 import FileInput from "@/components/form/input/FileInput";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
+import { getVideoDuration, transcodeToH264Compatible } from "@/utils/videoTranscode";
+import { useT } from "@/i18n/I18nProvider";
 
 const typeOptions = config.typeOptions;
 
@@ -30,6 +32,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         file_path: media?.file_path || "",
         owner_id: media?.owner_id || "",
     });
+    const t = useT("mediaForm");
     
     const [file, setFile] = useState<File[] | File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility
@@ -39,6 +42,9 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [audioError, setAudioError] = useState("");
     const [audioErrors, setAudioErrors] = useState<Map<number, string>>(new Map());
     const [loading, setLoading] = useState(false);
+    const [convertProgress, setConvertProgress] = useState<number>(0);
+    const [uploadProgress, setUploadProgress] = useState<number>(0);
+    const [convertStatus, setConvertStatus] = useState<string>("");
     const [validationErrors, setValidationErrors] = useState({
         media_type: "",
         owner_id: ""
@@ -98,7 +104,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 }
             } catch (error) {
                 console.error("Error fetching users:", error);
-                setError("Error fetching users");
+                setError(t("errors.fetchUsers"));
             }
         };
         
@@ -164,7 +170,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setFile(null);
     };
 
-    const handleFileChange = (e: { target: { files: any; }; }) => {
+    const handleFileChange = async (e: { target: { files: any; }; }) => {
         setFileError("");
         const files = e.target.files;
         
@@ -203,7 +209,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 const imageFile = files[0];
                 
                 if (!imageFile.type.match("image/jpeg")) {
-                    setFileError("Solo se permiten imágenes JPG");
+                    setFileError(t("errors.imageOnlyJpg"));
                     return;
                 }
                 
@@ -219,7 +225,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 // When creating, process all selected files
                 for (let i = 0; i < files.length; i++) {
                     if (!files[i].type.match("image/jpeg")) {
-                        setFileError("Solo se permiten imágenes JPG");
+                        setFileError(t("errors.imageOnlyJpg"));
                         return;
                     }
                 }
@@ -238,14 +244,26 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             }
         } else if (form.media_type === "video") {
             if (files.length > 1) {
-                setFileError("Solo se puede subir un video");
+                setFileError(t("errors.singleVideoOnly"));
                 return;
             }
             if (!files[0].type.match("video/mp4")) {
-                setFileError("Solo se permite video MP4");
+                setFileError(t("errors.videoOnlyMp4"));
                 return;
             }
             const videoFile = files[0];
+            // Validate duration <= 60s
+            try {
+                const duration = await getVideoDuration(videoFile);
+                if (duration > 60) {
+                    setFileError(t("errors.videoDurationMax"));
+                    return;
+                }
+            } catch (_) {
+                // If duration cannot be read, block upload to be safe
+                setFileError(t("errors.videoDurationUnreadable"));
+                return;
+            }
             setFile(videoFile);
             
             // Create preview URL for video
@@ -257,7 +275,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 const audioFile = files[0];
                 
                 if (!audioFile.type.match("audio/mp3|audio/mpeg")) {
-                    setFileError("Solo se permiten audios MP3");
+                    setFileError(t("errors.audioOnlyMp3"));
                     return;
                 }
                 
@@ -273,7 +291,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 // When creating, process all selected files
                 for (let i = 0; i < files.length; i++) {
                     if (!files[i].type.match("audio/mp3|audio/mpeg")) {
-                        setFileError("Solo se permiten audios MP3");
+                        setFileError(t("errors.audioOnlyMp3"));
                         return;
                     }
                 }
@@ -298,7 +316,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setAudioError("");
         const file = e.target.files[0];
         if (file && !file.type.match("audio/mp3|audio/mpeg")) {
-            setAudioError("Solo se permite audio MP3");
+            setAudioError(t("errors.audioOnlyMp3"));
             return;
         }
         setAudio(file);
@@ -310,6 +328,9 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setValidationErrors({owner_id: "", media_type: ""});
         setFileError("");
         setAudioError("");
+        setConvertProgress(0);
+        setUploadProgress(0);
+        setConvertStatus("");
         
         try {
             // Ensure owner_id is set
@@ -324,6 +345,25 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 const newFile = file ? (Array.isArray(file) ? file[0] : (file as File)) : null;
 
                 if (newFile) {
+                    // If video, ensure duration and convert before upload
+                    let fileToUpload: File = newFile;
+                    if (form.media_type === "video") {
+                        try {
+                            const duration = await getVideoDuration(newFile);
+                            if (duration > 60) {
+                                setFileError(t("errors.videoDurationMax"));
+                                setLoading(false);
+                                return;
+                            }
+                        } catch {
+                            setFileError(t("errors.videoDurationUnreadable"));
+                            setLoading(false);
+                            return;
+                        }
+                        setConvertStatus(t("status.convertingVideo"));
+                        fileToUpload = await transcodeToH264Compatible(newFile, { videoProfile: "baseline" }, (p) => setConvertProgress(p));
+                        setConvertStatus(t("status.conversionFinished"));
+                    }
                     const existingStoragePath = getStoragePathFromDownloadURL(media?.file_path);
                     try {
                         if (existingStoragePath) {
@@ -331,11 +371,11 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                 try { await deleteFileByDownloadURL(media.file_path); } catch {}
                             }
                             // Overwrite same path -> URL usually remains valid
-                            const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                            const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${form.media_type}`, (p) => setUploadProgress(p));
                             file_path = uploaded.downloadURL || media?.file_path;
                         } else {
                             // If we can't detect Firebase path, upload a new one
-                            const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                            const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${form.media_type}`, (p) => setUploadProgress(p));
                             file_path = uploaded.downloadURL;
                             // Best effort: try to delete old if it was Firebase URL
                             if (media?.file_path) {
@@ -344,7 +384,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         }
                     } catch (e) {
                         // If overwrite fails, fall back to new upload and delete old file
-                        const uploaded = await uploadFileToStorage(newFile, `media/${form.media_type}`);
+                        const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${form.media_type}`, (p) => setUploadProgress(p));
                         const oldPath = media?.file_path;
                         file_path = uploaded.downloadURL;
                         if (oldPath) {
@@ -360,11 +400,11 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 };
 
                 await updateMedia(media.id, payload);
-                setMessage("Item actualizado correctamente");
+                setMessage(t("messages.itemUpdated"));
             } else {
                 // When creating, upload to Firebase and send only references
                 if (!file) {
-                    setFileError("Debes seleccionar un archivo");
+                    setFileError(t("errors.mustSelectFile"));
                     setLoading(false);
                     return;
                 }
@@ -382,14 +422,32 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 } else {
                     const toUpload = Array.isArray(file) ? file[0] : (file as File);
                     const mediaType = form.media_type;
-                    const uploaded = await uploadFileToStorage(toUpload, `media/${mediaType}`);
+                    let fileToUpload: File = toUpload;
+                    if (mediaType === "video") {
+                        try {
+                            const duration = await getVideoDuration(toUpload);
+                            if (duration > 60) {
+                                setFileError(t("errors.videoDurationMax"));
+                                setLoading(false);
+                                return;
+                            }
+                        } catch {
+                            setFileError(t("errors.videoDurationUnreadable"));
+                            setLoading(false);
+                            return;
+                        }
+                        setConvertStatus(t("status.convertingVideo"));
+                        fileToUpload = await transcodeToH264Compatible(toUpload, { videoProfile: "baseline" }, (p) => setConvertProgress(p));
+                        setConvertStatus(t("status.conversionFinished"));
+                    }
+                    const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${mediaType}`, (p) => setUploadProgress(p));
                     await createMedia({
                         media_type: mediaType,
                         owner_id: ownerId,
                         file_path: uploaded.downloadURL,
                     });
                 }
-                setMessage("Item creado correctamente");
+                setMessage(t("messages.itemCreated"));
             }
             
             router.push(`/media-library`);
@@ -397,7 +455,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             if (err.response && err.response.data) {
                 setValidationErrors(err.response.data.errors || {});
             } else {
-                setError("Error al guardar el item");
+                setError(t("errors.saveItem"));
             }
         } finally {
             setLoading(false);
@@ -407,7 +465,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Tipo *</Label>
+                <Label>{t("labels.type")}</Label>
                 <div className="relative">
                     <Select
                         defaultValue={form.media_type}
@@ -426,7 +484,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             
             {isAdmin && media && (
                 <div className="mb-5">
-                    <Label>Propietario *</Label>
+                    <Label>{t("labels.ownerRequired")}</Label>
                     <div className="relative">
                         <Select
                             defaultValue={form.owner_id}
@@ -445,12 +503,12 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             
             {!isAdmin && currentUser && (
                 <div className="mb-5">
-                    <Label>Propietario</Label>
+                    <Label>{t("labels.ownerReadonly")}</Label>
                     <div className="p-2 border rounded bg-gray-50">
-                        {currentUser.name || currentUser.email} (Tú)
+                        {currentUser.name || currentUser.email} ({t("owner.you")})
                     </div>
                     <div className="mt-1 text-xs text-gray-500">
-                        Como no eres administrador, automáticamente serás el propietario del contenido.
+                        {t("owner.notAdminHint")}
                     </div>
                 </div>
             )}
@@ -458,10 +516,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             <div className="mb-5">
                 <Label>
                     {form.media_type === "image"
-                        ? (media ? "Imagen JPG" : "Imágenes JPG") 
+                        ? (media ? t("labels.imageSingle") : t("labels.imageMultiple"))
                         : form.media_type === "video"
-                            ? "Video MP4" 
-                            : "Audios MP3"} 
+                            ? t("labels.video")
+                            : t("labels.audio")} 
                     {!media && "*"}
                 </Label>
                 <FileInput
@@ -482,17 +540,17 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 {media && (
                     <div className="mt-1 text-xs text-gray-500">
                         {form.media_type === "image"
-                            ? "Deja este campo vacío si no deseas cambiar la imagen existente." 
+                            ? t("hints.keepImage")
                             : form.media_type === "video"
-                                ? "Deja este campo vacío si no deseas cambiar el video existente."
-                                : "Deja este campo vacío si no deseas cambiar el audio existente."}
+                                ? t("hints.keepVideo")
+                                : t("hints.keepAudio")}
                     </div>
                 )}
             </div>
             
             {form.media_type === "video" && videoPreviewUrl && (
                 <div className="mb-5">
-                    <Label>Vista previa del video</Label>
+                    <Label>{t("labels.videoPreview")}</Label>
                     <div className="mt-2 border rounded overflow-hidden">
                         <video 
                             src={videoPreviewUrl} 
@@ -500,17 +558,35 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             className="w-full h-auto max-h-[300px]"
                         />
                     </div>
+                    {(loading && convertProgress > 0) && (
+                        <div className="mt-3">
+                            <div className="text-sm text-gray-700">{convertStatus || t("status.convertingVideo")}</div>
+                            <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                                <div className="bg-blue-600 h-2 rounded" style={{ width: `${convertProgress}%` }} />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{convertProgress}%</div>
+                        </div>
+                    )}
+                    {(loading && uploadProgress > 0) && (
+                        <div className="mt-3">
+                            <div className="text-sm text-gray-700">{t("status.uploadingVideo")}</div>
+                        <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                            <div className="bg-green-600 h-2 rounded" style={{ width: `${uploadProgress}%` }} />
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">{uploadProgress}%</div>
+                        </div>
+                    )}
                 </div>
             )}
             
             {form.media_type === "audio" && audioPreviewUrls.size > 0 && (
                 <div className="mb-5">
-                    <Label>{media ? "Vista previa del audio" : "Vista previa de los audios"}</Label>
+                    <Label>{media ? t("labels.audioPreviewSingle") : t("labels.audioPreviewMultiple")}</Label>
                     <div className="mt-2 space-y-4">
                         {Array.from(audioPreviewUrls.entries()).map(([index, previewUrl]) => (
                             <div key={index} className="p-3 border rounded-md">
                                 <div className="flex flex-col gap-2">
-                                    <div className="font-medium">Audio {index + 1}</div>
+                                    <div className="font-medium">{t("labels.audioNumber", { n: index + 1 })}</div>
                                     <audio 
                                         src={previewUrl} 
                                         controls 
@@ -536,7 +612,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             
             {form.media_type === "image" && (file || imagePreviewUrls.size > 0) && (
                 <div className="mb-5">
-                    <Label>{media ? "Imagen" : "Imágenes"}</Label>
+                    <Label>{media ? t("labels.imageSectionSingle") : t("labels.imageSectionMultiple")}</Label>
                     <div className="mt-3 space-y-4">
                         {media ? (
                             // Single image preview for editing
@@ -547,7 +623,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                         <div className="border rounded overflow-hidden">
                                             <Image
                                                 src={imagePreviewUrls.get(0) || ''}
-                                                alt="Imagen"
+                                                alt={t("labels.imageAlt")}
                                                 className="w-full h-auto object-contain"
                                                 style={{ maxHeight: '250px' }}
                                                 width={100}
@@ -568,7 +644,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                             <div className="border rounded overflow-hidden">
                                                 <Image
                                                     src={previewUrl}
-                                                    alt={`Imagen ${index + 1}`}
+                                                    alt={t("labels.imageAltNumber", { n: index + 1 })}
                                                     className="w-full h-auto object-contain"
                                                     width={100}
                                                     height={100}
@@ -586,10 +662,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
 
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push(`/media-library`)}>
-                    Cancelar
+                    {t("common.buttons.cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { media ? "Guardar Cambios" : "Crear" }
+                    { media ? t("common.buttons.saveChanges") : t("common.buttons.create") }
                 </Button>
             </div>
         </Form>

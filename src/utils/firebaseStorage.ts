@@ -1,4 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from "firebase/storage";
 import { storage } from "@/lib/firebase";
 
 export interface UploadedRef {
@@ -15,6 +15,34 @@ export async function uploadFileToStorage(file: File, pathPrefix: string = "uplo
   const storageRef = ref(storage, storagePath);
   await uploadBytes(storageRef, file, { contentType: file.type });
   const downloadURL = await getDownloadURL(storageRef);
+  return { downloadURL, storagePath };
+}
+
+export async function uploadFileToStorageWithProgress(
+  file: File,
+  pathPrefix: string = "uploads",
+  onProgress?: (percent: number) => void
+): Promise<UploadedRef> {
+  const timestamp = Date.now();
+  const cleanName = sanitizeFileName(file.name);
+  const storagePath = `${pathPrefix}/${timestamp}-${cleanName}`;
+  const storageRef = ref(storage, storagePath);
+  const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+  await new Promise<void>((resolve, reject) => {
+    task.on(
+      "state_changed",
+      (snapshot) => {
+        if (onProgress && snapshot.totalBytes > 0) {
+          const pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress(Math.max(0, Math.min(100, pct)));
+        }
+      },
+      (error) => reject(error),
+      () => resolve()
+    );
+  });
+  const downloadURL = await getDownloadURL(storageRef);
+  if (onProgress) onProgress(100);
   return { downloadURL, storagePath };
 }
 
