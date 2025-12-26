@@ -74,7 +74,7 @@ export async function transcodeToH264Compatible(
   ]);
 
   const data = await ffmpeg.readFile(outputName);
-  const blob = new Blob([data as Uint8Array], { type: "video/mp4" });
+  const blob = new Blob([new Uint8Array(data as any)], { type: "video/mp4" });
 
   // Create a new File object preserving the base name
   const baseName = file.name.replace(/\.[^.]+$/, "");
