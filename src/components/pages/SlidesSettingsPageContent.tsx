@@ -2,13 +2,15 @@
 
 import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { useError } from "@/context/ErrorContext";
 import { getSlide } from "@/server/api/slides";
 import SlidesForm from "@/components/app/slides/form/SlidesForm";
 import { useT } from "@/i18n/I18nProvider";
 
-const SlidesSettingsPageContent: React.FC<{ id: string }> = ({ id }) => {
+const SlidesSettingsPageContent = () => {
+    const params = useParams();
+    const id = params.id; // Get the slide ID from the URL
   const router = useRouter();
   const setError = useError().setError;
   const [loading, setLoading] = useState(true);

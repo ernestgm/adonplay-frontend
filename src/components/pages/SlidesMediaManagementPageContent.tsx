@@ -4,10 +4,12 @@ import React from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
 import SlideMediaTables from "@/components/app/slides/tables/SlideMediaTables";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { useT } from "@/i18n/I18nProvider";
 
-const SlidesMediaManagementPageContent: React.FC<{ id: string }> = ({ id }) => {
+const SlidesMediaManagementPageContent = () => {
+    const params = useParams();
+    const id = params.id;
   const router = useRouter();
   const tActions = useT("common.table.actions");
 

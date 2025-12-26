@@ -6,7 +6,7 @@ export async function generateMetadata() {
   return generatePageMetadata('pages.marquees');
 }
 
-export default function MarqueesEditPage({ params }: { params: { id: string } }) {
-  return <MarqueesEditPageContent id={params.id} />;
+export default function MarqueesEditPage() {
+  return <MarqueesEditPageContent />;
 }
 

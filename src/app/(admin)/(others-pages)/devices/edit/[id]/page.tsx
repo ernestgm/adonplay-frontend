@@ -6,6 +6,6 @@ export async function generateMetadata() {
   return generatePageMetadata("pages.devices");
 }
 
-export default function EditUserPage({ params }: { params: { id: string } }) {
-  return <DevicesEditPageContent id={params.id} />;
+export default function EditUserPage() {
+  return <DevicesEditPageContent />;
 }

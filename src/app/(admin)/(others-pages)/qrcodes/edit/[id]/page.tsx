@@ -6,7 +6,7 @@ export async function generateMetadata() {
   return generatePageMetadata("pages.qrcodes");
 }
 
-export default function QrCodeEditPage({ params }: { params: { id: string } }) {
-  return <QrCodesEditPageContent id={params.id} />;
+export default function QrCodeEditPage() {
+  return <QrCodesEditPageContent />;
 }
 

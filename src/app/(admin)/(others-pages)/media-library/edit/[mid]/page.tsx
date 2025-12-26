@@ -6,7 +6,7 @@ export async function generateMetadata() {
   return generatePageMetadata("pages.mediaLibrary");
 }
 
-export default function MediaEditPage({ params }: { params: { mid: string } }) {
-  return <MediaEditPageContent id={params.mid} />;
+export default function MediaEditPage() {
+  return <MediaEditPageContent />;
 }
 

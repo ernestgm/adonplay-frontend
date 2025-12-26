@@ -5,10 +5,12 @@ import PageBreadcrumb from '@/components/common/PageBreadCrumb';
 import React, {useEffect, useState} from 'react';
 import {getBusiness} from '@/server/api/business';
 import {useError} from "@/context/ErrorContext";
-import {useRouter} from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import {useT} from "@/i18n/I18nProvider";
 
-const BusinessEditPageContent: React.FC<{ id: string }> = ({ id }) => {
+const BusinessEditPageContent = () => {
+    const params = useParams();
+    const id = params.id;
     const setError = useError().setError;
     // Obtener el id de la URL
     const [loading, setLoading] = useState(true);

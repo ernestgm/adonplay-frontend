@@ -6,7 +6,7 @@ export async function generateMetadata() {
   return generatePageMetadata('pages.business');
 }
 
-export default function BusinessEditPage({ params }: { params: { id: string } }) {
-  return <BusinessEditPageContent id={params.id} />;
+export default function BusinessEditPage() {
+  return <BusinessEditPageContent />;
 }
 

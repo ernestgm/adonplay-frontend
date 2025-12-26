@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useError } from "@/context/ErrorContext";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import MarqueesForm from "@/components/app/marquees/form/MarqueesForm";
 import { getMarquees } from "@/server/api/marquees";
 import { useT } from "@/i18n/I18nProvider";
 
-const MarqueesEditPageContent: React.FC<{ id: string }> = ({ id }) => {
+const MarqueesEditPageContent = () => {
+    const params = useParams();
+    const id = params.id;
   const setError = useError().setError;
   const [loading, setLoading] = useState(true);
   const [marquee, setMarquee] = useState<any>(null);

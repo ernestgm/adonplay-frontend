@@ -12,7 +12,7 @@ interface MediaDetailsProps {
 }
 
 const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
-    const t = useT("pages.mediaLibrary");
+    const t = useT("pages.mediaLibrary.detailsContent");
 
     if (!media) return null;
 
@@ -76,7 +76,7 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
                         <p>{media.owner.name}</p>
                     </div>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">{t("createAt")}</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{t("createdAt")}</h3>
                         <p>{formatDate(media.created_at)}</p>
                     </div>
                     <div className="border rounded-lg p-4 bg-gray-50">

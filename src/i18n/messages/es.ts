@@ -167,6 +167,7 @@ const es = {
             createPageTitle: "Crear Medio",
             editPageTitle: "Editar Medio",
             detailsPageTitle: "Detalles del Medio",
+            detailedViewPageTitle: "Detalles del Medio",
             detailsContent: {
                 preview: "Vista previa",
                 imagePreview: "Vista previa de imagen",

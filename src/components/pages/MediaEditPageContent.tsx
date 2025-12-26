@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useError } from "@/context/ErrorContext";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { getMedia } from "@/server/api/media";
 import MediaForm from "@/components/app/media/form/MediaForm";
 import { useT } from "@/i18n/I18nProvider";
 
-const MediaEditPageContent: React.FC<{ id: string }> = ({ id }) => {
+const MediaEditPageContent = () => {
+    const params = useParams();
+    const id = params.mid;
   const setError = useError().setError;
   const [loading, setLoading] = useState(true);
   const [media, setMedia] = useState<any>(null);
