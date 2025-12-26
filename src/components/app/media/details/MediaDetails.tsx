@@ -4,6 +4,7 @@ import React from "react";
 import { MdAudioFile } from "react-icons/md";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
+import {useT} from "@/i18n/I18nProvider";
 
 
 interface MediaDetailsProps {
@@ -11,6 +12,8 @@ interface MediaDetailsProps {
 }
 
 const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
+    const t = useT("pages.mediaLibrary");
+
     if (!media) return null;
 
     const formatDate = (dateString: string | number | Date) => {
@@ -23,7 +26,7 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
         <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
             {/* Media Preview */}
             <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Vista Previa</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("preview")}</h2>
                 <div className="border rounded-lg p-4 bg-gray-50">
                     {media.media_type === "image" ? (
                         <div className="flex flex-col items-center">
@@ -41,7 +44,7 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
                             <div className="w-full max-w-md">
                                 <div className="flex items-center mb-2">
                                     <MdAudioFile size={24} className="text-green-500 mr-2" />
-                                    <span className="font-medium">Audio</span>
+                                    <span className="font-medium">{t("audio")}</span>
                                 </div>
                                 <audio
                                     src={mediaUrl(media.file_path)}
@@ -66,18 +69,18 @@ const MediaDetails: React.FC<MediaDetailsProps> = ({ media }) => {
 
             {/* Media Details */}
             <div>
-                <h2 className="text-xl font-semibold mb-4">Información</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("information")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Owner</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{t("owner")}</h3>
                         <p>{media.owner.name}</p>
                     </div>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Created At</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{t("createAt")}</h3>
                         <p>{formatDate(media.created_at)}</p>
                     </div>
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Updated At</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{t("updatedAt")}</h3>
                         <p>{formatDate(media.updated_at)}</p>
                     </div>
                 </div>

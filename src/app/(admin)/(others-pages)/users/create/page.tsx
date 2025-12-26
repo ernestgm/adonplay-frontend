@@ -1,22 +1,11 @@
-"use client"
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import UsersCreatePageContent from "@/components/pages/UsersCreatePageContent";
 
-import React, {Suspense} from "react";
-import UserForm from "@/components/app/user/form/UserForm";
-import {useRouter} from "next/navigation";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.users");
+}
 
-const CreateUserPage = () => {
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/users`);
-    };
-
-  return (
-    <div>
-        <PageBreadcrumb pageTitle="Crear User" onBack={handleBack}/>
-        <UserForm />
-    </div>
-  );
-};
-
-export default CreateUserPage;
+export default function CreateUserPage() {
+  return <UsersCreatePageContent/>;
+}

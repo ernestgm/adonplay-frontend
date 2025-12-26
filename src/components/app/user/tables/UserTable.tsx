@@ -25,10 +25,18 @@ import { useMessage } from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import Cookies from "js-cookie";
 import filterItems from "@/utils/filterItems";
+import { useT } from "@/i18n/I18nProvider";
 
 
 const UserTable = () => {
     const router = useRouter();
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
+    const tStatus = useT("status");
     const [users, setUsers] = useState<any[]>([]);
     const [selectedUsers, setSelectedUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -117,18 +125,18 @@ const UserTable = () => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este usuario?"
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
                 actions={[
-                    { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteUser, variant: "primary" },
+                    { label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false) },
+                    { label: tCommon("delete"), onClick: confirmDeleteUser, variant: "primary" },
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     { selectedUsers.length > 0 ? (
                             <div className={ selectedUsers.length === 0 ? "hidden" : "flex"}>
-                                <Tooltip content="Delete Selected Users">
+                                <Tooltip content={tActions("delete")}>
                                     <Button
                                         size="sm"
                                         onClick={deleteSelectedUsers}
@@ -148,7 +156,7 @@ const UserTable = () => {
                         size="sm"
                         className="mb-2 sm:mb-0 sm:w-auto"
                     >
-                        <span className="hidden sm:block">+ Adicionar usuario</span>
+                        <span className="hidden sm:block">{tCommon("create")}</span>
                         <span className="block sm:hidden">+</span>
                     </Button>
                     )}
@@ -158,7 +166,7 @@ const UserTable = () => {
 
                     <div className="relative">
                         <Input
-                            placeholder="Search..."
+                            placeholder={tFilters("searchPlaceholder")}
                             defaultValue={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -172,9 +180,9 @@ const UserTable = () => {
                 </div>
 
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedUsers.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay usuarios para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -188,27 +196,21 @@ const UserTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        ID
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("id")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Name
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Email
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("email")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Phone
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("phone")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Status
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("status")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Role
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("role")}
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
-                                        Actions
+                                        {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -234,7 +236,7 @@ const UserTable = () => {
                                             {user.phone || "N/A"}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {user.enabled ? "Enabled" : "Disabled"}
+                                            {user.enabled ? tStatus("enabled") : tStatus("disabled")}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {user.role}
@@ -242,7 +244,7 @@ const UserTable = () => {
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Editar">
+                                                <Tooltip content={tActions("edit")}>
                                                     <Button
                                                         onClick={() => handleEdit(user.id)}
                                                         variant="outline"
@@ -251,7 +253,7 @@ const UserTable = () => {
                                                         <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Eliminar">
+                                                <Tooltip content={tActions("delete")}>
                                                     <Button
                                                         onClick={() => openWarningModal(user.id)}
                                                         variant="danger"
@@ -276,9 +278,9 @@ const UserTable = () => {
                             <Select
                                 options={config.itemsPerPageOptions.map((value) => ({
                                     value: value.toString(),
-                                    label: `${value} items per page`
+                                    label: tFilters("itemsPerPageOption", { n: value })
                             }))}
-                            placeholder="Select items per page"
+                            placeholder={tFilters("itemsPerPage")}
                             defaultValue={config.defaultItemsPerPage.toString()}
                             onChange={(value) => setItemsPerPage(Number(value))}
                             className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"

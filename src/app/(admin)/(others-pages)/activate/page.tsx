@@ -1,19 +1,11 @@
-"use client"
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import ActivatePageContent from "@/components/pages/ActivatePageContent";
 
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import ComponentCard from "@/components/common/ComponentCard";
-import ActivateDeviceForm from "@/components/user-profile/ActivateDeviceForm";
-import {Suspense} from "react";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.activate");
+}
 
 export default function DevicesPage() {
-  return (
-      <div>
-          <PageBreadcrumb pageTitle="Activate Devices" />
-          <div className="space-y-6">
-              <ComponentCard title="Devices">
-                  <ActivateDeviceForm />
-              </ComponentCard>
-          </div>
-      </div>
-  );
+  return <ActivatePageContent/>;
 }

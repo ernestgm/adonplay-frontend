@@ -14,11 +14,14 @@ import {createSlide, updateSlide} from "@/server/api/slides";
 import ComponentCard from "@/components/common/ComponentCard";
 import config from "@/config/globalConfig";
 import PositionExample from "@/components/common/PositionExample";
+import { useT } from "@/i18n/I18nProvider";
 
 interface SlidesFormProps {
     slides?: any;
 }
 const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
+    const t = useT("forms.slides");
+    const tCommon = useT("common.buttons");
     const [form, setForm] = useState({
         name: slides?.name || "",
         description: slides?.description || "",
@@ -45,7 +48,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 const allBusiness = await fetchBusinesses();
                 setBusiness(allBusiness);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadBusinesses"));
             }
         };
         getBusiness();
@@ -82,7 +85,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
-                setError(err.data?.message || err.message || "Error al guardar negocio");
+                setError(err.data?.message || err.message || t("errors.saveItem"));
             }
 
         } finally {
@@ -93,7 +96,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Nombre *</Label>
+                <Label>{t("labels.name")}</Label>
                 <Input
                     name="name"
                     value={form.name}
@@ -103,7 +106,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Descripción</Label>
+                <Label>{t("labels.description")}</Label>
                 <Input
                     name="description"
                     value={form.description}
@@ -113,7 +116,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Business *</Label>
+                <Label>{t("labels.business")}</Label>
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
@@ -132,11 +135,11 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 </div>
             </div>
             <div className="mb-5">
-                <ComponentCard title="Images Description Settings">
+                <ComponentCard title={t("sections.imagesDescriptionSettings")}>
                     <div className="flex flex-wrap items-center gap-8">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 w-full">
                             <div className="flex-1 min-w-0">
-                                <Label>Description Position</Label>
+                                <Label>{t("labels.descriptionPosition")}</Label>
                                 <div className="relative mb-5">
                                     <Select
                                         defaultValue={form.description_position}
@@ -151,7 +154,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                         <ChevronDownIcon/>
                                     </span>
                                 </div>
-                                <Label>Text Size</Label>
+                                <Label>{t("labels.textSize")}</Label>
                                 <div className="relative">
                                     <Select
                                         defaultValue={form.description_size}
@@ -168,7 +171,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                 </div>
                             </div>
                             <div className="flex flex-col items-center flex-shrink-0 mt-4 sm:mt-0">
-                                <span className="font-medium mb-2">Example</span>
+                                <span className="font-medium mb-2">{t("labels.example")}</span>
                                 <PositionExample position={form.description_position}/>
                             </div>
                         </div>
@@ -176,9 +179,9 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 </ComponentCard>
             </div>
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/slides")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/slides")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {slides ? "Guardar cambios" : "Crear"}
+                    {slides ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
         </Form>

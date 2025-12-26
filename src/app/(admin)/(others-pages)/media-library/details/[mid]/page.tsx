@@ -1,52 +1,11 @@
-"use client";
+import React from 'react';
+import { generatePageMetadata } from "@/i18n/metadata";
+import DetailsMediaPageContent from "@/components/pages/DetailsMediaPageContent";
 
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React, {useEffect, useState} from 'react';
-import {useError} from "@/context/ErrorContext";
-import {useParams, useRouter} from "next/navigation";
-import {getMedia} from "@/server/api/media";
-import MediaDetails from "@/components/app/media/details/MediaDetails";
+export async function generateMetadata() {
+    return generatePageMetadata("pages.mediaLibrary");
+}
 
-const MediaDetailsPage = () => {
-    const params = useParams();
-    const router = useRouter();
-    const slide = params.id; // El ID de la URL
-    const id = params.mid; // El ID de la URL
-    const setError = useError().setError;
-    const [loading, setLoading] = useState(true);
-    const [media, setMedia] = useState(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const data = await getMedia(id);
-                console.log(data);
-                setMedia(data);
-            } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al obtener media");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id, slide, setError]);
-
-    const handleBack = () => {
-        router.push(`/media-library`);
-    };
-
-    if (loading) {
-        return <div>Cargando...</div>;
-    }
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Detalles de Media" onBack={handleBack}/>
-            <MediaDetails media={media} />
-        </div>
-    );
-};
-
-export default MediaDetailsPage;
+export default function MediaCreatePage() {
+    return <DetailsMediaPageContent/>;
+}

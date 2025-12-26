@@ -1,22 +1,12 @@
-"use client"
+import React from 'react';
+import { generatePageMetadata } from '@/i18n/metadata';
+import CreateSlidePageContent from '@/components/pages/CreateSlidePageContent';
 
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React, {Suspense} from 'react';
-import SlidesForm from "@/components/app/slides/form/SlidesForm";
-import {useRouter} from "next/navigation";
-
+export async function generateMetadata() {
+  return generatePageMetadata('pages.slides');
+}
 
 export default function SlideCreatePage() {
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/slides`);
-    };
-
-  return (
-    <div>
-      <PageBreadcrumb pageTitle="Crear Slide" onBack={handleBack}/>
-        <SlidesForm />
-    </div>
-  );
+  return <CreateSlidePageContent/>;
 }
 

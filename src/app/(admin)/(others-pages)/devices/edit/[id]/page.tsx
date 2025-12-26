@@ -1,50 +1,11 @@
-"use client";
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import DevicesEditPageContent from "@/components/pages/DevicesEditPageContent";
 
-import React, {useEffect, useState} from "react";
-import { useError } from "@/context/ErrorContext";
-import {useParams, useRouter} from "next/navigation";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import {getDevice} from "@/server/api/devices";
-import DeviceForm from "@/components/app/devices/form/DeviceForm";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.devices");
+}
 
-const EditUserPage = () => {
-    const params = useParams();
-    const id = params.id; // El ID de la URL
-    const [device, setDevice] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const setError = useError().setError;
-
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/devices`);
-    };
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const data = await getDevice(id);
-                setDevice(data);
-            } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al obtener usuario");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [id]);
-
-    if (loading) {
-        return <div>Cargando...</div>;
-    }
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Edit Device" onBack={handleBack} />
-            <DeviceForm device={device} />
-        </div>
-    );
-};
-
-export default EditUserPage;
+export default function EditUserPage({ params }: { params: { id: string } }) {
+  return <DevicesEditPageContent id={params.id} />;
+}

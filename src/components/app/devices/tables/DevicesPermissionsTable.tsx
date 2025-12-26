@@ -20,6 +20,7 @@ import {useMessage} from "@/context/MessageContext";
 import filterItems from "@/utils/filterItems";
 import {fetchDevicesPermissions, updateDevicePermissions} from "@/server/api/devices";
 import Switch from "@/components/form/switch/Switch";
+import { useT } from "@/i18n/I18nProvider";
 
 
 type DevicePermissionItem = {
@@ -30,6 +31,10 @@ type DevicePermissionItem = {
 } & Record<string, unknown>;
 
 const DevicesPermissionsTable = () => {
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tFilters = useT("common.table.filters");
+    const tStates = useT("common.table.states");
     const [devices, setDevices] = useState<DevicePermissionItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +49,7 @@ const DevicesPermissionsTable = () => {
                 const data = await fetchDevicesPermissions();
                 setDevices(data as DevicePermissionItem[]);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al iniciar sesión");
+                setError(err.data?.message || err.message || "Error");
             } finally {
                 setLoading(false);
             }
@@ -60,7 +65,7 @@ const DevicesPermissionsTable = () => {
             const response = await updateDevicePermissions(id, formData);
             setMessage(response.message);
         } catch (err: any) {
-            setError(err.data?.message || err.message || "Error al Actualizar");
+            setError(err.data?.message || err.message || "Error");
         } finally {
             setLoading(false);
         }
@@ -80,7 +85,7 @@ const DevicesPermissionsTable = () => {
                 <div className="flex items-center justify-between mb-4">
                     <div className="relative">
                         <Input
-                            placeholder="Search..."
+                            placeholder={tFilters("searchPlaceholder")}
                             defaultValue={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -94,9 +99,9 @@ const DevicesPermissionsTable = () => {
                 </div>
 
                 { loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedDevices.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay Devices para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -104,15 +109,15 @@ const DevicesPermissionsTable = () => {
                                 <TableRow>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Device ID
+                                        {tHeaders("deviceId")}
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Device Code
+                                        {tHeaders("code")}
                                     </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
-                                        Actions
+                                        {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -150,9 +155,9 @@ const DevicesPermissionsTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"

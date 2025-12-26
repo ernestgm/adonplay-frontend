@@ -26,8 +26,15 @@ import { fetchMedia, deleteMedia } from "@/server/api/media";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
 import { deleteFileByDownloadURL } from "@/utils/firebaseStorage";
+import { useT } from "@/i18n/I18nProvider";
 
 const MediaTable = () => {
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [media, setMedia] = useState<any[]>([]);
     const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
@@ -45,7 +52,7 @@ const MediaTable = () => {
                 const data = await fetchMedia();
                 setMedia(data);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar media");
+                setError(err.data?.message || err.message || "Error");
             } finally {
                 setLoading(false);
             }
@@ -90,7 +97,7 @@ const MediaTable = () => {
                     urlsToDelete.map((url: string) => deleteFileByDownloadURL(url))
                 ).then(() => {/* noop */});
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al eliminar media");
+                setError(err.data?.message || err.message || "Error");
             } finally {
                 setIsWarningModalOpen(false);
             }
@@ -117,18 +124,18 @@ const MediaTable = () => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este elemento?"
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
                 actions={[
-                    { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteMedia, variant: "primary" },
+                    { label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false) },
+                    { label: tCommon("delete"), onClick: confirmDeleteMedia, variant: "primary" },
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     { selectedMedia.length > 0 ? (
                         <div className={ selectedMedia.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar seleccionados">
+                            <Tooltip content={tActions("delete")}>
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedMedia}
@@ -146,13 +153,13 @@ const MediaTable = () => {
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
                         >
-                            <span className="hidden sm:block">+ Adicionar media</span>
+                            <span className="hidden sm:block">{tCommon("create")}</span>
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
                     <div className="relative">
                         <Input
-                            placeholder="Buscar..."
+                            placeholder={tFilters("searchPlaceholder")}
                             defaultValue={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -164,9 +171,9 @@ const MediaTable = () => {
                     </div>
                 </div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedMedia.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay media para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -180,9 +187,9 @@ const MediaTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">File</TableCell>
-                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Actions</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("user")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
@@ -209,19 +216,19 @@ const MediaTable = () => {
                                             ) : item.media_type === "video" ? (
                                                 <div className="flex items-center">
                                                     <MdVideoFile size={24} className="text-blue-500 mr-2" />
-                                                    <span>Video</span>
+                                                    <span>{tHeaders("duration")}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center">
                                                     <MdAudioFile size={24} className="text-blue-500 mr-2" />
-                                                    <span>Audio</span>
+                                                    <span>{tHeaders("audio")}</span>
                                                 </div>
                                             )
                                             }
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Ver Detalles">
+                                                <Tooltip content={tActions("view")}>
                                                     <Button
                                                         onClick={() => handleViewDetails(item.id)}
                                                         variant="primary"
@@ -230,7 +237,7 @@ const MediaTable = () => {
                                                         <MdInfo size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Editar">
+                                                <Tooltip content={tActions("edit")}>
                                                     <Button
                                                         onClick={() => handleEdit(item.id)}
                                                         variant="outline"
@@ -239,7 +246,7 @@ const MediaTable = () => {
                                                         <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Eliminar">
+                                                <Tooltip content={tActions("delete")}>
                                                     <Button
                                                         onClick={() => openWarningModal(item.id)}
                                                         variant="danger"
@@ -263,9 +270,9 @@ const MediaTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"

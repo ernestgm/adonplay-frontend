@@ -34,6 +34,7 @@ import {MdSearch} from "react-icons/md";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
 import Image from "next/image";
+import { useT } from "@/i18n/I18nProvider";
 
 
 const descriptionPositions = config.positions;
@@ -45,6 +46,12 @@ interface MediaFormProps {
 }
 
 const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
+    const t = useT("forms.slideMedia");
+    const tCommon = useT("common.buttons");
+    const tFilters = useT("common.table.filters");
+    const tTableHeaders = useT("common.table.headers");
+    const tTableStates = useT("common.table.states");
+    const tQrButtons = useT("forms.qrcodes.buttons");
     const isEditing = !!slideMedia?.id;
     const [form, setForm] = useState({
         slide_id: slideId,
@@ -139,7 +146,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 // Selected media/audio are handled by selectedMediaIds and mediaAudioMap
 
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar datos");
+                setError(err.data?.message || err.message || t("errors.loadMedia"));
             }
         };
         fetchData();
@@ -277,7 +284,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 // For edit, use the first selected media (if any) and its audio mapping
                 const mediaId = selectedMediaIds[0] || form.media_id;
                 if (!mediaId) {
-                    setError("Debes seleccionar un media");
+                    setError(t("errors.selectMediaRequired"));
                     setLoading(false);
                     return;
                 }
@@ -304,11 +311,11 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                 // });
 
                 await updateSlideMedias(slideMedia.id, payload);
-                setMessage("Slide media actualizado correctamente");
+                setMessage(t("messages.updated"));
             } else {
                 // Create multiple slide media, one per selected image
                 if (selectedMediaIds.length === 0) {
-                    setError("Debes seleccionar al menos un media");
+                    setError(t("errors.selectAtLeastOne"));
                     setLoading(false);
                     return;
                 }
@@ -332,7 +339,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     });
                     await createSlideMedias(payload);
                 }
-                setMessage("Slide media creado correctamente");
+                setMessage(t("messages.created"));
             }
 
             // Redirect back to the slide media management page
@@ -340,9 +347,9 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
         } catch (err: any) {
             if (err.response && err.response.data) {
                 // setValidationErrors(err.response.data.errors || {});
-                setError("Error al guardar el slide media");
+                setError(t("errors.saveItem"));
             } else {
-                setError("Error al guardar el slide media");
+                setError(t("errors.saveItem"));
             }
         } finally {
             setLoading(false);
@@ -367,7 +374,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     return (
         <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Seleccionar Media *</Label>
+                <Label>{t("labels.selectMedia")}</Label>
                 <div className="flex flex-col gap-2">
                     <div>
                         <Button
@@ -376,7 +383,11 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                             onClick={() => setShowMediaSelector(true)}
                             className="w-full"
                         >
-                            {selectedMediaIds.length > 0 ? (isEditing ? "Cambiar selección" : `Cambiar selección (${selectedMediaIds.length})`) : "Seleccionar Media"}
+                            {selectedMediaIds.length > 0
+                                ? (isEditing
+                                    ? t("labels.changeSelection")
+                                    : t("labels.changeSelectionWithCount", { n: selectedMediaIds.length }))
+                                : t("labels.selectMedia")}
                         </Button>
                     </div>
 
@@ -397,10 +408,12 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         {media.media_type === "image" && (
                                             <div className="mt-2 flex items-center justify-between gap-2">
                                                 <div className="text-xs text-gray-600">
-                                                    {mediaAudioMap[id] ? `Audio asignado: #${mediaAudioMap[id]}` : "Sin audio"}
+                                                    {mediaAudioMap[id]
+                                                        ? t("labels.audioAssigned", { id: mediaAudioMap[id] })
+                                                        : t("labels.noAudio")}
                                                 </div>
                                                 <Button type="button" variant="outline" size="sm" onClick={() => openAudioModalForMedia(id)}>
-                                                    Asignar audio
+                                                    {t("labels.assignAudio")}
                                                 </Button>
                                             </div>
                                         )}
@@ -413,19 +426,19 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     {showMediaSelector && (
                         <div className="mt-2 border rounded-md p-3">
                             <div className="mb-3 flex justify-between items-center">
-                                <h3 className="font-medium">Seleccionar Media</h3>
+                                <h3 className="font-medium">{t("selector.title")}</h3>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setShowMediaSelector(false)}
                                 >
-                                    Cerrar
+                                    {t("selector.close")}
                                 </Button>
                             </div>
                             <div className="relative mb-3">
                                 <Input
-                                    placeholder="Buscar media..."
+                                    placeholder={t("selector.searchPlaceholder")}
                                     value={mediaSearchTerm}
                                     onChange={(e) => setMediaSearchTerm(e.target.value)}
                                     type="text"
@@ -441,16 +454,16 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                 <Table className="min-w-full divide-y divide-gray-200">
                                     <TableHeader className="bg-gray-50">
                                         <TableRow>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seleccionar</TableCell>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vista Previa</TableCell>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Tipo</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.select")}</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.preview")}</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.type")}</TableCell>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody className="bg-white divide-y divide-gray-200">
                                         {paginatedMedia.length === 0 ? (
                                             <TableRow>
                                                 <TableCell className="px-3 py-2 text-center text-sm text-gray-500" colSpan={3}>
-                                                    No hay media disponible
+                                                    {t("selector.empty")}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -512,10 +525,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
             {selectedMediaIds.length > 0 && (!audioUsed) && (
                 <div className="mb-5">
-                    <Label>Duración (segundos) *</Label>
-                    <div className="text-xs text-gray-500 mb-1">
-                        Si una imagen tiene un audio asignado, la duración del audio tendrá prioridad.
-                    </div>
+                    <Label>{t("labels.durationSeconds")}</Label>
+                    <div className="text-xs text-gray-500 mb-1">{t("hints.durationWithAudio")}</div>
                     <Input
                         name="duration"
                         type="number"
@@ -528,7 +539,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
 
             <div className="mb-5">
-                <Label>Descripción</Label>
+                <Label>{t("labels.description")}</Label>
                 <TextArea
                     value={form.description}
                     onChange={handleDescriptionChange}
@@ -537,11 +548,11 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
             {form.description !== "" && (
                 <div className="mb-5">
-                    <ComponentCard title="Configuración de Descripción">
+                    <ComponentCard title={t("sections.descriptionSettings")}>
                         <div className="flex flex-wrap items-center gap-8">
                             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 w-full">
                                 <div className="flex-1 min-w-0">
-                                    <Label>Posición de Descripción</Label>
+                                    <Label>{t("labels.descriptionPosition")}</Label>
                                     <div className="relative mb-5">
                                         <Select
                                             defaultValue={form.description_position}
@@ -557,7 +568,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             <ChevronDownIcon/>
                                         </span>
                                     </div>
-                                    <Label>Tamaño de Texto</Label>
+                                    <Label>{t("labels.textSize")}</Label>
                                     <div className="relative">
                                         <Select
                                             defaultValue={form.text_size}
@@ -572,7 +583,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     </div>
                                 </div>
                                 <div className="flex flex-col items-center flex-shrink-0 mt-4 sm:mt-0">
-                                    <span className="font-medium mb-2">Ejemplo</span>
+                                    <span className="font-medium mb-2">{t("labels.example")}</span>
                                     <PositionExample position={form.description_position}/>
                                 </div>
                             </div>
@@ -582,7 +593,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             )}
 
             <div className="mb-8">
-                <Label>Seleccionar QR Code</Label>
+                <Label>{t("labels.selectQr")}</Label>
                 <div className="flex flex-col gap-4">
                     {selectedQr ? (
                         <div className="p-3 border rounded-md mb-2">
@@ -596,8 +607,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     />
                                 </div>
                                 <div className="flex-1">
-                                    <div className="font-medium">QR seleccionado</div>
-                                    <div className="text-sm text-gray-500">{selectedQr.name || "QR Code"}</div>
+                                    <div className="font-medium">{t("labels.selectedQr")}</div>
+                                    <div className="text-sm text-gray-500">{selectedQr.name || t("labels.qrCode")}</div>
                                 </div>
                                 <Button
                                     type="button"
@@ -605,7 +616,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     size="sm"
                                     onClick={() => setShowQrSelector(true)}
                                 >
-                                    Cambiar
+                                    {t("qrSelector.change")}
                                 </Button>
                                 <Button
                                     type="button"
@@ -613,7 +624,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     size="sm"
                                     onClick={() => clearQr() }
                                 >
-                                    Quitar
+                                    {t("qrSelector.remove")}
                                 </Button>
                             </div>
                         </div>
@@ -624,26 +635,26 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                             onClick={() => setShowQrSelector(true)}
                             className="w-full"
                         >
-                            Seleccionar QR Code
+                            {t("qrSelector.buttonSelect")}
                         </Button>
                     )}
 
                     {showQrSelector && (
                         <div className="mt-2 border rounded-md p-3">
                             <div className="mb-3 flex justify-between items-center">
-                                <h3 className="font-medium">Seleccionar QR Code</h3>
+                                <h3 className="font-medium">{t("qrSelector.title")}</h3>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
                                     onClick={() => setShowQrSelector(false)}
                                 >
-                                    Cerrar
+                                    {t("qrSelector.close")}
                                 </Button>
                             </div>
                             <div className="relative mb-3">
                                 <Input
-                                    placeholder="Buscar QR code..."
+                                    placeholder={t("qrSelector.searchPlaceholder")}
                                     value={qrSearchTerm}
                                     onChange={(e) => setQrSearchTerm(e.target.value)}
                                     type="text"
@@ -661,21 +672,21 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         <TableRow>
                                             <TableCell
                                                 className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                                                Seleccionar
+                                                {t("qrSelector.headers.select")}
                                             </TableCell>
                                             <TableCell
-                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
+                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("qrSelector.headers.name")}</TableCell>
                                             <TableCell
-                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Vista
-                                                Previa</TableCell>
+                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("qrSelector.headers.preview")}
+                                            </TableCell>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody className="bg-white divide-y divide-gray-200">
                                         {qrCodes.length === 0 ? (
                                             <TableRow>
                                                 <TableCell
-                                                           className="px-3 py-2 text-center text-sm text-gray-500">
-                                                    No hay QR codes disponibles
+                                                       className="px-3 py-2 text-center text-sm text-gray-500">
+                                                    {t("qrSelector.empty")}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -697,7 +708,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                         </TableCell>
                                                         <TableCell
                                                             className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                            {qr.name || "QR Code"}
+                                                            {qr.name || t("labels.qrCode")}
                                                         </TableCell>
                                                         <TableCell
                                                             className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
@@ -728,7 +739,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                             />
                             <Button type="button" variant="outline" onClick={handleDownloadQr}
                                     className="mt-2 w-full">
-                                Descargar QR
+                                {tQrButtons("downloadQr")}
                             </Button>
                         </div>
                     )}
@@ -738,22 +749,22 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline"
                         onClick={() => router.push(`/slides/media-management/${slideId}`)}>
-                    Cancelar
+                    {tCommon("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { slideMedia ? "Guardar Cambios" : "Crear"}
+                    { slideMedia ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
             {/* Modal para asignar audio a una imagen (tabla con preview) */}
             <Modal isOpen={showAssignAudioModal} onClose={() => setShowAssignAudioModal(false)} className="max-w-4xl w-[95%] p-6">
-                <h3 className="text-lg font-semibold mb-4">Seleccionar audio</h3>
+                <h3 className="text-lg font-semibold mb-4">{t("labels.assignAudio")}</h3>
                 <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
                     <Table className="min-w-full divide-y divide-gray-200">
                         <TableHeader className="bg-gray-50">
                             <TableRow>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Seleccionar</TableCell>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Preview</TableCell>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.select")}</TableCell>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{tTableHeaders("audio")}</TableCell>
+                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{tTableHeaders("preview")}</TableCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-white divide-y divide-gray-200">
@@ -766,13 +777,13 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         onChange={() => setAudioModalSelectedId("")}
                                     />
                                 </TableCell>
-                                <TableCell className="px-3 py-2 text-sm text-gray-700">Sin audio</TableCell>
+                                <TableCell className="px-3 py-2 text-sm text-gray-700">{t("labels.noAudio")}</TableCell>
                                 <TableCell className="px-3 py-2 text-sm text-gray-500">—</TableCell>
                             </TableRow>
                             {allAudios.length === 0 ? (
                                 <TableRow>
                                     <TableCell className="px-3 py-4 text-center text-sm text-gray-500" colSpan={3}>
-                                        No hay audios disponibles
+                                        {tTableStates("empty")}
                                     </TableCell>
                                 </TableRow>
                             ) : (
@@ -786,7 +797,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                 onChange={() => setAudioModalSelectedId(a.id.toString())}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-3 py-2 text-sm text-gray-700">Audio #{a.id}</TableCell>
+                                        <TableCell className="px-3 py-2 text-sm text-gray-700">{tTableHeaders("audio")} #{a.id}</TableCell>
                                         <TableCell className="px-3 py-2">
                                             <audio controls src={mediaUrl(a.file_path)} className="w-56" />
                                         </TableCell>
@@ -797,8 +808,8 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     </Table>
                 </div>
                 <div className="mt-6 flex justify-end gap-2">
-                    <Button type="button" variant="outline" onClick={() => setShowAssignAudioModal(false)}>Cerrar</Button>
-                    <Button type="button" variant="primary" onClick={saveAudioModalSelection}>Guardar</Button>
+                    <Button type="button" variant="outline" onClick={() => setShowAssignAudioModal(false)}>{tCommon("cancel")}</Button>
+                    <Button type="button" variant="primary" onClick={saveAudioModalSelection}>{tCommon("saveChanges")}</Button>
                 </div>
             </Modal>
         </Form>

@@ -7,7 +7,7 @@ import React, {Suspense} from "react";
 export const metadata: Metadata = {
     title: "Error 404 | AdOnPlay",
     description:
-        "Error 404 page for AdOnPLay",
+        "Error 404 for AdOnPLay",
 };
 
 export default function Error404() {

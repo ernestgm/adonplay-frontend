@@ -24,8 +24,15 @@ import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
 import {deleteQrCode, fetchQrCode} from "@/server/api/qrcodes";
 import {QRCodeCanvas} from "qrcode.react";
+import { useT } from "@/i18n/I18nProvider";
 
 const QrCodesTable = () => {
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [qrcodes, setQrCodes] = useState<any[]>([]);
     const [selectedQrCodes, setSelectedQrCodes] = useState<any[]>([]);
@@ -97,18 +104,18 @@ const QrCodesTable = () => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este QRCode?"
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
                 actions={[
-                    { label: "Cancelar", onClick: () => setIsWarningModalOpen(false) },
-                    { label: "Eliminar", onClick: confirmDeleteQrCode, variant: "primary" },
+                    { label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false) },
+                    { label: tCommon("delete"), onClick: confirmDeleteQrCode, variant: "primary" },
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedQrCodes.length > 0 ? (
                         <div className={selectedQrCodes.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar seleccionados">
+                            <Tooltip content={tActions("delete")}>
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedQrCodes}
@@ -126,13 +133,13 @@ const QrCodesTable = () => {
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
                         >
-                            <span className="hidden sm:block">+ Adicionar QRCode</span>
+                            <span className="hidden sm:block">{tCommon("create")}</span>
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
                     <div className="relative">
                         <Input
-                            placeholder="Buscar..."
+                            placeholder={tFilters("searchPlaceholder")}
                             defaultValue={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -144,9 +151,9 @@ const QrCodesTable = () => {
                     </div>
                 </div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedQrCodes.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay QRCodes para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -161,19 +168,19 @@ const QrCodesTable = () => {
                                         />
                                     </TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Nombre
+                                        {tHeaders("name")}
                                     </TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Info
+                                        {tHeaders("info")}
                                     </TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Preview
+                                        {tHeaders("preview")}
                                     </TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                                        Negocio
+                                        {tHeaders("business")}
                                     </TableCell>
                                     <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
-                                        Acciones
+                                        {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -208,7 +215,7 @@ const QrCodesTable = () => {
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Editar">
+                                                <Tooltip content={tActions("edit")}>
                                                     <Button
                                                         onClick={() => handleEdit(qr.id)}
                                                         variant="outline"
@@ -217,7 +224,7 @@ const QrCodesTable = () => {
                                                         <MdEdit size={18} />
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Eliminar">
+                                                <Tooltip content={tActions("delete")}>
                                                     <Button
                                                         onClick={() => openWarningModal(qr.id)}
                                                         variant="danger"
@@ -241,9 +248,9 @@ const QrCodesTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"

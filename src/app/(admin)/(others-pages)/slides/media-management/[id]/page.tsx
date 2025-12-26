@@ -1,28 +1,12 @@
-"use client";
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import SlidesMediaManagementPageContent from "@/components/pages/SlidesMediaManagementPageContent";
 
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React from 'react';
-import {useParams, useRouter} from "next/navigation";
-import SlideMediaTables from "@/components/app/slides/tables/SlideMediaTables";
-import ComponentCard from "@/components/common/ComponentCard";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.slides");
+}
 
-const SlidesEditPage = () => {
-    const params = useParams();
-    const id = params.id; // El ID de la URL
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/slides`);
-    };
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Medias Management" onBack={handleBack}/>
-            <ComponentCard title="Medias">
-                <SlideMediaTables slide={id} />
-            </ComponentCard>
-        </div>
-    );
-};
-
-export default SlidesEditPage;
+export default function SlidesMediaManagementPage({ params }: { params: { id: string } }) {
+  return <SlidesMediaManagementPageContent id={params.id} />;
+}
 

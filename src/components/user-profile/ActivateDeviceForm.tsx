@@ -10,8 +10,11 @@ import Input from "@/components/form/input/InputField";
 import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Select from "@/components/form/Select";
 import {ChevronDownIcon} from "@/icons";
+import { useT } from "@/i18n/I18nProvider";
 
 const ActivateUserForm = () => {
+    const t = useT("forms.activateForm");
+    const tCommon = useT("common.buttons");
     const userData = getDataUserAuth();
     const isOwner = getIsOwner();
     const [users, setUsers] = useState<any[]>([]);
@@ -52,7 +55,7 @@ const ActivateUserForm = () => {
                     setValidationErrors(prev => ({...prev, [field]: messages}));
                 });
             } else {
-                setError(error.data?.message || error.message|| error.data?.error || "Error al Activar el dispositivo.");
+                setError(error.data?.message || error.message|| error.data?.error || t("errors.loadUsers"));
             }
         } finally {
             clearForm()
@@ -71,7 +74,7 @@ const ActivateUserForm = () => {
                 const filtered = allUsers.filter((u: { role: string; enabled: any; }) => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
             } catch (error: any) {
-                setError(error.data?.message || error.message|| error.data?.error || "Error al cargar usuarios para owner");
+                setError(error.data?.message || error.message|| error.data?.error || t("errors.loadUsers"));
             }
         };
         console.log(userData)
@@ -84,7 +87,7 @@ const ActivateUserForm = () => {
     return (
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Code *</Label>
+                <Label>{t("labels.code")}</Label>
                 <Input
                     name="code"
                     value={form.code}
@@ -96,7 +99,7 @@ const ActivateUserForm = () => {
             </div>
             {!isOwner && (
                 <div className="mb-5">
-                    <Label>Owner *</Label>
+                    <Label>{t("labels.owner")}</Label>
                     <div className="flex flex-shrink-0 w-full sm:w-auto">
                         <div className="relative">
                             <Select
@@ -119,7 +122,7 @@ const ActivateUserForm = () => {
             )}
             <div className="flex gap-2 justify-end">
                 <Button type="submit" variant="primary" loading={loading}>
-                    Activate
+                    {tCommon("activate")}
                 </Button>
             </div>
         </form>

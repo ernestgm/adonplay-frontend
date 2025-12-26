@@ -20,12 +20,15 @@ import {ChevronDownIcon} from "@/icons";
 import {fetchSlidesByUser} from "@/server/api/slides";
 import {fetchQrCodeByUser} from "@/server/api/qrcodes";
 import {fetchMarqueesByUser} from "@/server/api/marquees";
+import { useT } from "@/i18n/I18nProvider";
 
 interface UserFormProps {
     device?: any;
 }
 
 const DeviceForm: React.FC<UserFormProps> = ({device}) => {
+    const t = useT("forms.devices");
+    const tCommon = useT("common.buttons");
     const userData = getDataUserAuth()
     const isOwner = getIsOwner()
     const [users, setUsers] = useState<any[]>([]);
@@ -97,7 +100,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
-                setError(err.data?.message || err.message || "Error al guardar Device");
+                setError(err.data?.message || err.message || t("errors.saveItem"));
             }
 
         } finally {
@@ -111,7 +114,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 const slides = await fetchSlidesByUser(form.users_id);
                 setSlides(slides);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadSlides"));
             }
         };
         const fetchQrs = async () => {
@@ -119,7 +122,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 const qrs = await fetchQrCodeByUser(form.users_id);
                 setQrs(qrs);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadQrs"));
             }
         };
         const fetchMarquees = async () => {
@@ -127,7 +130,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 const marquees = await fetchMarqueesByUser(form.users_id);
                 setMarquees(marquees);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadMarquees"));
             }
         };
 
@@ -144,7 +147,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 const filtered = allUsers.filter((u: { role: string; enabled: any; }) => u.role !== "admin" && u.enabled);
                 setUsers(filtered);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadUsers"));
             }
         };
         fetchOwners();
@@ -153,11 +156,11 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5 flex flex-row items-center gap-1">
-                <Label>Device ID: </Label>
+                <Label>{t("labels.deviceId")} </Label>
                 <Label>{ device?.device_id }</Label>
             </div>
             <div className="mb-5">
-                <Label>Name *</Label>
+                <Label>{t("labels.name")}</Label>
                 <Input
                     name="name"
                     defaultValue={form.name}
@@ -168,7 +171,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="mb-5">
-                    <Label>User *</Label>
+                    <Label>{t("labels.user")}</Label>
                     <div className="flex flex-shrink-0 w-full sm:w-auto">
                         <div className="relative">
                             <Select
@@ -190,7 +193,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     </div>
                 </div>
                 <div className="mb-5">
-                    <Label>Slides</Label>
+                    <Label>{t("labels.slides")}</Label>
                     <div className="flex flex-shrink-0 w-full sm:w-auto">
                         <div className="relative">
                             <Select
@@ -198,7 +201,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 onChange={handleSlidesChange}
                                 options={slides.map(u => ({value: u.id, label: u.name}))}
                                 className="w-full sm:w-auto"
-                                placeholder="No Slide"
+                                placeholder={t("placeholders.noSlide")}
                                 disabledPlaceholder={false}
                                 error={validationErrors.users_id !== ""}
                                 hint={validationErrors.users_id}
@@ -213,7 +216,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div className="mb-5">
-                    <Label>Qr</Label>
+                    <Label>{t("labels.qr")}</Label>
                     <div className="flex flex-shrink-0 w-full sm:w-auto">
                         <div className="relative">
                             <Select
@@ -221,7 +224,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 onChange={handleQrChange}
                                 options={qrs.map(u => ({value: u.id, label: u.name}))}
                                 className="w-full sm:w-auto"
-                                placeholder="No Qr"
+                                placeholder={t("placeholders.noQr")}
                                 disabledPlaceholder={false}
                                 error={validationErrors.qr_id !== ""}
                                 hint={validationErrors.qr_id}
@@ -234,14 +237,14 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     </div>
                 </div>
                 <div className="mb-5">
-                    <Label>Marquees *</Label>
+                    <Label>{t("labels.marquee")}</Label>
                     <div className="flex flex-shrink-0 w-full sm:w-auto">
                         <div className="relative">
                             <Select
                                 defaultValue={form.marquee_id}
                                 onChange={handleMarqueeChange}
                                 options={marquees.map(u => ({value: u.id, label: u.name}))}
-                                placeholder="No Marquee"
+                                placeholder={t("placeholders.noMarquee")}
                                 disabledPlaceholder={false}
                                 className="w-full sm:w-auto"
                                 error={validationErrors.marquee_id !== ""}
@@ -255,13 +258,13 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                     </div>
                 </div>
             </div>
-            <ComponentCard title="Settings" className="mb-6">
+            <ComponentCard title={t("sections.settings")} className="mb-6">
                 <div className="gap-3 flex flex-row justify-between">
                     <div className="mb-5">
                         <CheckboxImage
                             checked={form.as_presentation}
                             onChange={handleAsPresentationChange}
-                            label="Presentation Mode"
+                            label={t("labels.presentationMode")}
                             image={<RiSlideshowLine size={30}/>}
                         />
                     </div>
@@ -271,7 +274,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                             name="portrait"
                             value="0"
                             checked={!form.portrait}
-                            label="Landscape Mode"
+                            label={t("labels.landscapeMode")}
                             onChange={handlePortraitChange}
                             image={<MdOutlineStayCurrentLandscape size={20}/>}
                         />
@@ -281,7 +284,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                             name="portrait"
                             value="1"
                             checked={form.portrait}
-                            label="Portrait Mode"
+                            label={t("labels.portraitMode")}
                             onChange={handlePortraitChange}
                             image={<MdOutlineStayCurrentPortrait size={20}/>}
                         />
@@ -291,9 +294,9 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
 
             {/* Agrega más campos aquí si es necesario */}
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/devices")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/devices")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {device ? "Guardar cambios" : "Crear"}
+                    {device ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
         </Form>

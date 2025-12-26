@@ -14,11 +14,14 @@ import {MdPhone} from "react-icons/md";
 import {getDataUserAuth} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import Checkbox from "@/components/form/input/Checkbox";
+import {useT} from "@/i18n/I18nProvider";
 
 interface UserFormProps {
     user?: any;
 }
 const UserForm: React.FC<UserFormProps> = ({user}) => {
+    const t = useT("forms.users");
+    const tCommon = useT("common.buttons");
     const userData = getDataUserAuth()
     const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
@@ -86,7 +89,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
             if (error.data.errors) {
                 setValidationErrors(error.data.errors)
             } else {
-                setError(error.data?.message || error.message || "Error al iniciar sesión");
+                setError(error.data?.message || error.message);
             }
         } finally {
             setLoading(false);
@@ -96,7 +99,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Name *</Label>
+                <Label>{t("name")} *</Label>
                 <Input
                     name="name"
                     defaultValue={form.name}
@@ -106,7 +109,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Email *</Label>
+                <Label>{t("email")} *</Label>
                 <div className="relative">
                     <Input
                         name="email"
@@ -123,7 +126,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 </div>
             </div>
             <div className="mb-5">
-                <Label>Phone</Label>
+                <Label>{t("phone")}</Label>
                 <div className="relative">
                     <Input
                         name="phone"
@@ -140,7 +143,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 </div>
             </div>
             <div className="mb-5">
-                <Label>Password *</Label>
+                <Label>{t("password")} *</Label>
                 <div className="relative">
                     <Input
                         type={showPassword ? "text" : "password"}
@@ -163,7 +166,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 </div>
             </div>
             <div className="mb-5">
-                <Label>Confirm Password *</Label>
+                <Label>{t("confirmPassword")} *</Label>
                 <div className="relative">
                 <Input
                     type={showPassword ? "text" : "password"}
@@ -186,7 +189,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 </div>
             </div>
             <div className="mb-5">
-                <Label>Role *</Label>
+                <Label>{t("role")} *</Label>
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
@@ -214,14 +217,14 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                 <Checkbox
                     checked={form.enabled}
                     onChange={() => { setForm({ ...form, enabled: !form.enabled }) }}
-                    label="Enabled"
+                    label={t("enabled")}
                 />
             </div>
             {/* Agrega más campos aquí si es necesario */}
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/users")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/users")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {user ? "Guardar cambios" : "Crear"}
+                    {user ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
         </Form>

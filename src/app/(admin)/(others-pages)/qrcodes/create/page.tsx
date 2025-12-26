@@ -1,20 +1,11 @@
-"use client"
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import QrCodesCreatePageContent from "@/components/pages/QrCodesCreatePageContent";
 
-import React, {Suspense} from "react";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import QrCodeForm from "@/components/app/qrcodes/form/QrCodeForm";
-import {useRouter} from "next/navigation";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.qrcodes");
+}
 
-export default function QrCreatePage () {
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/qrcodes`);
-    };
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Crear Qr Code" onBack={handleBack}/>
-            <QrCodeForm />
-        </div>
-    );
-};
+export default function QrCreatePage() {
+  return <QrCodesCreatePageContent/>;
+}

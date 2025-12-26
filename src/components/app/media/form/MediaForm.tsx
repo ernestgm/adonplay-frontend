@@ -32,7 +32,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         file_path: media?.file_path || "",
         owner_id: media?.owner_id || "",
     });
-    const t = useT("mediaForm");
+    const t = useT("forms.mediaForm");
     
     const [file, setFile] = useState<File[] | File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility

@@ -1,22 +1,12 @@
-"use client"
+import React from 'react';
+import { generatePageMetadata } from '@/i18n/metadata';
+import BusinessCreatePageContent from '@/components/pages/BusinessCreatePageContent';
 
-import BusinessForm from '@/components/app/business/form/BusinessForm';
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React, {Suspense} from 'react';
-import {useRouter} from "next/navigation";
-
+export async function generateMetadata() {
+  return generatePageMetadata('pages.business');
+}
 
 export default function BusinessCreatePage() {
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/business`);
-    };
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Crear Negocio" onBack={handleBack}/>
-            <BusinessForm />
-        </div>
-    );
+  return <BusinessCreatePageContent/>;
 }
 

@@ -16,9 +16,16 @@ import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
+import { useT } from "@/i18n/I18nProvider";
 
 const MarqueesTable = () => {
     const router = useRouter();
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
     const [marquees, setMarquees] = useState<any[]>([]);
@@ -90,17 +97,17 @@ const MarqueesTable = () => {
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
                 actions={[
-                    {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteMarquees, variant: "primary"},
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteMarquees, variant: "primary"},
                 ]}
-                title="Eliminar Marquee"
-                message={`¿Estás seguro de que deseas eliminar el marquee"? Esta acción no se puede deshacer.`}
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
             />
 
             <div className="flex items-center justify-between mb-4">
                 {selectedMarquee.length > 0 ? (
                     <div className={selectedMarquee.length === 0 ? "hidden" : "flex"}>
-                        <Tooltip content="Eliminar Marquees seleccionados">
+                        <Tooltip content={tActions("delete")}>
                             <Button
                                 size="sm"
                                 onClick={deleteSelectedMarquees}
@@ -120,13 +127,13 @@ const MarqueesTable = () => {
                         size="sm"
                         className="mb-2 sm:mb-0 sm:w-auto"
                     >
-                        <span className="hidden sm:block">+ Agregar Marquee</span>
+                        <span className="hidden sm:block">{tCommon("create")}</span>
                         <span className="block sm:hidden">+</span>
                     </Button>
                 )}
                 <div className="relative">
                     <Input
-                        placeholder="Buscar..."
+                        placeholder={tFilters("searchPlaceholder")}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         type="text"
@@ -139,9 +146,9 @@ const MarqueesTable = () => {
                 </div>
             </div>
             {loading ? (
-                <div className="py-8 text-center text-gray-500">Cargando...</div>
+                <div className="py-8 text-center text-gray-500">{tStates("loading")}</div>
             ) : paginatedMarquees.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">No hay Marquees creados.</div>
+                <div className="py-8 text-center text-gray-500">{tStates("empty")}</div>
             ) : (
                 <div className="overflow-x-auto">
                     <Table className="min-w-full divide-y divide-gray-200">
@@ -153,10 +160,10 @@ const MarqueesTable = () => {
                                         onChange={(checked) => setSelectedMarquee(checked ? marquees.map((b) => b.id) : [])}
                                     />
                                 </TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Negocio</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Format</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
+                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("business")}</TableCell>
+                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("preview")}</TableCell>
+                                <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                             </TableRow>
                         </TableHeader>
                         <TableBody className="bg-white divide-y divide-gray-200">
@@ -182,12 +189,12 @@ const MarqueesTable = () => {
                                     </TableCell>
                                     <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                         <div className="flex gap-2 justify-end">
-                                            <Tooltip content="Editar">
+                                            <Tooltip content={tActions("edit")}>
                                                 <Button size="sm" variant="outline" onClick={() => handleEdit(m.id)}>
                                                     <MdEdit size={18}/>
                                                 </Button>
                                             </Tooltip>
-                                            <Tooltip content="Eliminar">
+                                            <Tooltip content={tActions("delete")}>
                                                 <Button
                                                     onClick={() => openWarningModal(m.id)}
                                                     variant="danger"
@@ -212,9 +219,9 @@ const MarqueesTable = () => {
                             <Select
                                 options={config.itemsPerPageOptions.map((value) => ({
                                     value: value.toString(),
-                                    label: `${value} items per page`
+                                    label: tFilters("itemsPerPageOption", { n: value })
                                 }))}
-                                placeholder="Select items per page"
+                                placeholder={tFilters("itemsPerPage")}
                                 defaultValue={config.defaultItemsPerPage.toString()}
                                 onChange={(value) => setItemsPerPage(Number(value))}
                                 className="border border-gray-300 rounded w-full sm:w-auto"

@@ -23,9 +23,16 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import filterItems from "@/utils/filterItems";
+import { useT } from "@/i18n/I18nProvider";
 
 const SlidesTable = () => {
     const router = useRouter();
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const [slides, setSlides] = useState<any[]>([]);
     const [selectedSlides, setSelectedSlides] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,7 +49,7 @@ const SlidesTable = () => {
                 const data = await fetchSlides();
                 setSlides(data);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar negocios");
+                setError(err.data?.message || err.message || "Error loading slides");
             } finally {
                 setLoading(false);
             }
@@ -100,15 +107,18 @@ const SlidesTable = () => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este Slide?"
-                actions={[{label: "Cancelar", onClick: () => setIsWarningModalOpen(false)}, {label: "Eliminar", onClick: confirmDeleteSlides, variant: "primary"}]}
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
+                actions={[
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteSlides, variant: "primary"},
+                ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedSlides.length > 0 ? (
                         <div className={selectedSlides.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar slides seleccionados">
+                            <Tooltip content={tActions("delete")}>
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedSlides}
@@ -126,13 +136,13 @@ const SlidesTable = () => {
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
                         >
-                            <span className="hidden sm:block">+ Adicionar Slides</span>
+                            <span className="hidden sm:block">{tCommon("create")}</span>
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
                     <div className="relative">
                         <Input
-                            placeholder="Buscar..."
+                            placeholder={tFilters("searchPlaceholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -144,9 +154,9 @@ const SlidesTable = () => {
                     </div>
                 </div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedBusinesses.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay slides para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -158,10 +168,10 @@ const SlidesTable = () => {
                                             onChange={(checked) => setSelectedSlides(checked ? slides.map((b) => b.id) : [])}
                                         />
                                     </TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Business</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("business")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
@@ -178,18 +188,18 @@ const SlidesTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Medias Management">
+                                                <Tooltip content={tActions("mediaManagement")}>
                                                     <Button size="sm" variant="primary" onClick={() => handleEdit(slides.id)}>
                                                         <MdCollections size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Settings">
+                                                <Tooltip content={tActions("settings")}>
                                                     <Button size="sm" variant="outline" onClick={() => handleSettings(slides.id)}>
                                                         <MdSettings size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Eliminar">
-                                                    <Button size="sm" variant="primary" onClick={() => openWarningModal(slides.id)}>
+                                                <Tooltip content={tActions("delete")}>
+                                                    <Button size="sm" variant="danger" onClick={() => openWarningModal(slides.id)}>
                                                         <MdDelete size={18}/>
                                                     </Button>
                                                 </Tooltip>
@@ -208,9 +218,9 @@ const SlidesTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded py-1 w-full sm:w-auto"

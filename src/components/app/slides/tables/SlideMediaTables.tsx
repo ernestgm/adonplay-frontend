@@ -35,12 +35,19 @@ import filterItems from "@/utils/filterItems";
 import mediaUrl from "@/utils/files";
 import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
 import {QRCodeCanvas} from "qrcode.react";
+import { useT } from "@/i18n/I18nProvider";
 
 interface SlideMediaTableProps {
     slide?: any; // Optional className for styling
 }
 const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
     const router = useRouter();
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const [media, setMedia] = useState<any[]>([]); // This will now store the array of slide_media objects
     const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -60,7 +67,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                 const sortedData = [...data].sort((a, b) => parseInt(a.order) - parseInt(b.order));
                 setMedia(sortedData);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar media");
+                setError(err.data?.message || err.message || "Error");
             } finally {
                 setLoading(false);
             }
@@ -100,9 +107,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                 setMedia(sortedMedia);
             }
 
-            setMessage("Orden actualizado correctamente");
+            setMessage("OK");
         } catch (err: any) {
-            setError(err.data?.message || err.message || "Error al actualizar el orden");
+            setError(err.data?.message || err.message || "Error");
         }
     };
 
@@ -138,9 +145,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                 setMedia(sortedMedia);
             }
 
-            setMessage("Orden actualizado correctamente");
+            setMessage("OK");
         } catch (err: any) {
-            setError(err.data?.message || err.message || "Error al actualizar el orden");
+            setError(err.data?.message || err.message || "Error");
         }
     };
 
@@ -168,7 +175,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                 setSelectedMedia([]);
                 setMessage(response.message);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al eliminar media");
+                setError(err.data?.message || err.message || "Error");
             } finally {
                 setIsWarningModalOpen(false);
             }
@@ -196,18 +203,18 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este elemento?"
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
                 actions={[
-                    {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteMedia, variant: "primary"},
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteMedia, variant: "primary"},
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedMedia.length > 0 ? (
                         <div className={selectedMedia.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar seleccionados">
+                            <Tooltip content={tActions("delete")}>
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedMedia}
@@ -225,13 +232,13 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
                         >
-                            <span className="hidden sm:block">+ Adicionar media</span>
+                            <span className="hidden sm:block">{tCommon("create")}</span>
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
                     <div className="relative">
                         <Input
-                            placeholder="Buscar..."
+                            placeholder={tFilters("searchPlaceholder")}
                             defaultValue={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -244,9 +251,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                     </div>
                 </div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedMedia.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay media para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -262,22 +269,14 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Audio</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">File</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qr</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Actions</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("order")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("audio")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("qr")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("duration")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("user")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
@@ -294,7 +293,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             <div className="flex items-center gap-2">
                                                 <span>{item.order}</span>
                                                 <div className="flex flex-col">
-                                                    <Tooltip content="Mover arriba">
+                                                    <Tooltip content={tActions("moveUp")}>
                                                         <Button
                                                             onClick={() => handleMoveUp(item, index)}
                                                             variant="outline"
@@ -305,7 +304,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                             <MdArrowUpward size={16}/>
                                                         </Button>
                                                     </Tooltip>
-                                                    <Tooltip content="Mover abajo">
+                                                    <Tooltip content={tActions("moveDown")}>
                                                         <Button
                                                             onClick={() => handleMoveDown(item, index)}
                                                             variant="outline"
@@ -344,12 +343,12 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             ) : item.media.media_type === "video" ? (
                                                 <div className="flex items-center">
                                                     <MdVideoFile size={24} className="text-blue-500 mr-2"/>
-                                                    <span>Video</span>
+                                                    <span>{tHeaders("video")}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center">
                                                     <MdAudioFile size={24} className="text-blue-500 mr-2"/>
-                                                    <span>Audio</span>
+                                                    <span>{tHeaders("audio")}</span>
                                                 </div>
                                             )
                                             }
@@ -388,7 +387,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Ver Detalles">
+                                                <Tooltip content={tActions("view")}>
                                                     <Button
                                                         // Pass the slide media ID to handleViewDetails
                                                         onClick={() => handleViewDetails(item.id)}
@@ -398,7 +397,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                         <MdInfo size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Editar">
+                                                <Tooltip content={tActions("edit")}>
                                                     <Button
                                                         // Pass the slide_media ID to handleEdit
                                                         onClick={() => handleEdit(item.id)}
@@ -408,7 +407,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                         <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
-                                                <Tooltip content="Eliminar">
+                                                <Tooltip content={tActions("delete")}>
                                                     <Button
                                                         // Pass the slide_media ID to openWarningModal
                                                         onClick={() => openWarningModal(item.id)}
@@ -433,9 +432,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"

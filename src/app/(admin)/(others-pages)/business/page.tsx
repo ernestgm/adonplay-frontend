@@ -1,23 +1,11 @@
-import BusinessTable from "@/components/app/business/tables/BusinessTable";
-import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import ComponentCard from "@/components/common/ComponentCard";
-import React, {Suspense} from "react";
-import type {Metadata} from "next";
+import React from "react";
+import { generatePageMetadata } from "@/i18n/metadata";
+import BusinessPageContent from "@/components/pages/BusinessPageContent";
 
-export const metadata: Metadata = {
-    title: `Business | ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
-    description: `This is Business Page in ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
-};
+export async function generateMetadata() {
+  return generatePageMetadata("pages.business");
+}
 export default function BusinessPage() {
-  return (
-      <div>
-          <PageBreadcrumb pageTitle="Business" />
-          <div className="space-y-6">
-              <ComponentCard title="Businesses">
-                  <BusinessTable />
-              </ComponentCard>
-          </div>
-      </div>
-  );
+  return <BusinessPageContent/>;
 }
 

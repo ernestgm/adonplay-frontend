@@ -11,11 +11,14 @@ import {fetchBusinesses} from "@/server/api/business";
 import Form from "@/components/form/Form";
 import {createMarquees, updateMarquees} from "@/server/api/marquees";
 import TextArea from "@/components/form/input/TextArea";
+import { useT } from "@/i18n/I18nProvider";
 
 interface MarqueeFormProps {
     marquee?: any;
 }
 const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
+    const t = useT("forms.marquees");
+    const tCommon = useT("common.buttons");
     const [form, setForm] = useState({
         name: marquee?.name || "",
         message: marquee?.message || "",
@@ -41,7 +44,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 const allBusiness = await fetchBusinesses();
                 setBusiness(allBusiness);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadBusinesses"));
             }
         };
         getBusiness();
@@ -83,7 +86,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
-                setError(err.data?.message || err.message || "Error al guardar negocio");
+                setError(err.data?.message || err.message || t("errors.saveItem"));
             }
 
         } finally {
@@ -94,7 +97,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-6">
-                <Label>Nombre *</Label>
+                <Label>{t("labels.name")}</Label>
                 <Input
                     name="name"
                     value={form.name}
@@ -104,7 +107,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 />
             </div>
             <div className="mb-6">
-                <Label>Negocio *</Label>
+                <Label>{t("labels.business")}</Label>
                 <Select
                     defaultValue={form.business_id}
                     onChange={handleSelectChange}
@@ -115,7 +118,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 />
             </div>
             <div className="mb-8">
-                <Label>Message *</Label>
+                <Label>{t("labels.message")}</Label>
                 <TextArea
                     value={form.message}
                     onChange={handleTextAreaChange}
@@ -126,7 +129,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
             </div>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 w-full">
                 <div className="flex-1 min-w-0">
-                    <Label>Color de fondo *</Label>
+                    <Label>{t("labels.backgroundColor")}</Label>
                     <Input
                         type="color"
                         name="background_color"
@@ -138,7 +141,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     />
                 </div>
                 <div className="flex-1 min-w-0">
-                    <Label>Color de texto *</Label>
+                    <Label>{t("labels.textColor")}</Label>
                     <Input
                         type="color"
                         name="text_color"
@@ -151,9 +154,11 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 </div>
             </div>
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/marquees")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/marquees")}>
+                    {tCommon("cancel")}
+                </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {marquee ? "Guardar cambios" : "Crear"}
+                    {marquee ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
         </Form>

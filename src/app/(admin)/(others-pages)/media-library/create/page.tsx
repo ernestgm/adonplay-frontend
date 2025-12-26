@@ -1,23 +1,12 @@
-"use client";
+import React from 'react';
+import { generatePageMetadata } from "@/i18n/metadata";
+import MediaCreatePageContent from "@/components/pages/MediaCreatePageContent";
 
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React, {Suspense} from 'react';
-import {useRouter} from "next/navigation";
-import MediaForm from "@/components/app/media/form/MediaForm";
+export async function generateMetadata() {
+  return generatePageMetadata("pages.mediaLibrary");
+}
 
-const MediaCreatePage = () => {
-    const router = useRouter();
-    const handleBack = () => {
-        router.push(`/media-library`);
-    };
-
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Crear Media" onBack={handleBack}/>
-            <MediaForm />
-        </div>
-    );
-};
-
-export default MediaCreatePage;
+export default function MediaCreatePage() {
+  return <MediaCreatePageContent/>;
+}
 

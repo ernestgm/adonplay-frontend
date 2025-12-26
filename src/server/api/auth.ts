@@ -22,6 +22,9 @@ export const getDataUserAuth = () => {
   return userAuth ? JSON.parse(userAuth) : null;
 };
 
+export const getCurrentLocale = () => {
+    return typeof window !== "undefined" ? Cookies.get("locale") : "en";
+};
 export const getIsOwner = () => {
   const userAuth = getDataUserAuth();
   return (userAuth.role === "owner");

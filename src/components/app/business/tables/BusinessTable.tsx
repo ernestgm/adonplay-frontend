@@ -24,8 +24,15 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import filterItems from "@/utils/filterItems";
+import { useT } from "@/i18n/I18nProvider";
 
 const BusinessTable = () => {
+    const tCommon = useT("common.buttons");
+    const tTable = useT("common.table");
+    const tHeaders = useT("common.table.headers");
+    const tActions = useT("common.table.actions");
+    const tStates = useT("common.table.states");
+    const tFilters = useT("common.table.filters");
     const isOwner = getIsOwner()
     const router = useRouter();
     const [businesses, setBusinesses] = useState<any[]>([]);
@@ -98,18 +105,18 @@ const BusinessTable = () => {
             <ActionModal
                 isOpen={isWarningModalOpen}
                 onClose={() => setIsWarningModalOpen(false)}
-                title="Warning"
-                message="¿Estás seguro de que deseas eliminar este negocio?"
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
                 actions={[
-                    {label: "Cancelar", onClick: () => setIsWarningModalOpen(false)},
-                    {label: "Eliminar", onClick: confirmDeleteBusiness, variant: "primary"},
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteBusiness, variant: "primary"},
                 ]}
             />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedBusinesses.length > 0 ? (
                         <div className={selectedBusinesses.length === 0 ? "hidden" : "flex"}>
-                            <Tooltip content="Eliminar negocios seleccionados">
+                            <Tooltip content={tActions("delete")}>
                                 <Button
                                     size="sm"
                                     onClick={deleteSelectedBusinesses}
@@ -130,14 +137,14 @@ const BusinessTable = () => {
                                 size="sm"
                                 className="mb-2 sm:mb-0 sm:w-auto"
                             >
-                                <span className="hidden sm:block">+ Adicionar negocio</span>
+                                <span className="hidden sm:block">{tCommon("create")}</span>
                                 <span className="block sm:hidden">+</span>
                             </Button>
                         )
                     )}
                     <div className="relative">
                         <Input
-                            placeholder="Buscar..."
+                            placeholder={tFilters("searchPlaceholder")}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             type="text"
@@ -150,9 +157,9 @@ const BusinessTable = () => {
                     </div>
                 </div>
                 {loading ? (
-                    <div>Loading...</div>
+                    <div>{tStates("loading")}</div>
                 ) : paginatedBusinesses.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">No hay negocios para mostrar.</div>
+                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
                 ) : (
                     <div className="overflow-x-auto">
                         <Table className="min-w-full divide-y divide-gray-200">
@@ -164,10 +171,10 @@ const BusinessTable = () => {
                                             onChange={(checked) => setSelectedBusinesses(checked ? businesses.map((b) => b.id) : [])}
                                         />
                                     </TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Descripción</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Owner</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">Acciones</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("owner")}</TableCell>
+                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
                             <TableBody className="bg-white divide-y divide-gray-200">
@@ -184,13 +191,13 @@ const BusinessTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{business.owner?.name || ""}</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content="Editar">
+                                                <Tooltip content={tActions("edit")}>
                                                     <Button size="sm" variant="outline" onClick={() => handleEdit(business.id)}>
                                                         <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                                 {!isOwner && (
-                                                    <Tooltip content="Eliminar">
+                                                    <Tooltip content={tActions("delete")}>
                                                         <Button
                                                             onClick={() => openWarningModal(business.id)}
                                                             variant="danger"
@@ -215,9 +222,9 @@ const BusinessTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: `${value} items per page`
+                                        label: tFilters("itemsPerPageOption", { n: value })
                                     }))}
-                                    placeholder="Select items per page"
+                                    placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
                                     onChange={(value) => setItemsPerPage(Number(value))}
                                     className="border border-gray-300 rounded w-full sm:w-auto"

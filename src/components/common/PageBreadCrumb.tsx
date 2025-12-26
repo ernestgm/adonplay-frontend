@@ -1,7 +1,9 @@
+"use client";
 import Link from "next/link";
 import React from "react";
 import {MdArrowBack} from "react-icons/md";
 import Button from "@/components/ui/button/Button";
+import { useT } from "@/i18n/I18nProvider";
 
 interface BreadcrumbProps {
   pageTitle: string;
@@ -9,6 +11,7 @@ interface BreadcrumbProps {
 }
 
 const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle, onBack }) => {
+  const tNav = useT("common.nav");
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-2">
@@ -36,7 +39,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle, onBack }) => {
               className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
               href="/"
             >
-              Home
+              {tNav("home")}
               <svg
                 className="stroke-current"
                 width="17"

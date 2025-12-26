@@ -1,24 +1,12 @@
-import PageBreadcrumb from '@/components/common/PageBreadCrumb';
-import React, {Suspense} from 'react';
-import MediaTable from "@/components/app/media/tables/MediaTables";
-import type {Metadata} from "next";
-import ComponentCard from "@/components/common/ComponentCard";
+import React from 'react';
+import { generatePageMetadata } from "@/i18n/metadata";
+import MediaLibraryPageContent from "@/components/pages/MediaLibraryPageContent";
 
-export const metadata: Metadata = {
-    title: `Media Library | ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
-    description: `This is Media Library Page in ${process.env.NEXT_PUBLIC_NAME_PAGE}`,
-};
-const SlidesEditPage = () => {
+export async function generateMetadata() {
+  return generatePageMetadata("pages.mediaLibrary");
+}
 
-    return (
-        <div>
-            <PageBreadcrumb pageTitle="Media Library"/>
-            <ComponentCard title="Medias">
-                <MediaTable />
-            </ComponentCard>
-        </div>
-    );
-};
-
-export default SlidesEditPage;
+export default function MediaLibraryPage() {
+  return <MediaLibraryPageContent/>;
+}
 

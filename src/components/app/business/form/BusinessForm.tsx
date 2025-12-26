@@ -12,12 +12,15 @@ import { fetchUsers } from "@/server/api/users";
 import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
+import { useT } from "@/i18n/I18nProvider";
 
 interface BusinessFormProps {
     business?: any;
 }
 
 const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
+    const t = useT("forms.business");
+    const tCommon = useT("common.buttons");
     const userData = getDataUserAuth();
     const isOwner = getIsOwner()
     const [form, setForm] = useState({
@@ -42,7 +45,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 const filtered = allUsers.filter((u: { role: string; }) => u.role !== "admin");
                 setUsers(filtered);
             } catch (err: any) {
-                setError(err.data?.message || err.message || "Error al cargar usuarios para owner");
+                setError(err.data?.message || err.message || t("errors.loadOwners"));
             }
         };
         fetchOwners();
@@ -71,7 +74,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
             if (err.data?.errors) {
                 setValidationErrors(err.data.errors)
             } else {
-                setError(err.data?.message || err.message || "Error al guardar negocio");
+                setError(err.data?.message || err.message || t("errors.saveItem"));
             }
 
         } finally {
@@ -82,7 +85,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
             <div className="mb-5">
-                <Label>Nombre *</Label>
+                <Label>{t("labels.name")}</Label>
                 <Input
                     name="name"
                     value={form.name}
@@ -92,7 +95,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Descripción</Label>
+                <Label>{t("labels.description")}</Label>
                 <Input
                     name="description"
                     value={form.description}
@@ -102,7 +105,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 />
             </div>
             <div className="mb-5">
-                <Label>Owner *</Label>
+                <Label>{t("labels.owner")}</Label>
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
@@ -124,9 +127,9 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 </div>
             </div>
             <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => router.push("/business")}>Cancelar</Button>
+                <Button type="button" variant="outline" onClick={() => router.push("/business")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {business ? "Guardar cambios" : "Crear"}
+                    {business ? tCommon("saveChanges") : tCommon("create")}
                 </Button>
             </div>
         </Form>

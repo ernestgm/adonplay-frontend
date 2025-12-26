@@ -5,6 +5,7 @@ import { MdAudioFile } from "react-icons/md";
 import { QRCodeCanvas } from "qrcode.react";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
+import {useT} from "@/i18n/I18nProvider";
 
 // Base URL for media files
 
@@ -13,6 +14,7 @@ interface MediaDetailsProps {
 }
 
 const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
+    const tHeaders = useT("common.table.headers");
     const [media] = useState(slideMedia?.media || null);
     if (!slideMedia) return null;
 
@@ -69,7 +71,7 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
         <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
             {/* Media Preview */}
             <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">Vista Previa</h2>
+                <h2 className="text-xl font-semibold mb-4">{tHeaders("preview")}</h2>
                 <div className="border rounded-lg p-4 bg-gray-50">
                     {media?.media_type === "image" ? (
                         <div className="flex flex-col items-center">
@@ -110,7 +112,7 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
                                 <div className="w-full max-w-md">
                                     <div className="flex items-center mb-2">
                                         <MdAudioFile size={24} className="text-green-500 mr-2" />
-                                        <span className="font-medium">Audio</span>
+                                        <span className="font-medium">{tHeaders("audio")}</span>
                                     </div>
                                     <audio 
                                         src={mediaUrl(slideMedia?.audio_media?.file_path)}
@@ -159,27 +161,27 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
 
             {/* Media Details */}
             <div>
-                <h2 className="text-xl font-semibold mb-4">Información</h2>
+                <h2 className="text-xl font-semibold mb-4">{tHeaders("information")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Slide Name</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("slideName")}</h3>
                         <p>{slideMedia.slide.name}</p>
                     </div>
 
                     {media?.media_type === "image" && !slideMedia?.audio_media && (
                         <div className="border rounded-lg p-4 bg-gray-50">
-                            <h3 className="font-medium text-gray-700 mb-2">Duration</h3>
+                            <h3 className="font-medium text-gray-700 mb-2">{tHeaders("duration")}</h3>
                             <p>{slideMedia?.duration} s</p>
                         </div>
                     )}
 
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Created At</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("createdAt")}</h3>
                         <p>{formatDate(slideMedia?.created_at)}</p>
                     </div>
 
                     <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">Updated At</h3>
+                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("updatedAt")}</h3>
                         <p>{formatDate(slideMedia?.updated_at)}</p>
                     </div>
                 </div>
