@@ -28,7 +28,7 @@ const DevicesEditPageContent: React.FC<{ id: string }> = ({ id }) => {
         const data = await getDevice(id);
         setDevice(data);
       } catch (err: any) {
-        setError(err.data?.message || err.message || "Error al obtener usuario");
+        setError(err.data?.message || err.message || "Error Fetch Data. Check your network or server conection");
       } finally {
         setLoading(false);
       }
