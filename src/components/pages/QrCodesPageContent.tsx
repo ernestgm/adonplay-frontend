@@ -1,3 +1,5 @@
+"use client"
+
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import ComponentCard from "@/components/common/ComponentCard";
 import React from "react";
