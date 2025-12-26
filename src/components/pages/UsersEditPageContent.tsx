@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 import { useError } from "@/context/ErrorContext";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { getUser } from "@/server/api/users";
 import UserForm from "@/components/app/user/form/UserForm";
 import { useT } from "@/i18n/I18nProvider";
 
-const UsersEditPageContent: React.FC<{ id: string }> = ({ id }) => {
+const UsersEditPageContent = () => {
+    const params = useParams();
+    const id = params.id; // El ID de la URL
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const setError = useError().setError;

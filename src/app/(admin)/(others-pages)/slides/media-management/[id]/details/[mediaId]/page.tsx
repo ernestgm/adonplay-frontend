@@ -6,6 +6,6 @@ export async function generateMetadata() {
   return generatePageMetadata("pages.slides");
 }
 
-export default function SlideMediaDetailsPage({ params }: { params: { id: string; mediaId: string } }) {
-  return <SlidesMediaDetailsPageContent slideId={params.id} mediaId={params.mediaId} />;
+export default function SlideMediaDetailsPage() {
+  return <SlidesMediaDetailsPageContent />;
 }

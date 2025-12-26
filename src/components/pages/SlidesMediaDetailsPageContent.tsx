@@ -2,14 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import PageBreadcrumb from "@/components/common/PageBreadCrumb";
-import { useRouter } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { useT } from "@/i18n/I18nProvider";
 import { useError } from "@/context/ErrorContext";
 import { getSlideMedias } from "@/server/api/slidesMedia";
 import SlideMediaDetails from "@/components/app/slides/details/SlideMediaDetails";
 
-const SlidesMediaDetailsPageContent: React.FC<{ slideId: string; mediaId: string }> = ({ slideId, mediaId }) => {
-  const router = useRouter();
+const SlidesMediaDetailsPageContent = () => {
+    const params = useParams();
+    const slideId = params.id; // Get the slide ID from the URL
+    const mediaId = params.mediaId;
+    const router = useRouter();
   const tActions = useT("common.table.actions");
   const tStates = useT("common.table.states");
   const setError = useError().setError;
