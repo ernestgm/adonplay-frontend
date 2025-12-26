@@ -1,5 +1,8 @@
 const es = {
     common: {
+        select: {
+            placeholder: "Selecciona una opción",
+        },
         buttons: {
             cancel: "Cancelar",
             saveChanges: "Guardar Cambios",
@@ -14,7 +17,7 @@ const es = {
             headers: {
                 name: "Nombre",
                 description: "Descripción",
-                owner: "Owner",
+                owner: "Propietario",
                 actions: "Acciones",
                 id: "ID",
                 email: "Correo",
@@ -228,6 +231,17 @@ const es = {
                 ownerRequired: "Propietario *",
                 ownerReadonly: "Propietario",
                 videoPreview: "Vista previa del video",
+                imageSingle: "Imagen JPG",
+                imageMultiple: "Imagenes JPG",
+                video: "MP4 Video",
+                audio: "MP3 Audio",
+                audioPreviewSingle: "Vista previa audio",
+                audioPreviewMultiple: "Vista previa audios",
+                imageSectionSingle: "Imagen",
+                imageSectionMultiple: "Imagenes",
+                audioNumber: "Audio {n}",
+                imageAlt: "Imagen",
+                imageAltNumber: "Imagen {n}",
             },
             owner: {
                 you: "Tú",
@@ -253,12 +267,17 @@ const es = {
                 itemUpdated: "Item actualizado correctamente",
                 itemCreated: "Item creado correctamente",
             },
+            hints: {
+                keepImage: "Deja este campo vacio si no quieres cambiar la imagen.",
+                keepVideo: "Deja este campo vacio si no quieres cambiar la video.",
+                keepAudio: "Deja este campo vacio si no quieres cambiar la audio.",
+            },
         },
         business: {
             labels: {
                 name: "Nombre *",
                 description: "Descripción",
-                owner: "Owner *",
+                owner: "Propietario *",
             },
             errors: {
                 loadOwners: "Error al cargar propietarios",

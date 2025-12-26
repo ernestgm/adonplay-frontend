@@ -22,6 +22,7 @@ interface UserFormProps {
 const UserForm: React.FC<UserFormProps> = ({user}) => {
     const t = useT("forms.users");
     const tCommon = useT("common.buttons");
+    const tSelect = useT("common.select");
     const userData = getDataUserAuth()
     const [showPassword, setShowPassword] = useState(false);
     const setError = useError().setError;
@@ -197,7 +198,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                                 value: item.value.toString(),
                                 label: item.label
                             }))}
-                            placeholder="Select role"
+                            placeholder={tSelect("placeholder")}
                             defaultValue={form.role || ''}
                             onChange={handleRoleSelectChange}
                             className="w-full sm:w-auto"

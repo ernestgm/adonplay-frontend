@@ -22,6 +22,7 @@ interface SlidesFormProps {
 const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
     const t = useT("forms.slides");
     const tCommon = useT("common.buttons");
+    const tSelect = useT("common.select");
     const [form, setForm] = useState({
         name: slides?.name || "",
         description: slides?.description || "",
@@ -120,6 +121,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
                         <Select
+                            placeholder={tSelect("placeholder")}
                             defaultValue={form.business_id}
                             onChange={handleBusinessChange}
                             options={business.map(u => ({value: u.id, label: u.name}))}
@@ -142,6 +144,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                 <Label>{t("labels.descriptionPosition")}</Label>
                                 <div className="relative mb-5">
                                     <Select
+                                        placeholder={tSelect("placeholder")}
                                         defaultValue={form.description_position}
                                         onChange={handlePositionChange}
                                         options={config.positions.map(u => ({value: u.value, label: u.label}))}
@@ -157,6 +160,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                 <Label>{t("labels.textSize")}</Label>
                                 <div className="relative">
                                     <Select
+                                        placeholder={tSelect("placeholder")}
                                         defaultValue={form.description_size}
                                         onChange={handleTextSizeChange}
                                         options={config.text_sizes.map(u => ({value: u.value, label: u.label}))}

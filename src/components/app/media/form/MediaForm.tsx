@@ -33,6 +33,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         owner_id: media?.owner_id || "",
     });
     const t = useT("forms.mediaForm");
+    const tCommon = useT("common.buttons");
+    const tSelect = useT("common.select");
     
     const [file, setFile] = useState<File[] | File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility
@@ -487,6 +489,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     <Label>{t("labels.ownerRequired")}</Label>
                     <div className="relative">
                         <Select
+                            placeholder={tSelect("placeholder")}
                             defaultValue={form.owner_id}
                             onChange={(value) => setForm({ ...form, owner_id: value })}
                             options={users.map(user => ({ value: user.id, label: user.name || user.email }))}
@@ -662,10 +665,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
 
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push(`/media-library`)}>
-                    {t("common.buttons.cancel")}
+                    {tCommon("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { media ? t("common.buttons.saveChanges") : t("common.buttons.create") }
+                    { media ? tCommon("saveChanges") : tCommon("create") }
                 </Button>
             </div>
         </Form>

@@ -216,7 +216,7 @@ const MediaTable = () => {
                                             ) : item.media_type === "video" ? (
                                                 <div className="flex items-center">
                                                     <MdVideoFile size={24} className="text-blue-500 mr-2" />
-                                                    <span>{tHeaders("duration")}</span>
+                                                    <span>{tHeaders("video")}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center">

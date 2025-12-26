@@ -29,6 +29,7 @@ interface UserFormProps {
 const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     const t = useT("forms.devices");
     const tCommon = useT("common.buttons");
+    const tSelect = useT("common.select");
     const userData = getDataUserAuth()
     const isOwner = getIsOwner()
     const [users, setUsers] = useState<any[]>([]);
@@ -177,6 +178,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                             <Select
                                 defaultValue={isOwner ? userData.id : form.users_id}
                                 onChange={handleUserChange}
+                                placeholder={tSelect("placeholder")}
                                 options={isOwner
                                     ? [{value: userData.id, label: userData.name}]
                                     : users.map(u => ({value: u.id, label: u.name}))}

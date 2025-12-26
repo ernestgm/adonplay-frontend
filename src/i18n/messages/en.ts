@@ -1,5 +1,8 @@
 const en = {
     common: {
+        select: {
+            placeholder: "Select an option",
+        },
         buttons: {
             cancel: "Cancel",
             saveChanges: "Save Changes",

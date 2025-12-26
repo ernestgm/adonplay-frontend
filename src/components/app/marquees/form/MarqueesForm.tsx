@@ -19,6 +19,7 @@ interface MarqueeFormProps {
 const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     const t = useT("forms.marquees");
     const tCommon = useT("common.buttons");
+    const tSelect = useT("common.select");
     const [form, setForm] = useState({
         name: marquee?.name || "",
         message: marquee?.message || "",
@@ -110,6 +111,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                 <Label>{t("labels.business")}</Label>
                 <Select
                     defaultValue={form.business_id}
+                    placeholder={tSelect("placeholder")}
                     onChange={handleSelectChange}
                     options={business.map(b => ({ value: b.id, label: b.name }))}
                     className="w-full"
