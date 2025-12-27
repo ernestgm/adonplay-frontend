@@ -12,6 +12,12 @@ const es = {
         },
         nav: {
             home: "Inicio",
+            business: "Administrar Negocios",
+            media: "Libreria de Medios",
+            slides: "Administrar Slides",
+            marquees: "Administrar Marquees",
+            qrs: "Administrar QRs",
+            devices: "Administrar Dispositivos",
         },
         table: {
             headers: {
@@ -83,6 +89,10 @@ const es = {
         home: {
             pageTitle: "Inicio",
             cardTitle: "Inicio",
+            adminPanel: {
+                title: "Panel de Administración",
+                subtitle: "Selecciona una herramienta para comenzar a gestionar tu plataforma",
+            },
             meta: {
                 title: "Inicio | {app}",
                 description: "Inicio en {app}",

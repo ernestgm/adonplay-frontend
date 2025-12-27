@@ -12,6 +12,12 @@ const en = {
         },
         nav: {
             home: "Home",
+            business: "Business Management",
+            media: "Media Library",
+            slides: "Slide Management",
+            marquees: "Marquees Management",
+            qrs: "Qrs Code Management",
+            devices: "Device Management",
         },
         table: {
             headers: {
@@ -87,6 +93,10 @@ const en = {
         home: {
             pageTitle: "Home",
             cardTitle: "Home",
+            adminPanel: {
+                title: "Administration Panel",
+                subtitle: "Select a tool to begin managing your platform.",
+            },
             meta: {
                 title: "Home | {app}",
                 description: "This is HomePage in {app}",
