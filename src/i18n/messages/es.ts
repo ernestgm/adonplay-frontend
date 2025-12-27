@@ -204,6 +204,7 @@ const es = {
             labels: {
                 email: "Correo electrónico",
                 password: "Contraseña",
+                signIn: "Entrar",
             },
             placeholders: {
                 email: "Correo electrónico",
@@ -259,9 +260,9 @@ const es = {
                 saveItem: "Error al guardar el item",
             },
             status: {
-                convertingVideo: "Convirtiendo video...",
+                convertingVideo: "Convirtiendo video... No refresque el navegador",
                 conversionFinished: "Conversión finalizada",
-                uploadingVideo: "Subiendo video...",
+                uploadingVideo: "Subiendo video... No refresque el navegador",
             },
             messages: {
                 itemUpdated: "Item actualizado correctamente",

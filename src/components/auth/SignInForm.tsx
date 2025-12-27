@@ -20,7 +20,7 @@ export default function SignInForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const t = useT("forms.signIn");
-    const tPage = useT("page.signIn");
+    const tPage = useT("pages.signIn");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

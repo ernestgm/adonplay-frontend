@@ -259,9 +259,9 @@ const en = {
                 saveItem: "Error saving the item",
             },
             status: {
-                convertingVideo: "Converting video...",
+                convertingVideo: "Converting video... Don`t refresh the browser",
                 conversionFinished: "Conversion finished",
-                uploadingVideo: "Uploading video...",
+                uploadingVideo: "Uploading video... Don`t refresh the browser",
             },
             messages: {
                 itemUpdated: "Item updated successfully",

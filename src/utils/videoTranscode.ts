@@ -27,58 +27,64 @@ export interface TranscodeOptions {
 }
 
 export async function transcodeToH264Compatible(
-  file: File,
-  opts: TranscodeOptions = {},
-  onProgress?: (percent: number) => void,
-  onLog?: (msg: string) => void
+    file: File,
+    opts: TranscodeOptions = {},
+    onProgress?: (percent: number) => void,
+    onLog?: (msg: string) => void
 ): Promise<File> {
-  const profile = opts.videoProfile || "baseline";
-  const crf = typeof opts.crf === "number" ? String(opts.crf) : "23";
-  const preset = opts.preset || "veryfast";
-  const audioBitrate = opts.audioBitrate || "128k";
+    const profile = opts.videoProfile || "high"; // "high" es soportado por casi cualquier TV Box desde 2015
+    const crf = typeof opts.crf === "number" ? String(opts.crf) : "23";
+    const preset = opts.preset || "veryfast";
+    const audioBitrate = opts.audioBitrate || "128k";
 
-  const ffmpeg = await getFFmpeg(onLog, (ratio) => {
-    if (onProgress) onProgress(Math.round(ratio * 100));
-  });
+    const ffmpeg = await getFFmpeg(onLog, (ratio) => {
+        if (onProgress) onProgress(Math.round(ratio * 100));
+    });
 
-  const inputName = "input.mp4"; // we only accept mp4 input in UI
-  const outputName = "output.mp4";
+    const inputName = "input.mp4";
+    const outputName = "output.mp4";
 
-  await ffmpeg.writeFile(inputName, await fetchFile(file));
+    try {
+        await ffmpeg.writeFile(inputName, await fetchFile(file));
 
-  // Ensure even dimensions for H.264, set baseline/main profile, yuv420p for compatibility, and faststart
-  await ffmpeg.exec([
-    "-i",
-    inputName,
-    "-c:v",
-    "libx264",
-    "-profile:v",
-    profile,
-    "-level",
-    profile === "baseline" ? "3.0" : "4.0",
-    "-pix_fmt",
-    "yuv420p",
-    "-preset",
-    preset,
-    "-crf",
-    crf,
-    "-vf",
-    "scale=trunc(iw/2)*2:trunc(ih/2)*2",
-    "-c:a",
-    "aac",
-    "-b:a",
-    audioBitrate,
-    "-movflags",
-    "+faststart",
-    outputName,
-  ]);
+        await ffmpeg.exec([
+            "-i", inputName,
+            "-c:v", "libx264",
+            "-profile:v", profile,
+            // Nivel 4.1 es el límite para la mayoría de hardware Android TV antiguo (1080p)
+            "-level", "4.1",
+            "-pix_fmt", "yuv420p",
+            "-preset", preset,
+            "-crf", crf,
+            // Filtros: Asegura dimensiones pares y fuerza 30fps para estabilidad en TV
+            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,fps=30",
+            // GOP: Crea un punto de acceso cada 60 frames (2 segundos a 30fps)
+            // Esto evita que la TV Box se "trabe" al intentar navegar el video.
+            "-g", "60",
+            "-keyint_min", "60",
+            "-sc_threshold", "0",
+            // Audio: Forzamos AAC estéreo (2 canales) para evitar problemas con codecs multicanal
+            "-c:a", "aac",
+            "-b:a", audioBitrate,
+            "-ac", "2",
+            "-movflags", "+faststart",
+            outputName,
+        ]);
 
-  const data = await ffmpeg.readFile(outputName);
-  const blob = new Blob([new Uint8Array(data as any)], { type: "video/mp4" });
+        const data = await ffmpeg.readFile(outputName);
 
-  // Create a new File object preserving the base name
-  const baseName = file.name.replace(/\.[^.]+$/, "");
-    return new File([blob], `${baseName}-h264.mp4`, {type: "video/mp4"});
+        // Limpieza de memoria
+        await ffmpeg.deleteFile(inputName);
+        await ffmpeg.deleteFile(outputName);
+
+        const blob = new Blob([new Uint8Array(data as any)], { type: "video/mp4" });
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        return new File([blob], `${baseName}-android-tv.mp4`, { type: "video/mp4" });
+
+    } catch (error: any) {
+        onLog?.(`Error de compatibilidad: ${error.message}`);
+        throw error;
+    }
 }
 
 export async function getVideoDuration(file: File): Promise<number> {
