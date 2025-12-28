@@ -57,7 +57,7 @@ export async function transcodeToH264Compatible(
             "-crf", crf,
             "-bf", "0",           // DESACTIVA B-frames (evita el error de reinitialization)
             "-refs", "1",         // Limita cuadros de referencia
-            "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,fps=30",
+            "-vf", "scale=-2:720,fps=30",
             "-g", "60",
             "-keyint_min", "60",
             "-sc_threshold", "0",
