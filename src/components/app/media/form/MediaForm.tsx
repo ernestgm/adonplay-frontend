@@ -363,7 +363,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             return;
                         }
                         setConvertStatus(t("status.convertingVideo"));
-                        fileToUpload = await transcodeToH264Compatible(newFile, { videoProfile: "baseline" }, (p) => setConvertProgress(p));
+                        fileToUpload = await transcodeToH264Compatible(newFile, { videoProfile: "main" }, (p) => setConvertProgress(p));
                         setConvertStatus(t("status.conversionFinished"));
                     }
                     const existingStoragePath = getStoragePathFromDownloadURL(media?.file_path);
@@ -439,7 +439,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             return;
                         }
                         setConvertStatus(t("status.convertingVideo"));
-                        fileToUpload = await transcodeToH264Compatible(toUpload, { videoProfile: "baseline" }, (p) => setConvertProgress(p));
+                        fileToUpload = await transcodeToH264Compatible(toUpload, { videoProfile: "main" }, (p) => setConvertProgress(p));
                         setConvertStatus(t("status.conversionFinished"));
                     }
                     const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${mediaType}`, (p) => setUploadProgress(p));

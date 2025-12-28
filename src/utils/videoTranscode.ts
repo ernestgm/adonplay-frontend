@@ -20,7 +20,7 @@ async function getFFmpeg(onLog?: (msg: string) => void, onProgress?: (ratio: num
 }
 
 export interface TranscodeOptions {
-  videoProfile?: "baseline" | "main";
+  videoProfile?: "baseline" | "main" | "high";
   crf?: number; // quality 18-28 typical
   preset?: "ultrafast" | "superfast" | "veryfast" | "faster" | "fast" | "medium" | "slow" | "slower" | "veryslow";
   audioBitrate?: string; // e.g. "128k"
@@ -50,20 +50,17 @@ export async function transcodeToH264Compatible(
         await ffmpeg.exec([
             "-i", inputName,
             "-c:v", "libx264",
-            "-profile:v", profile,
-            // Nivel 4.1 es el límite para la mayoría de hardware Android TV antiguo (1080p)
-            "-level", "4.1",
+            "-profile:v", profile, // "main" es más compatible que "high"
+            "-level", "3.1",      // Bajamos de 4.1 a 3.1 para máxima compatibilidad
             "-pix_fmt", "yuv420p",
             "-preset", preset,
             "-crf", crf,
-            // Filtros: Asegura dimensiones pares y fuerza 30fps para estabilidad en TV
+            "-bf", "0",           // DESACTIVA B-frames (evita el error de reinitialization)
+            "-refs", "1",         // Limita cuadros de referencia
             "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,fps=30",
-            // GOP: Crea un punto de acceso cada 60 frames (2 segundos a 30fps)
-            // Esto evita que la TV Box se "trabe" al intentar navegar el video.
             "-g", "60",
             "-keyint_min", "60",
             "-sc_threshold", "0",
-            // Audio: Forzamos AAC estéreo (2 canales) para evitar problemas con codecs multicanal
             "-c:a", "aac",
             "-b:a", audioBitrate,
             "-ac", "2",
