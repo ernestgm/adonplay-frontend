@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import {initializeActionCable} from "@/websockets/actionCable";
+import cable from "@/websockets/actionCable";
 
 export function useStatusActionsChannel(
     deviceId: string | number,
@@ -7,7 +7,6 @@ export function useStatusActionsChannel(
 ) {
     useEffect(() => {
         if (!deviceId) return;
-        const cable = initializeActionCable(deviceId)
         if (!cable) return;
         const subscription = cable.subscriptions.create(
             { channel: "StatusActionsChannel", device_id: deviceId },

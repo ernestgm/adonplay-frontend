@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import {initializeActionCable} from "@/websockets/actionCable";
+import cable from "@/websockets/actionCable";
 
 export function useWdStatusActionsChannel(
     deviceId: string | number,
@@ -7,20 +7,20 @@ export function useWdStatusActionsChannel(
 ) {
     useEffect(() => {
         if (!deviceId) return;
-        const cable = initializeActionCable(deviceId)
         if (!cable) return;
+        const isDev = process.env.NODE_ENV === 'development';
         const subscription = cable.subscriptions.create(
             { channel: "WdStatusActionsChannel", device_id: deviceId },
             {
                 received(data: unknown) {
-                    console.log("📡 Acción recibida:", data);
+                    if (isDev) console.log("📡 Datos:", data);
                     if (onReceived) onReceived(data);
                 },
                 connected() {
-                    console.log("✅ Conectado a WdStatusActionsChannel");
+                    if (isDev) console.log("✅ Conectado a WdStatusActionsChannel");
                 },
                 disconnected() {
-                    console.log("❌ Desconectado de WdStatusActionsChannel");
+                    if (isDev) console.log("❌ Desconectado de WdStatusActionsChannel");
                 }
             }
         );
