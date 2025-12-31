@@ -26,7 +26,10 @@ import filterItems from "@/utils/filterItems";
 import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
 import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
 import OnlineBadge from "@/components/ui/badge/OnlineBadge";
-import { useT } from "@/i18n/I18nProvider";
+import {useT} from "@/i18n/I18nProvider";
+import {useWdStatusActionsChannel} from "@/websockets/channels/wdStatusActionsChannel";
+import {FaDog} from "react-icons/fa";
+import {BiSolidMoviePlay} from "react-icons/bi";
 
 
 type Device = { id: number } & Record<string, unknown>;
@@ -41,6 +44,7 @@ const DevicesTable = () => {
     const router = useRouter();
     const [devices, setDevices] = useState<Device[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
+    const [wdsOnline, setWdsOnline] = useState<string[]>([]);
     const [selectedDevices, setSelectedDevices] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -116,6 +120,15 @@ const DevicesTable = () => {
         }
     })
 
+    useWdStatusActionsChannel("frontend", (data) => {
+        if (data && typeof data === 'object' && 'devices' in data) {
+            const value = (data as { devices?: unknown }).devices;
+            if (Array.isArray(value) && value.every((v) => typeof v === 'string')) {
+                setWdsOnline(value as string[]);
+            }
+        }
+    })
+
     return (
         <>
             <ActionModal
@@ -129,6 +142,45 @@ const DevicesTable = () => {
                 ]}
             />
             <div>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                        <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-green-100 rounded-full">
+                                    <div className="w-6 h-6 text-green-600">
+                                        <BiSolidMoviePlay size={25}/>
+                                    </div>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                        {tHeaders("devicesOn")}
+                                    </p>
+                                    <p className="text-3xl font-bold text-gray-900">
+                                        { Math.round(devicesOnline.length) }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                            <div className="flex items-center">
+                                <div className="p-3 bg-red-100 rounded-full">
+                                    <div className="w-6 h-6 text-red-600" >
+                                        <BiSolidMoviePlay size={25}/>
+                                    </div>
+                                </div>
+                                <div className="ml-4">
+                                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                        {tHeaders("devicesOff")}
+                                    </p>
+                                    <p className="text-3xl font-bold text-gray-900">
+                                        {Math.round(devices.length - devicesOnline.length)}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div className="flex items-center justify-between mb-4">
                     {selectedDevices.length > 0 && (
                         <div className={selectedDevices.length === 0 ? "hidden" : "flex"}>
@@ -160,7 +212,7 @@ const DevicesTable = () => {
                     </div>
                 </div>
 
-                { loading ? (
+                {loading ? (
                     <div>{tStates("loading")}</div>
                 ) : paginatedDevices.length === 0 ? (
                     <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
@@ -178,25 +230,36 @@ const DevicesTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        {tHeaders("status")}
+                                    </TableCell>
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("user")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("deviceId")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("name")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("slide")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("qr")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("marquee")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
+                                    <TableCell
+                                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
                                         {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
@@ -211,19 +274,32 @@ const DevicesTable = () => {
                                             />
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            { device.user?.name || "-" }
+                                            <div className="flex items-center gap-2">
+                                                <OnlineBadge
+                                                    icon={<FaDog size={20}/>}
+                                                    devices={wdsOnline}
+                                                    deviceId={device.device_id}
+                                                />
+                                                <OnlineBadge
+                                                    icon={<BiSolidMoviePlay size={20}/>}
+                                                    devices={devicesOnline}
+                                                    deviceId={device.device_id}
+                                                />
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {device.user?.name || "-"}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             <div className="flex items-center gap-2">
-                                                <OnlineBadge devices={devicesOnline} deviceId={device.device_id} />
-                                                { device.device_id || "-"}
+                                                {device.device_id || "-"}
                                             </div>
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {device.name}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            { device.slide?.name || "-" }
+                                            {device.slide?.name || "-"}
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {device.qr?.name || "-"}
@@ -268,7 +344,7 @@ const DevicesTable = () => {
                                 <Select
                                     options={config.itemsPerPageOptions.map((value) => ({
                                         value: value.toString(),
-                                        label: tFilters("itemsPerPageOption", { n: value })
+                                        label: tFilters("itemsPerPageOption", {n: value})
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}

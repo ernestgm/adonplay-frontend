@@ -47,6 +47,8 @@ const es = {
                 slideName: "Nombre del Slide",
                 createdAt: "Creado el",
                 updatedAt: "Actualizado el",
+                devicesOn: "Dispositivos Online",
+                devicesOff: "Dispositivos Offline",
             },
             actions: {
                 edit: "Editar",
