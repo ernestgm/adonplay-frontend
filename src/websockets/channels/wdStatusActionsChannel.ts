@@ -3,7 +3,8 @@ import cable from "@/websockets/actionCable";
 
 export function useWdStatusActionsChannel(
     deviceId: string | number,
-    onReceived: (data: unknown) => void
+    onReceived: (data: unknown) => void,
+    onDisconnect: () => void,
 ) {
     useEffect(() => {
         if (!deviceId) return;
@@ -21,6 +22,7 @@ export function useWdStatusActionsChannel(
                 },
                 disconnected() {
                     console.log("❌ Desconectado de WdStatusActionsChannel");
+                    onDisconnect()
                 }
             }
         );

@@ -118,6 +118,8 @@ const DevicesTable = () => {
                 setDevicesOnline(value as string[]);
             }
         }
+    }, () => {
+        setDevicesOnline([])
     })
 
     useWdStatusActionsChannel("frontend", (data) => {
@@ -127,6 +129,8 @@ const DevicesTable = () => {
                 setWdsOnline(value as string[]);
             }
         }
+    }, () => {
+        setWdsOnline([])
     })
 
     return (

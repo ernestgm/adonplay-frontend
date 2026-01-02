@@ -3,7 +3,8 @@ import cable from "@/websockets/actionCable";
 
 export function useStatusActionsChannel(
     deviceId: string | number,
-    onReceived: (data: unknown) => void
+    onReceived: (data: unknown) => void,
+    onDisconnect: () => void,
 ) {
     useEffect(() => {
         if (!deviceId) return;
@@ -20,6 +21,7 @@ export function useStatusActionsChannel(
                 },
                 disconnected() {
                     console.log("❌ Desconectado de StatusActionsChannel");
+                    onDisconnect()
                 }
             }
         );
