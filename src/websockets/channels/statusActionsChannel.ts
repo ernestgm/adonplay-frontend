@@ -27,5 +27,5 @@ export function useStatusActionsChannel(
         return () => {
             subscription.unsubscribe();
         };
-    }, [deviceId, onReceived]);
+    }, [deviceId]);
 }

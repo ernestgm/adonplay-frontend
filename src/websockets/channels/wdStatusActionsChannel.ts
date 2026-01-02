@@ -8,19 +8,19 @@ export function useWdStatusActionsChannel(
     useEffect(() => {
         if (!deviceId) return;
         if (!cable) return;
-        const isDev = process.env.NODE_ENV === 'development';
+
         const subscription = cable.subscriptions.create(
             { channel: "WdStatusActionsChannel", device_id: deviceId },
             {
                 received(data: unknown) {
-                    if (isDev) console.log("📡 Datos:", data);
+                    console.log("📡 Datos:", data);
                     if (onReceived) onReceived(data);
                 },
                 connected() {
-                    if (isDev) console.log("✅ Conectado a WdStatusActionsChannel");
+                    console.log("✅ Conectado a WdStatusActionsChannel");
                 },
                 disconnected() {
-                    if (isDev) console.log("❌ Desconectado de WdStatusActionsChannel");
+                    console.log("❌ Desconectado de WdStatusActionsChannel");
                 }
             }
         );
@@ -28,5 +28,5 @@ export function useWdStatusActionsChannel(
         return () => {
             subscription.unsubscribe();
         };
-    }, [deviceId, onReceived]);
+    }, [deviceId]);
 }
