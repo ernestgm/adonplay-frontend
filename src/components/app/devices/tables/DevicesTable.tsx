@@ -32,13 +32,10 @@ import {getIsOwner} from "@/server/api/auth";
 type Device = { id: number } & Record<string, unknown>;
 
 const DevicesTable = () => {
-    const tCommon = useT("common.buttons");
-    const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
     const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
-    const isOwner = getIsOwner()
     const router = useRouter();
     const [devices, setDevices] = useState<Device[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
@@ -46,9 +43,7 @@ const DevicesTable = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
-    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
     const setError = useError().setError;
-    const setMessage = useMessage().setMessage;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -64,10 +59,6 @@ const DevicesTable = () => {
 
         fetchData();
     }, []);
-
-    const deleteSelectedDevices = async () => {
-        setIsWarningModalOpen(true);
-    };
 
     const filteredDevices = filterItems(devices, searchTerm)
 

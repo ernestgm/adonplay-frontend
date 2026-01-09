@@ -23,7 +23,7 @@ interface RamDiskCpuData {
 
 const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
     const t = useT("forms.devices");
-    const tHeaders = useT("table.headers");
+    const tHeaders = useT("common.table.headers");
     const tUtil = useT("util");
     const [ramData, setRamData] = useState<{name:string, value: number}[]>([])
     const [diskData, setDiskData] = useState<{name:string, value: number}[]>([])
@@ -130,7 +130,7 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
                             </div>
                             <div className="mb-5 flex flex-col items-center">
                                 <CircularChart data={cpuData} />
-                                <h3>{tUtil('cpu')} ({metrics.cpu_usage.toFixed(2)}% Uso)</h3>
+                                <h3>{tUtil('cpu')} ({ metrics.cpu_usage && metrics.cpu_usage.toFixed(2)}% Uso)</h3>
                             </div>
                         </div>
                     </ComponentCard>
