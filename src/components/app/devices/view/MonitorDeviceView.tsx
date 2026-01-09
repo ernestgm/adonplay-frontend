@@ -23,6 +23,7 @@ interface RamDiskCpuData {
 
 const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
     const t = useT("forms.devices");
+    const tHeaders = useT("table.headers");
     const tUtil = useT("util");
     const [ramData, setRamData] = useState<{name:string, value: number}[]>([])
     const [diskData, setDiskData] = useState<{name:string, value: number}[]>([])
@@ -117,7 +118,7 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
             </div>
             {
                 showCharts && (
-                    <ComponentCard title={t("sections.settings")} className="mb-6">
+                    <ComponentCard title={tHeaders("status")} className="mb-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="mb-5 flex flex-col items-center">
                                 <CircularChart data={ramData} />
