@@ -60,6 +60,7 @@ const es = {
                 mediaManagement: "Gestión de Medios",
                 moveUp: "Mover arriba",
                 moveDown: "Mover abajo",
+                monitor: "Monitorear Dispositivo",
             },
             states: {
                 loading: "Cargando...",
@@ -86,6 +87,9 @@ const es = {
         video: {
             readDurationError: "No se pudo leer la duración del video",
         },
+        ram: "RAM",
+        disk: "Disco Duro",
+        cpu: "CPU"
     },
     pages: {
         home: {
@@ -205,7 +209,16 @@ const es = {
                 title: "Iniciar Sesión | {app}",
                 description: "Inicia sesión en {app}",
             },
-        }
+        },
+        monitorDevices: {
+            pageTitle: "Monitorear Dispositivos",
+            cardTitle: "Monitorear Dispositivos",
+            viewPageTitle: "Monitorear Dispositivo",
+            meta: {
+                title: "Monitorear Dispositivos | {app}",
+                description: "This is Monitorear Dispositivos in {app}",
+            },
+        },
     },
     status: {
         enabled: "Habilitado",

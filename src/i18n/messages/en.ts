@@ -60,6 +60,7 @@ const en = {
                 mediaManagement: "Media Management",
                 moveUp: "Move up",
                 moveDown: "Move down",
+                monitor: "Monitor",
             },
             states: {
                 loading: "Loading...",
@@ -90,6 +91,9 @@ const en = {
         video: {
             readDurationError: "Could not read the video duration",
         },
+        ram: "RAM",
+        disk: "Disk",
+        cpu: "CPU"
     },
     pages: {
         home: {
@@ -208,7 +212,16 @@ const en = {
                 title: "Sign In | {app}",
                 description: "Sign In to {app}",
             },
-        }
+        },
+        monitorDevices: {
+            pageTitle: "Monitor Devices",
+            cardTitle: "Monitor Devices",
+            viewPageTitle: "Monitor Device",
+            meta: {
+                title: "Monitor Devices | {app}",
+                description: "This is Monitor Devices in {app}",
+            },
+        },
     },
     forms: {
         signIn: {

@@ -15,7 +15,7 @@ import {
     MdOutlineQrCode2, MdOutlineSupervisedUserCircle, MdOutlineTextRotationNone, MdOutlineTv,
     MdOutlineVideoLibrary, MdOutlineViewCarousel
 } from "react-icons/md";
-import {TbDeviceImacCheck} from "react-icons/tb";
+import {TbDeviceDesktopAnalytics, TbDeviceImacCheck} from "react-icons/tb";
 import {cookies} from "next/headers"; // Importar nookies para manejar cookies
 
 type NavItem = {
@@ -82,6 +82,12 @@ const othersItems: NavItem[] = [
         icon: <TbDeviceImacCheck size={25}/>,
         name: {es: "Habilitar Dispositivos", en: "Devices Permissions"},
         path: "/devices-permissions",
+        roles: ["admin"],
+    },
+    {
+        icon: <TbDeviceDesktopAnalytics size={25}/>,
+        name: {es: "Monitorear Dispositivos", en: "Monitor Devices"},
+        path: "/monitor-devices",
         roles: ["admin"],
     },
 ];

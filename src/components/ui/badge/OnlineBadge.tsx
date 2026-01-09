@@ -1,16 +1,5 @@
 import React, {useEffect, useState} from "react";
 
-// type BadgeVariant = "light" | "solid";
-// type BadgeSize = "sm" | "md";
-// type BadgeColor =
-//   | "primary"
-//   | "success"
-//   | "error"
-//   | "warning"
-//   | "info"
-//   | "light"
-//   | "dark";
-
 interface BadgeProps {
     icon?: React.ReactNode;
   devices?: string[];
@@ -25,8 +14,6 @@ const OnlineBadge: React.FC<BadgeProps> = ({
   const [onlineDevice, setOnlineDevice] = useState(false);
 
   useEffect(() => {
-    console.log(devices);
-    console.log(deviceId);
     setOnlineDevice(devices.includes(deviceId));
   }, [devices, deviceId]);
 

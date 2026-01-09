@@ -11,7 +11,7 @@ export function useWdStatusActionsChannel(
         if (!cable) return;
 
         const subscription = cable.subscriptions.create(
-            { channel: "WdStatusActionsChannel", device_id: deviceId },
+            { channel: "WdStatusActionsChannel" },
             {
                 received(data: unknown) {
                     console.log("📡 Datos:", data);
@@ -28,7 +28,12 @@ export function useWdStatusActionsChannel(
         );
 
         return () => {
-            subscription.unsubscribe();
+            console.log("🧹 Limpiando WdStatusActionsChannel suscripción para el dispositivo:", deviceId);
+            if (subscription) {
+                subscription.unsubscribe();
+                // Opcional: Si quieres forzar la desconexión total del socket
+                // cable.disconnect();
+            }
         };
     }, [deviceId]);
 }

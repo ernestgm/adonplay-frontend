@@ -9,39 +9,44 @@ import {
     TableRow,
 } from "../../../ui/table";
 
+import Checkbox from "@/components/form/input/Checkbox";
 import Button from "@/components/ui/button/Button";
 import {useError} from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdEdit} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
+import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
-import {fetchDevices} from "@/server/api/devices";
+import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
 import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
 import OnlineBadge from "@/components/ui/badge/OnlineBadge";
 import {useT} from "@/i18n/I18nProvider";
+import {useWdStatusActionsChannel} from "@/websockets/channels/wdStatusActionsChannel";
+import {FaDog} from "react-icons/fa";
 import {BiSolidMoviePlay} from "react-icons/bi";
-import {getIsOwner} from "@/server/api/auth";
+import {RiDashboard3Line} from "react-icons/ri";
 
 
 type Device = { id: number } & Record<string, unknown>;
 
-const DevicesTable = () => {
+const MonitorDevicesTable = () => {
     const tCommon = useT("common.buttons");
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
     const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
-    const isOwner = getIsOwner()
     const router = useRouter();
     const [devices, setDevices] = useState<Device[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
+    const [wdsOnline, setWdsOnline] = useState<string[]>([]);
+    const [selectedDevices, setSelectedDevices] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -69,6 +74,32 @@ const DevicesTable = () => {
         setIsWarningModalOpen(true);
     };
 
+    const openWarningModal = (deviceId: number) => {
+        setSelectedDevices([deviceId])
+        setIsWarningModalOpen(true);
+    };
+
+    const confirmDeleteDevices = async () => {
+        if (selectedDevices.length > 0) {
+            try {
+                const response = await deleteDevicesAPI(selectedDevices);
+                setDevices((prev) => prev.filter((device) => !selectedDevices.includes(device.id)));
+                setSelectedDevices([]);
+                setMessage(response.message);
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al eliminar Devices");
+            } finally {
+                setIsWarningModalOpen(false);
+            }
+        }
+    };
+
+    const toggleSelectDevices = (id: number) => {
+        setSelectedDevices((prev) =>
+            prev.includes(id) ? prev.filter((deviceId) => deviceId !== id) : [...prev, id]
+        );
+    };
+
     const filteredDevices = filterItems(devices, searchTerm)
 
     const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
@@ -78,7 +109,7 @@ const DevicesTable = () => {
     );
 
     const handleEdit = (deviceId: number | string) => {
-        router.push(`/devices/edit/${deviceId}`);
+        router.push(`/monitor-devices/monitor/${deviceId}`);
     };
 
     useStatusActionsChannel("frontend", (data) => {
@@ -92,8 +123,29 @@ const DevicesTable = () => {
         setDevicesOnline([])
     })
 
+    useWdStatusActionsChannel("frontend", (data) => {
+        if (data && typeof data === 'object' && 'devices' in data) {
+            const value = (data as { devices?: unknown }).devices;
+            if (Array.isArray(value) && value.every((v) => typeof v === 'string')) {
+                setWdsOnline(value as string[]);
+            }
+        }
+    }, () => {
+        setWdsOnline([])
+    })
+
     return (
         <>
+            <ActionModal
+                isOpen={isWarningModalOpen}
+                onClose={() => setIsWarningModalOpen(false)}
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
+                actions={[
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteDevices, variant: "primary"},
+                ]}
+            />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -135,6 +187,21 @@ const DevicesTable = () => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between mb-4">
+                    {selectedDevices.length > 0 && (
+                        <div className={selectedDevices.length === 0 ? "hidden" : "flex"}>
+                            <Tooltip content={tActions("delete")}>
+                                <Button
+                                    size="sm"
+                                    onClick={deleteSelectedDevices}
+                                    disabled={selectedDevices.length === 0}
+                                    variant="danger"
+                                >
+                                    <MdDelete size={20}/>
+                                </Button>
+                            </Tooltip>
+                        </div>
+                    )}
+
                     <div className="relative">
                         <Input
                             placeholder={tFilters("searchPlaceholder")}
@@ -159,6 +226,15 @@ const DevicesTable = () => {
                         <Table className="min-w-full divide-y divide-gray-200">
                             <TableHeader className="bg-gray-50">
                                 <TableRow>
+                                    <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        <Checkbox
+                                            checked={selectedDevices.length === devices.length}
+                                            onChange={(checked) =>
+                                                setSelectedDevices(checked ? devices.map((device) => device.id) : [])
+                                            }
+                                        />
+                                    </TableCell>
                                     <TableCell
                                         className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                                         {tHeaders("status")}
@@ -197,7 +273,18 @@ const DevicesTable = () => {
                                 {paginatedDevices.map((device: any) => (
                                     <TableRow key={device.id}>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <Checkbox
+                                                checked={selectedDevices.includes(device.id)}
+                                                onChange={() => toggleSelectDevices(device.id)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div className="flex items-center gap-2">
+                                                <OnlineBadge
+                                                    icon={<FaDog size={20}/>}
+                                                    devices={wdsOnline}
+                                                    deviceId={device.device_id}
+                                                />
                                                 <OnlineBadge
                                                     icon={<BiSolidMoviePlay size={20}/>}
                                                     devices={devicesOnline}
@@ -228,13 +315,22 @@ const DevicesTable = () => {
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content={tActions("edit")}>
+                                                <Tooltip content={tActions("monitor")}>
                                                     <Button
                                                         onClick={() => handleEdit(device.id)}
                                                         variant="outline"
                                                         size="sm"
                                                     >
-                                                        <MdEdit size={18}/>
+                                                        <RiDashboard3Line size={18}/>
+                                                    </Button>
+                                                </Tooltip>
+                                                <Tooltip content={tActions("delete")}>
+                                                    <Button
+                                                        onClick={() => openWarningModal(device.id)}
+                                                        variant="danger"
+                                                        size="sm"
+                                                    >
+                                                        <MdDelete size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                             </div>
@@ -281,4 +377,4 @@ const DevicesTable = () => {
     );
 };
 
-export default DevicesTable;
+export default MonitorDevicesTable;

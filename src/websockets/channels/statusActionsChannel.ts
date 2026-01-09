@@ -7,10 +7,9 @@ export function useStatusActionsChannel(
     onDisconnect: () => void,
 ) {
     useEffect(() => {
-        if (!deviceId) return;
         if (!cable) return;
         const subscription = cable.subscriptions.create(
-            { channel: "StatusActionsChannel", device_id: deviceId },
+            { channel: "StatusActionsChannel" },
             {
                 received(data: unknown) {
                     console.log("📡 Acción recibida:", data);
@@ -27,7 +26,12 @@ export function useStatusActionsChannel(
         );
 
         return () => {
-            subscription.unsubscribe();
+            console.log("🧹 Limpiando suscripción para el dispositivo:", deviceId);
+            if (subscription) {
+                subscription.unsubscribe();
+                // Opcional: Si quieres forzar la desconexión total del socket
+                // cable.disconnect();
+            }
         };
     }, [deviceId]);
 }
