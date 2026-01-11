@@ -16,7 +16,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdSearch, MdDelete} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
@@ -27,10 +27,8 @@ import {deleteDevicesAPI, fetchDevices} from "@/server/api/devices";
 import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
 import OnlineBadge from "@/components/ui/badge/OnlineBadge";
 import {useT} from "@/i18n/I18nProvider";
-import {useWdStatusActionsChannel} from "@/websockets/channels/wdStatusActionsChannel";
-import {FaDog} from "react-icons/fa";
-import {BiSolidMoviePlay} from "react-icons/bi";
 import {RiDashboard3Line} from "react-icons/ri";
+import {PiMonitorPlayFill} from "react-icons/pi";
 
 
 type Device = { id: number } & Record<string, unknown>;
@@ -45,7 +43,6 @@ const MonitorDevicesTable = () => {
     const router = useRouter();
     const [devices, setDevices] = useState<Device[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
-    const [wdsOnline, setWdsOnline] = useState<string[]>([]);
     const [selectedDevices, setSelectedDevices] = useState<number[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -123,17 +120,6 @@ const MonitorDevicesTable = () => {
         setDevicesOnline([])
     })
 
-    useWdStatusActionsChannel("frontend", (data) => {
-        if (data && typeof data === 'object' && 'devices' in data) {
-            const value = (data as { devices?: unknown }).devices;
-            if (Array.isArray(value) && value.every((v) => typeof v === 'string')) {
-                setWdsOnline(value as string[]);
-            }
-        }
-    }, () => {
-        setWdsOnline([])
-    })
-
     return (
         <>
             <ActionModal
@@ -153,7 +139,7 @@ const MonitorDevicesTable = () => {
                             <div className="flex items-center">
                                 <div className="p-3 bg-green-100 rounded-full">
                                     <div className="w-6 h-6 text-green-600">
-                                        <BiSolidMoviePlay size={25}/>
+                                        <PiMonitorPlayFill size={25}/>
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -171,7 +157,7 @@ const MonitorDevicesTable = () => {
                             <div className="flex items-center">
                                 <div className="p-3 bg-red-100 rounded-full">
                                     <div className="w-6 h-6 text-red-600" >
-                                        <BiSolidMoviePlay size={25}/>
+                                        <PiMonitorPlayFill size={25}/>
                                     </div>
                                 </div>
                                 <div className="ml-4">
@@ -281,12 +267,7 @@ const MonitorDevicesTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             <div className="flex items-center gap-2">
                                                 <OnlineBadge
-                                                    icon={<FaDog size={20}/>}
-                                                    devices={wdsOnline}
-                                                    deviceId={device.device_id}
-                                                />
-                                                <OnlineBadge
-                                                    icon={<BiSolidMoviePlay size={20}/>}
+                                                    icon={<PiMonitorPlayFill size={30}/>}
                                                     devices={devicesOnline}
                                                     deviceId={device.device_id}
                                                 />
