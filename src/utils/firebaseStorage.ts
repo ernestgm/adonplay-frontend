@@ -7,11 +7,11 @@ export interface UploadedRef {
 }
 
 const sanitizeFileName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, "_");
-
+const uploadEnv = process.env.NEXT_PUBLIC_UPLOAD_ENV
 export async function uploadFileToStorage(file: File, pathPrefix: string = "uploads"): Promise<UploadedRef> {
   const timestamp = Date.now();
   const cleanName = sanitizeFileName(file.name);
-  const storagePath = `${pathPrefix}/${timestamp}-${cleanName}`;
+  const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
   const storageRef = ref(storage, storagePath);
   await uploadBytes(storageRef, file, { contentType: file.type });
   const downloadURL = await getDownloadURL(storageRef);
@@ -25,7 +25,7 @@ export async function uploadFileToStorageWithProgress(
 ): Promise<UploadedRef> {
   const timestamp = Date.now();
   const cleanName = sanitizeFileName(file.name);
-  const storagePath = `${pathPrefix}/${timestamp}-${cleanName}`;
+  const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
   const storageRef = ref(storage, storagePath);
   const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
   await new Promise<void>((resolve, reject) => {
