@@ -41,12 +41,12 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
 
     useStatusActionsChannel("frontend", (data: any) => {
         console.log("Device Data ", data);
-        const metrics = data as RamDiskCpuData;
-        setMetrics(metrics)
 
-        console.log("Devices ", device?.device_id === metrics.device_id);
+        console.log("Devices ", device?.device_id === data.device_id);
 
-        if (device?.device_id == metrics.device_id) {
+        if (device?.device_id === data.device_id) {
+            const metrics = data as RamDiskCpuData;
+            setMetrics(metrics)
             const ramUsedPercent = metrics.total_ram > 0 ? ((metrics.total_ram - metrics.free_ram) / metrics.total_ram) * 100 : 0;
             const diskUsedPercent = metrics.total_disk > 0 ? ((metrics.total_disk - metrics.free_disk) / metrics.total_disk) * 100 : 0;
 
