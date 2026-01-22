@@ -93,7 +93,7 @@ const othersItems: NavItem[] = [
 ];
 
 const AppSidebar: React.FC = () => {
-    const {isExpanded, isMobileOpen, isHovered, setIsHovered} = useSidebar();
+    const {isExpanded, isMobileOpen, isHovered, setIsHovered, toggleSidebar, toggleMobileSidebar} = useSidebar();
     const pathname = usePathname();
 
     // Extraer el role del usuario autenticado desde la cookie
@@ -102,6 +102,13 @@ const AppSidebar: React.FC = () => {
     const locale = getCurrentLocale();
 
 
+    const handleToggle = () => {
+        if (window.innerWidth >= 1024) {
+            toggleSidebar();
+        } else {
+            toggleMobileSidebar();
+        }
+    };
     const renderMenuItems = (
         navItems: NavItem[],
         menuType: "main" | "others",
@@ -154,6 +161,7 @@ const AppSidebar: React.FC = () => {
                             nav.path && (
                                 <Link
                                     href={nav.path}
+                                    onClick={handleToggle}
                                     className={`menu-item group ${
                                         isActive(nav.path) ? "menu-item-active" : "menu-item-inactive"
                                     }`}
@@ -192,6 +200,7 @@ const AppSidebar: React.FC = () => {
                                         <li key={subItem.name}>
                                             <Link
                                                 href={subItem.path}
+                                                onClick={handleToggle}
                                                 className={`menu-dropdown-item ${
                                                     isActive(subItem.path)
                                                         ? "menu-dropdown-item-active"
@@ -347,7 +356,7 @@ const AppSidebar: React.FC = () => {
                     )}
                 </Link>
             </div>
-            <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+            <div className="flex flex-col overflow-y-auto duration-300 ease-linear">
                 <nav className="mb-6">
                     <div className="flex flex-col gap-4">
                         <div>
