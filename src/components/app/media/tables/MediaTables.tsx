@@ -17,7 +17,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile} from "react-icons/md";
+import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile, MdAttachMoney} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
@@ -29,6 +29,7 @@ import { deleteFileByDownloadURL } from "@/utils/firebaseStorage";
 import { useT } from "@/i18n/I18nProvider";
 
 const MediaTable = () => {
+    const tMediaForm = useT("forms.mediaForm");
     const tCommon = useT("common.buttons");
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
@@ -110,6 +111,10 @@ const MediaTable = () => {
         (currentPage - 1) * itemsPerPage,
         currentPage * itemsPerPage
     );
+
+    const handleEditPrices = (mediaId: any) => {
+        router.push(`/media-library/edit-prices/${mediaId}`);
+    };
 
     const handleEdit = (mediaId: any) => {
         router.push(`/media-library/edit/${mediaId}`);
@@ -228,6 +233,18 @@ const MediaTable = () => {
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
+                                                {item.is_editable && (
+                                                    <Tooltip content={tMediaForm("labels.editPrices")}>
+                                                        <Button
+                                                            onClick={() => handleEditPrices(item.id)}
+                                                            variant="primary"
+                                                            size="sm"
+                                                            className="bg-green-600 hover:bg-green-700 border-green-600"
+                                                        >
+                                                            <MdAttachMoney size={18}/>
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
                                                 <Tooltip content={tActions("view")}>
                                                     <Button
                                                         onClick={() => handleViewDetails(item.id)}

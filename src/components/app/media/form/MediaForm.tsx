@@ -15,6 +15,7 @@ import Form from "@/components/form/Form";
 import Label from "@/components/form/Label";
 import { ChevronDownIcon } from "@/icons";
 import FileInput from "@/components/form/input/FileInput";
+import Switch from "@/components/form/switch/Switch";
 import mediaUrl from "@/utils/files";
 import Image from "next/image";
 import { getVideoDuration, transcodeToH264Compatible } from "@/utils/videoTranscode";
@@ -26,17 +27,22 @@ interface MediaFormProps {
     media?: any;
 }
 
+const EXAMPLE_IMG = "https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80";
+
 const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [form, setForm] = useState({
         media_type: media?.media_type || "image",
         file_path: media?.file_path || "",
         owner_id: media?.owner_id || "",
+        is_editable: media?.is_editable || false,
+        json_path: media?.json_path || "",
     });
     const t = useT("forms.mediaForm");
     const tCommon = useT("common.buttons");
     const tSelect = useT("common.select");
     
     const [file, setFile] = useState<File[] | File | null>(null);
+    const [jsonFile, setJsonFile] = useState<File | null>(null);
     const [audio, setAudio] = useState<File | null>(null); // Keep for backward compatibility
     const [imagePreviewUrls, setImagePreviewUrls] = useState<Map<number, string>>(new Map());
     const [audioPreviewUrls, setAudioPreviewUrls] = useState<Map<number, string>>(new Map());
@@ -49,7 +55,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [convertStatus, setConvertStatus] = useState<string>("");
     const [validationErrors, setValidationErrors] = useState({
         media_type: "",
-        owner_id: ""
+        owner_id: "",
+        json_path: ""
     });
     const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
     const [users, setUsers] = useState<any[]>([]);
@@ -172,12 +179,30 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setFile(null);
     };
 
-    const handleFileChange = async (e: { target: { files: any; }; }) => {
+    const handleIsEditableChange = (checked: boolean) => {
+        setForm({ ...form, is_editable: checked });
+        setImagePreviewUrls(new Map());
+        setAudioErrors(new Map());
+    }
+
+    const handleFileChange = async (e: { target: { name?: string; files: any; }; }) => {
         setFileError("");
         const files = e.target.files;
         
         if (!files || files.length === 0) return;
         
+        // Handle JSON file for editable images
+        if (e.target.name === "jsonFile") {
+            const file = files[0];
+            if (file && !file.name.endsWith(".json") && file.type !== "application/json") {
+                setValidationErrors(prev => ({ ...prev, json_path: t("errors.jsonOnlyJson") }));
+                return;
+            }
+            setJsonFile(file);
+            setValidationErrors(prev => ({ ...prev, json_path: "" }));
+            return;
+        }
+
         // Clean up previous preview URLs
         if (videoPreviewUrl && !videoPreviewUrl.startsWith('http')) {
             URL.revokeObjectURL(videoPreviewUrl);
@@ -327,7 +352,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({owner_id: "", media_type: ""});
+        setValidationErrors({owner_id: "", media_type: "", json_path: ""});
         setFileError("");
         setAudioError("");
         setConvertProgress(0);
@@ -335,11 +360,16 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
         setConvertStatus("");
         
         try {
+            // Validate JSON if editable
+            const isEditing = !!media?.id;
+            if (form.media_type === "image" && form.is_editable && !jsonFile && !form.json_path) {
+                setValidationErrors(prev => ({ ...prev, json_path: t("errors.mustSelectJson") }));
+                setLoading(false);
+                return;
+            }
+
             // Ensure owner_id is set
             const ownerId = form.owner_id || currentUser?.id;
-
-            // Check if we're editing or creating
-            const isEditing = !!media?.id;
             
             if (isEditing) {
                 // Build payload for update
@@ -393,32 +423,56 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             try { await deleteFileByDownloadURL(oldPath); } catch {}
                         }
                     }
+                } else if (form.is_editable && !file_path) {
+                    // Si es editable y no tiene imagen (no debería pasar en edición pero por si acaso)
+                    file_path = EXAMPLE_IMG;
                 }
 
                 const payload: any = {
                     media_type: form.media_type,
                     owner_id: ownerId,
                     file_path,
+                    is_editable: form.media_type === "image" ? form.is_editable : false,
+                    json_path: form.media_type === "image" && form.is_editable ? (jsonFile ? (await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadProgress(p))).downloadURL : form.json_path) : null,
                 };
 
                 await updateMedia(media.id, payload);
                 setMessage(t("messages.itemUpdated"));
             } else {
                 // When creating, upload to Firebase and send only references
-                if (!file) {
+                if (!file && !form.is_editable) {
                     setFileError(t("errors.mustSelectFile"));
                     setLoading(false);
                     return;
                 }
 
-                if (form.media_type === "image" && Array.isArray(file)) {
+                if (form.media_type === "image" && form.is_editable) {
+                    // Para imágenes editables, usamos una imagen de ejemplo
+                    const exampleImageUrl = EXAMPLE_IMG;
+                    let jsonPath = null;
+                    if (jsonFile) {
+                        const uploadedJson = await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadProgress(p));
+                        jsonPath = uploadedJson.downloadURL;
+                    }
+                    await createMedia({
+                        media_type: "image",
+                        owner_id: ownerId,
+                        file_path: exampleImageUrl,
+                        is_editable: true,
+                        json_path: jsonPath,
+                    });
+                } else if (form.media_type === "image" && Array.isArray(file)) {
                     // Multiple images: create one media per file
-                    for (const f of file) {
-                        const uploaded = await uploadFileToStorage(f, `media/image`);
+                    for (let i = 0; i < file.length; i++) {
+                        const f = file[i];
+                        const uploaded = await uploadFileToStorageWithProgress(f, `media/image`, (p) => setUploadProgress(p));
+
                         await createMedia({
                             media_type: "image",
                             owner_id: ownerId,
                             file_path: uploaded.downloadURL,
+                            is_editable: false,
+                            json_path: null,
                         });
                     }
                 } else {
@@ -443,10 +497,19 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         setConvertStatus(t("status.conversionFinished"));
                     }
                     const uploaded = await uploadFileToStorageWithProgress(fileToUpload, `media/${mediaType}`, (p) => setUploadProgress(p));
+                    
+                    let jsonPath = null;
+                    if (mediaType === "image" && form.is_editable && jsonFile) {
+                        const uploadedJson = await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadProgress(p));
+                        jsonPath = uploadedJson.downloadURL;
+                    }
+
                     await createMedia({
                         media_type: mediaType,
                         owner_id: ownerId,
                         file_path: uploaded.downloadURL,
+                        is_editable: mediaType === "image" ? form.is_editable : false,
+                        json_path: jsonPath,
                     });
                 }
                 setMessage(t("messages.itemCreated"));
@@ -484,7 +547,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 </div>
             </div>
             
-            {isAdmin && media && (
+            {isAdmin && (
                 <div className="mb-5">
                     <Label>{t("labels.ownerRequired")}</Label>
                     <div className="relative">
@@ -516,7 +579,60 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 </div>
             )}
             
-            <div className="mb-5">
+            {isAdmin && form.media_type === "image" && (
+                <div className="mb-5 flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <Label className="mb-0">{t("labels.isEditable")}</Label>
+                            <div className="text-xs text-gray-500">
+                                {t("hints.adminOnlyEditable", { default: "Solo administradores pueden marcar imágenes como editables." })}
+                            </div>
+                        </div>
+                        <Switch
+                            id={1}
+                            label=""
+                            defaultChecked={form.is_editable}
+                            onChange={(checked) => handleIsEditableChange(checked)}
+                        />
+                    </div>
+                    
+                    {form.is_editable && !media && (
+                        <div>
+                            <Label>{t("labels.jsonFile")}*</Label>
+                            <FileInput
+                                name="jsonFile"
+                                accept=".json,application/json"
+                                onChange={handleFileChange}
+                                error={!!validationErrors.json_path}
+                                hint={validationErrors.json_path}
+                                required={true}
+                            />
+                        </div>
+                    )}
+
+                    {form.is_editable && media && (
+                        <div>
+                            <Label>{t("labels.jsonFile")}*</Label>
+                            <FileInput
+                                name="jsonFile"
+                                accept=".json,application/json"
+                                onChange={handleFileChange}
+                                error={!!validationErrors.json_path}
+                                hint={validationErrors.json_path}
+                                required={!form.json_path}
+                            />
+                            {form.json_path && (
+                                <div className="mt-1 text-xs text-gray-500 truncate">
+                                    {t("hints.keepJson", { default: "Deja este campo vacío si no quieres cambiar el archivo JSON." })}
+                                    <div className="mt-1 text-blue-600 truncate">{form.json_path}</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            <div className={`mb-5 ${form.is_editable ? 'hidden' : ''}`}>
                 <Label>
                     {form.media_type === "image"
                         ? (media ? t("labels.imageSingle") : t("labels.imageMultiple"))
@@ -538,7 +654,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     onChange={handleFileChange}
                     error={!!fileError}
                     hint={fileError}
-                    required={!media} // Only required when creating new media
+                    required={!media && !form.is_editable} // Only required when creating new media and NOT editable
                 />
                 {media && (
                     <div className="mt-1 text-xs text-gray-500">
@@ -638,20 +754,26 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             </div>
                         ) : (
                             // Multiple image previews for creating
-                            <div className="columns-3">
+                            <div className="grid grid-cols-1 gap-4">
                                 {Array.from(imagePreviewUrls.entries()).map(([index, previewUrl]) => (
                                 <div key={index} className="p-3 border rounded-md">
-                                    <div className="flex flex-row gap-4">
+                                    <div className="flex flex-col gap-4">
                                         {/* Image preview */}
-                                        <div className="w-full">
-                                            <div className="border rounded overflow-hidden">
+                                        <div className="flex gap-4">
+                                            <div className="w-24 h-24 flex-shrink-0 border rounded overflow-hidden">
                                                 <Image
                                                     src={previewUrl}
                                                     alt={t("labels.imageAltNumber", { n: index + 1 })}
-                                                    className="w-full h-auto object-contain"
+                                                    className="w-full h-full object-cover"
                                                     width={100}
                                                     height={100}
                                                 />
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="font-medium text-sm mb-1">{t("labels.imageNumber", { n: index + 1 })}</div>
+                                                <div className="text-xs text-gray-500 truncate">
+                                                    {(file as File[])[index]?.name}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

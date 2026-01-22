@@ -36,6 +36,11 @@ const nextConfig: NextConfig = {
                 hostname: 'adonplay-web.firebasestorage.app',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'images.unsplash.com',
+                pathname: '/**',
+            },
         ],
 
     },
