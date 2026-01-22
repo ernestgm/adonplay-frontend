@@ -324,7 +324,7 @@ const AppSidebar: React.FC = () => {
             onMouseLeave={() => setIsHovered(false)}
         >
             <div
-                className={`py-8 flex  ${
+                className={`py-5 flex  ${
                     !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
                 }`}
             >
@@ -332,17 +332,9 @@ const AppSidebar: React.FC = () => {
                     {isExpanded || isHovered || isMobileOpen ? (
                         <>
                             <Image
-                                className="dark:hidden"
                                 src="/images/logo/logo.png"
                                 alt="Logo"
-                                width={230}
-                                height={40}
-                            />
-                            <Image
-                                className="hidden dark:block"
-                                src="/images/logo/logo-dark.png"
-                                alt="Logo"
-                                width={230}
+                                width={130}
                                 height={40}
                             />
                         </>
