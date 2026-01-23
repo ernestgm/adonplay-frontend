@@ -25,9 +25,7 @@ import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChanne
 import OnlineBadge from "@/components/ui/badge/OnlineBadge";
 import {useT} from "@/i18n/I18nProvider";
 import {PiMonitorPlayFill} from "react-icons/pi";
-
-
-type Device = { id: number } & Record<string, unknown>;
+import {getIsOwner} from "@/server/api/auth";
 
 const DevicesTable = () => {
     const tHeaders = useT("common.table.headers");
@@ -35,19 +33,21 @@ const DevicesTable = () => {
     const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const router = useRouter();
-    const [devices, setDevices] = useState<Device[]>([]);
+    const [devices, setDevices] = useState<any[]>([]);
     const [devicesOnline, setDevicesOnline] = useState<string[]>([]);
+    const [filterDevicesOnline, setFilterDevicesOnline] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const setError = useError().setError;
+    const isOwner = getIsOwner()
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const data = await fetchDevices();
-                setDevices(data as Device[]);
+                setDevices(data as any[]);
             } catch (err: any) {
                 setError(err.data?.message || err.message || "Error!!!");
             } finally {
@@ -69,6 +69,14 @@ const DevicesTable = () => {
     const handleEdit = (deviceId: number | string) => {
         router.push(`/devices/edit/${deviceId}`);
     };
+
+    useEffect(() => {
+        console.log("All -", devices)
+        console.log("Online - ", devicesOnline)
+        const filteredDevicesOnline = devicesOnline.filter(deviceOnline => devices.find(device => device.device_id === deviceOnline));
+        console.log("FIltered - ", filteredDevicesOnline)
+        setFilterDevicesOnline(filteredDevicesOnline)
+    }, [devicesOnline]);
 
     useStatusActionsChannel("frontend", (data) => {
         if (data && typeof data === 'object' && 'devices' in data) {
@@ -98,7 +106,7 @@ const DevicesTable = () => {
                                         {tHeaders("devicesOn")}
                                     </p>
                                     <p className="text-3xl font-bold text-gray-900">
-                                        { Math.round(devicesOnline.length) }
+                                        { !isOwner ? Math.round(devicesOnline.length) : Math.round(filterDevicesOnline.length) }
                                     </p>
                                 </div>
                             </div>
@@ -115,9 +123,17 @@ const DevicesTable = () => {
                                     <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
                                         {tHeaders("devicesOff")}
                                     </p>
-                                    <p className="text-3xl font-bold text-gray-900">
-                                        {Math.round(devices.length - devicesOnline.length)}
-                                    </p>
+                                    {
+                                        isOwner ? (
+                                            <p className="text-3xl font-bold text-gray-900">
+                                                {Math.round(devices.length - filterDevicesOnline.length)}
+                                            </p>
+                                        ) : (
+                                            <p className="text-3xl font-bold text-gray-900">
+                                                {Math.round(devices.length - devicesOnline.length)}
+                                            </p>
+                                        )
+                                    }
                                 </div>
                             </div>
                         </div>

@@ -72,15 +72,15 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     };
 
     const handleSlidesChange = (value: any) => {
-        if (!isOwner) setForm({...form, slide_id: value});
+        setForm({...form, slide_id: value});
     };
 
     const handleQrChange = (value: any) => {
-        if (!isOwner) setForm({...form, qr_id: value});
+        setForm({...form, qr_id: value});
     };
 
     const handleMarqueeChange = (value: any) => {
-        if (!isOwner) setForm({...form, marquee_id: value});
+        setForm({...form, marquee_id: value});
     };
 
     const userSelectUpdateForm = () => {
@@ -151,7 +151,10 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 setError(err.data?.message || err.message || t("errors.loadUsers"));
             }
         };
-        fetchOwners();
+        if (!isOwner) {
+            fetchOwners();
+        }
+
     }, []);
 
     return (
