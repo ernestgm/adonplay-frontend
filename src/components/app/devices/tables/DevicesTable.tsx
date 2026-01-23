@@ -71,10 +71,7 @@ const DevicesTable = () => {
     };
 
     useEffect(() => {
-        console.log("All -", devices)
-        console.log("Online - ", devicesOnline)
         const filteredDevicesOnline = devicesOnline.filter(deviceOnline => devices.find(device => device.device_id === deviceOnline));
-        console.log("FIltered - ", filteredDevicesOnline)
         setFilterDevicesOnline(filteredDevicesOnline)
     }, [devicesOnline]);
 
