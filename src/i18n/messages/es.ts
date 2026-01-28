@@ -296,6 +296,9 @@ const es = {
                 convertingVideo: "Convirtiendo video... No refresque el navegador",
                 conversionFinished: "Conversión finalizada",
                 uploadingVideo: "Subiendo video... No refresque el navegador",
+                uploadingImg: "Subiendo imagen... No refresque el navegador",
+                uploadingJson: "Subiendo JSON... No refresque el navegador",
+                updating: "Actualizando ... No refresque el navegador",
             },
             messages: {
                 itemUpdated: "Item actualizado correctamente",

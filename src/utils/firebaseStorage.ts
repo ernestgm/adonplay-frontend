@@ -78,6 +78,31 @@ export async function uploadFileToExactPath(file: File, storagePath: string): Pr
   return { downloadURL, storagePath };
 }
 
+export async function uploadFileToExactPathWithProgress(
+  file: File,
+  storagePath: string,
+  onProgress?: (percent: number) => void
+): Promise<UploadedRef> {
+  const storageRef = ref(storage, storagePath);
+  const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+  await new Promise<void>((resolve, reject) => {
+    task.on(
+      "state_changed",
+      (snapshot) => {
+        if (onProgress && snapshot.totalBytes > 0) {
+          const pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          onProgress(Math.max(0, Math.min(100, pct)));
+        }
+      },
+      (error) => reject(error),
+      () => resolve()
+    );
+  });
+  const downloadURL = await getDownloadURL(storageRef);
+  if (onProgress) onProgress(100);
+  return { downloadURL, storagePath };
+}
+
 export async function deleteFileByDownloadURL(url: string): Promise<void> {
   const path = getStoragePathFromDownloadURL(url);
   if (!path) return; // Not a Firebase Storage URL we can handle

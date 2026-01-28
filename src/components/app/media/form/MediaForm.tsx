@@ -7,7 +7,7 @@ import Select from "@/components/form/Select";
 import { useError } from "@/context/ErrorContext";
 import { useMessage } from "@/context/MessageContext";
 import { createMedia, updateMedia } from "@/server/api/media";
-import { uploadFileToStorage, uploadFileToExactPath, getStoragePathFromDownloadURL, deleteFileByDownloadURL, uploadFileToStorageWithProgress } from "@/utils/firebaseStorage";
+import { getStoragePathFromDownloadURL, deleteFileByDownloadURL, uploadFileToStorageWithProgress, uploadFileToExactPathWithProgress } from "@/utils/firebaseStorage";
 import { getDataUserAuth } from "@/server/api/auth";
 import { fetchUsers } from "@/server/api/users";
 import config from "@/config/globalConfig";
@@ -20,14 +20,13 @@ import mediaUrl from "@/utils/files";
 import Image from "next/image";
 import { getVideoDuration, transcodeToH264Compatible } from "@/utils/videoTranscode";
 import { useT } from "@/i18n/I18nProvider";
+import { PsdJsonRenderer } from "@/lib/PsdJsonRenderer";
 
 const typeOptions = config.typeOptions;
 
 interface MediaFormProps {
     media?: any;
 }
-
-const EXAMPLE_IMG = "https://images.unsplash.com/photo-1505682634904-d7c8d95cdc50?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80";
 
 const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [form, setForm] = useState({
@@ -52,6 +51,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const [loading, setLoading] = useState(false);
     const [convertProgress, setConvertProgress] = useState<number>(0);
     const [uploadProgress, setUploadProgress] = useState<number>(0);
+    const [uploadImgProgress, setUploadImgProgress] = useState<number>(0);
+    const [uploadJsonProgress, setUploadJsonProgress] = useState<number>(0);
     const [convertStatus, setConvertStatus] = useState<string>("");
     const [validationErrors, setValidationErrors] = useState({
         media_type: "",
@@ -65,6 +66,29 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
     const router = useRouter();
+
+    const generateImageFromJson = async (jsonFile: File): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const jsonContent = JSON.parse(e.target?.result as string);
+                    const canvas = document.createElement("canvas");
+                    const renderer = new PsdJsonRenderer();
+                    console.log(jsonContent);
+                    await renderer.render(canvas, jsonContent);
+                    canvas.toBlob((blob) => {
+                        if (blob) resolve(blob);
+                        else reject(new Error("Failed to create blob from canvas"));
+                    }, "image/jpeg", 0.9);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+            reader.onerror = () => reject(new Error("Failed to read JSON file"));
+            reader.readAsText(jsonFile);
+        });
+    };
     
     // Initialize preview URLs for existing media when component mounts
     useEffect(() => {
@@ -423,17 +447,63 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             try { await deleteFileByDownloadURL(oldPath); } catch {}
                         }
                     }
-                } else if (form.is_editable && !file_path) {
-                    // Si es editable y no tiene imagen (no debería pasar en edición pero por si acaso)
-                    file_path = EXAMPLE_IMG;
+                } else if (form.is_editable) {
+                    // Si es editable, intentamos regenerar la imagen a partir del JSON si este cambió
+                    if (jsonFile) {
+                        try {
+                            const imageBlob = await generateImageFromJson(jsonFile);
+                            const fileName = jsonFile.name.replace(/\.json$/i, "") + ".jpg";
+                            const imageFile = new File([imageBlob], fileName, { type: "image/jpeg" });
+                            
+                            let uploadedImage;
+                            const existingImagePath = getStoragePathFromDownloadURL(media?.file_path);
+                            if (existingImagePath) {
+                                uploadedImage = await uploadFileToExactPathWithProgress(imageFile, existingImagePath, (p) => setUploadImgProgress(p));
+                            } else {
+                                uploadedImage = await uploadFileToStorageWithProgress(imageFile, `media/image`, (p) => setUploadImgProgress(p));
+                            }
+                            file_path = uploadedImage.downloadURL;
+                            
+                            // Borrar la imagen anterior SOLO si la URL cambió
+                            if (media?.file_path && existingImagePath !== getStoragePathFromDownloadURL(file_path)) {
+                                try { await deleteFileByDownloadURL(media.file_path); } catch {}
+                            }
+                        } catch (err) {
+                            console.error("Error generating image from JSON:", err);
+                        }
+                    } else if (!file_path) {
+                        file_path = "EXAMPLE_IMG";
+                    }
                 }
+
+                let json_path = form.json_path;
+
+                if (form.media_type === "image" && form.is_editable && jsonFile) {
+                    let uploadedJson;
+                    const existingJsonPath = getStoragePathFromDownloadURL(media?.json_path);
+
+                    if (existingJsonPath) {
+                        console.log("Existing JSON path:", existingJsonPath);
+                        uploadedJson = await uploadFileToExactPathWithProgress(jsonFile, existingJsonPath, (p) => setUploadJsonProgress(p));
+                    } else {
+                        console.log("Uploading new JSON path:", jsonFile);
+                        uploadedJson = await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadJsonProgress(p));
+                    }
+                    json_path = uploadedJson.downloadURL;
+
+                    // Borrar el JSON anterior SOLO si la URL cambió
+                    if (media?.json_path && existingJsonPath !== getStoragePathFromDownloadURL(json_path)) {
+                        try { await deleteFileByDownloadURL(media.json_path); } catch {}
+                    }
+                }
+
 
                 const payload: any = {
                     media_type: form.media_type,
                     owner_id: ownerId,
                     file_path,
                     is_editable: form.media_type === "image" ? form.is_editable : false,
-                    json_path: form.media_type === "image" && form.is_editable ? (jsonFile ? (await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadProgress(p))).downloadURL : form.json_path) : null,
+                    json_path: form.media_type === "image" && form.is_editable ? json_path : null,
                 };
 
                 await updateMedia(media.id, payload);
@@ -447,17 +517,35 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 }
 
                 if (form.media_type === "image" && form.is_editable) {
-                    // Para imágenes editables, usamos una imagen de ejemplo
-                    const exampleImageUrl = EXAMPLE_IMG;
+                    // Para imágenes editables, generamos la imagen a partir del JSON si se proporciona
+                    let file_path = "";
                     let jsonPath = null;
+                    
                     if (jsonFile) {
-                        const uploadedJson = await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadProgress(p));
-                        jsonPath = uploadedJson.downloadURL;
+                        try {
+                            // 1. Generar imagen del JSON
+                            const imageBlob = await generateImageFromJson(jsonFile);
+                            const fileName = jsonFile.name.replace(/\.json$/i, "") + ".jpg";
+                            const imageFile = new File([imageBlob], fileName, { type: "image/jpeg" });
+                            const uploadedImage = await uploadFileToStorageWithProgress(imageFile, `media/image`, (p) => setUploadImgProgress(p));
+                            file_path = uploadedImage.downloadURL;
+
+                            console.log("Uploaded image:", uploadedImage);
+                            
+                            // 2. Subir JSON
+                            const uploadedJson = await uploadFileToStorageWithProgress(jsonFile, `media/json`, (p) => setUploadJsonProgress(p));
+                            jsonPath = uploadedJson.downloadURL;
+
+                            console.log("Uploaded JSON:", uploadedJson);
+                        } catch (err) {
+                            console.error("Error processing editable image:", err);
+                        }
                     }
+
                     await createMedia({
                         media_type: "image",
                         owner_id: ownerId,
-                        file_path: exampleImageUrl,
+                        file_path: file_path,
                         is_editable: true,
                         json_path: jsonPath,
                     });
@@ -465,7 +553,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     // Multiple images: create one media per file
                     for (let i = 0; i < file.length; i++) {
                         const f = file[i];
-                        const uploaded = await uploadFileToStorageWithProgress(f, `media/image`, (p) => setUploadProgress(p));
+                        const uploaded = await uploadFileToStorageWithProgress(f, `media/image`, (p) => setUploadImgProgress(p));
 
                         await createMedia({
                             media_type: "image",
@@ -730,7 +818,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             </div>
             
             {form.media_type === "image" && (file || imagePreviewUrls.size > 0) && (
-                <div className="mb-5">
+                    <div className="mb-5">
                     <Label>{media ? t("labels.imageSectionSingle") : t("labels.imageSectionMultiple")}</Label>
                     <div className="mt-3 space-y-4">
                         {media ? (
@@ -756,33 +844,56 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             // Multiple image previews for creating
                             <div className="grid grid-cols-1 gap-4">
                                 {Array.from(imagePreviewUrls.entries()).map(([index, previewUrl]) => (
-                                <div key={index} className="p-3 border rounded-md">
-                                    <div className="flex flex-col gap-4">
-                                        {/* Image preview */}
-                                        <div className="flex gap-4">
-                                            <div className="w-24 h-24 flex-shrink-0 border rounded overflow-hidden">
-                                                <Image
-                                                    src={previewUrl}
-                                                    alt={t("labels.imageAltNumber", { n: index + 1 })}
-                                                    className="w-full h-full object-cover"
-                                                    width={100}
-                                                    height={100}
-                                                />
-                                            </div>
-                                            <div className="flex-grow">
-                                                <div className="font-medium text-sm mb-1">{t("labels.imageNumber", { n: index + 1 })}</div>
-                                                <div className="text-xs text-gray-500 truncate">
-                                                    {(file as File[])[index]?.name}
+                                    <div key={index} className="p-3 border rounded-md">
+                                        <div className="flex flex-col gap-4">
+                                            {/* Image preview */}
+                                            <div className="flex gap-4">
+                                                <div className="w-24 h-24 flex-shrink-0 border rounded overflow-hidden">
+                                                    <Image
+                                                        src={previewUrl}
+                                                        alt={t("labels.imageAltNumber", { n: index + 1 })}
+                                                        className="w-full h-full object-cover"
+                                                        width={100}
+                                                        height={100}
+                                                    />
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <div className="font-medium text-sm mb-1">{t("labels.imageNumber", { n: index + 1 })}</div>
+                                                    <div className="text-xs text-gray-500 truncate">
+                                                        {(file as File[])[index]?.name}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
+            )}
+
+            {form.media_type === "image" && form.is_editable && (
+                <>
+                    {(loading && uploadImgProgress > 0) && (
+                        <div className="mt-3">
+                            <div className="text-sm text-gray-700">{convertStatus || t("status.uploadingImg")}</div>
+                            <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                                <div className="bg-blue-600 h-2 rounded" style={{ width: `${convertProgress}%` }} />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{convertProgress}%</div>
+                        </div>
+                    )}
+                    {(loading && uploadJsonProgress > 0) && (
+                        <div className="mt-3">
+                            <div className="text-sm text-gray-700">{t("status.uploadingJson")}</div>
+                            <div className="w-full bg-gray-200 rounded h-2 mt-1">
+                                <div className="bg-green-600 h-2 rounded" style={{ width: `${uploadProgress}%` }} />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">{ Math.round(uploadProgress)}%</div>
+                        </div>
+                    )}
+                </>
             )}
 
             <div className="flex gap-2 justify-end">

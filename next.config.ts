@@ -49,7 +49,10 @@ const nextConfig: NextConfig = {
         'player-adonplay.local',
         'api-adonplay.local',
         'frontend-adonplay.local',
-        'localhost'
+        'localhost',
+        'geniusdevelopse.com',
+        '*.geniusdevelops.com',
+        'fonts.googleapis.com',
     ],
     /* config options here */
   webpack(config) {

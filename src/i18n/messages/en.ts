@@ -295,6 +295,9 @@ const en = {
                 convertingVideo: "Converting video... Don`t refresh the browser",
                 conversionFinished: "Conversion finished",
                 uploadingVideo: "Uploading video... Don`t refresh the browser",
+                uploadingImg: "Uploading Image... Don`t refresh the browser",
+                uploadingJson: "Uploading JSON... Don`t refresh the browser",
+                updating: "Updating ... Don`t refresh the browser",
             },
             messages: {
                 itemUpdated: "Item updated successfully",

@@ -85,6 +85,11 @@ const MediaTable = () => {
                     .map((item) => item.file_path)
                     .filter(Boolean);
 
+                const jsonToDelete = media
+                    .filter((item) => selectedMedia.includes(item.id))
+                    .map((item) => item.json_path)
+                    .filter(Boolean);
+
                 const response = await deleteMedia(selectedMedia);
 
                 // Update local state
@@ -97,6 +102,11 @@ const MediaTable = () => {
                 Promise.allSettled(
                     urlsToDelete.map((url: string) => deleteFileByDownloadURL(url))
                 ).then(() => {/* noop */});
+
+                Promise.allSettled(
+                    jsonToDelete.map((url: string) => deleteFileByDownloadURL(url))
+                ).then(() => {/* noop */});
+
             } catch (err: any) {
                 setError(err.data?.message || err.message || "Error");
             } finally {
