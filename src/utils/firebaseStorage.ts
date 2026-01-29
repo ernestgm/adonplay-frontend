@@ -84,3 +84,17 @@ export async function deleteFileByDownloadURL(url: string): Promise<void> {
   const storageRef = ref(storage, path);
   await deleteObject(storageRef);
 }
+
+/**
+ * Extrae solo el nombre del archivo (ej: "foto.png") de una URL de Firebase,
+ * eliminando toda la ruta de carpetas anterior.
+ */
+export function getFileNameFromURL(url: string | null | undefined): string | null {
+  const fullPath = getStoragePathFromDownloadURL(url);
+
+  if (!fullPath) return null;
+
+  // El nombre del archivo es todo lo que está después del último "/"
+  const parts = fullPath.split("/");
+  return parts.pop() || null;
+}

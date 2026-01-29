@@ -8,7 +8,7 @@ import {
 } from "../ui/table";
 
 import Badge from "../ui/badge/Badge";
-import Image from "next/image";
+import Image from "@/components/ui/images/ExpandableImage";
 
 interface Order {
   id: number;

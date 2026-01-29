@@ -4,7 +4,7 @@ import React, {useState} from "react";
 import { MdAudioFile } from "react-icons/md";
 import { QRCodeCanvas } from "qrcode.react";
 import mediaUrl from "@/utils/files";
-import Image from "next/image";
+import Image from "@/components/ui/images/ExpandableImage";
 import {useT} from "@/i18n/I18nProvider";
 
 // Base URL for media files

@@ -415,6 +415,7 @@ const es = {
                     select: "Seleccionar",
                     preview: "Vista previa",
                     type: "Tipo",
+                    name: "Nombre",
                 },
                 empty: "No hay media disponible",
             },

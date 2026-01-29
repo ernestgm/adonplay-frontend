@@ -33,8 +33,9 @@ import Checkbox from "@/components/form/input/Checkbox";
 import {MdSearch} from "react-icons/md";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
-import Image from "next/image";
+import Image from "@/components/ui/images/ExpandableImage";
 import { useT } from "@/i18n/I18nProvider";
+import {getFileNameFromURL} from "@/utils/firebaseStorage";
 
 
 const descriptionPositions = config.positions;
@@ -455,6 +456,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     <TableHeader className="bg-gray-50">
                                         <TableRow>
                                             <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.select")}</TableCell>
+                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.name")}</TableCell>
                                             <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.preview")}</TableCell>
                                             <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.type")}</TableCell>
                                         </TableRow>
@@ -484,15 +486,18 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                             />
                                                         )}
                                                     </TableCell>
+                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                                        { getFileNameFromURL(item.file_path) }
+                                                    </TableCell>
                                                     <TableCell className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
-                                                        <div className="w-16 h-16 border rounded overflow-hidden">
+                                                        <div className="border rounded overflow-hidden">
                                                             {item.media_type === "image" ? (
                                                                 <Image
                                                                     src={mediaUrl(item.file_path)}
                                                                     alt="Image preview"
                                                                     className="w-full h-full object-cover"
-                                                                    width={100}
-                                                                    height={100}
+                                                                    width={config.thumbnailSizes.width}
+                                                                    height={config.thumbnailSizes.height}
                                                                 />
                                                             ) : (
                                                                 <video src={mediaUrl(item.file_path)} className="w-full h-full object-cover" muted />

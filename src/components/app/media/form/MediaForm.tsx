@@ -16,7 +16,7 @@ import Label from "@/components/form/Label";
 import { ChevronDownIcon } from "@/icons";
 import FileInput from "@/components/form/input/FileInput";
 import mediaUrl from "@/utils/files";
-import Image from "next/image";
+import Image from "@/components/ui/images/ExpandableImage";
 import { getVideoDuration, transcodeToH264Compatible } from "@/utils/videoTranscode";
 import { useT } from "@/i18n/I18nProvider";
 
@@ -629,8 +629,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                                 alt={t("labels.imageAlt")}
                                                 className="w-full h-auto object-contain"
                                                 style={{ maxHeight: '250px' }}
-                                                width={100}
-                                                height={100}
+                                                width={config.thumbnailSizes.width}
+                                                height={config.thumbnailSizes.height}
                                             />
                                         </div>
                                     </div>
@@ -649,8 +649,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                                                     src={previewUrl}
                                                     alt={t("labels.imageAltNumber", { n: index + 1 })}
                                                     className="w-full h-auto object-contain"
-                                                    width={100}
-                                                    height={100}
+                                                    width={config.thumbnailSizes.width}
+                                                    height={config.thumbnailSizes.height}
                                                 />
                                             </div>
                                         </div>

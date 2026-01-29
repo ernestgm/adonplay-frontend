@@ -36,6 +36,7 @@ import mediaUrl from "@/utils/files";
 import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
 import {QRCodeCanvas} from "qrcode.react";
 import { useT } from "@/i18n/I18nProvider";
+import {getFileNameFromURL} from "@/utils/firebaseStorage";
 
 interface SlideMediaTableProps {
     slide?: any; // Optional className for styling
@@ -272,6 +273,7 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("order")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("audio")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("qr")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("duration")}</TableCell>
@@ -331,13 +333,13 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {/* Access media_type and file_path from nested media object */}
                                             {item.media.media_type === "image" ? (
-                                                <div className="w-16 h-16 border rounded overflow-hidden">
+                                                <div className="border rounded overflow-hidden">
                                                     <Image
                                                         src={mediaUrl(item.media.file_path)}
                                                         alt="Picture of the author"
                                                         className="w-full h-full object-cover"
-                                                        width={100}
-                                                        height={90}
+                                                        width={config.thumbnailSizes.width}
+                                                        height={config.thumbnailSizes.height}
                                                     />
                                                 </div>
                                             ) : item.media.media_type === "video" ? (
@@ -352,6 +354,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                 </div>
                                             )
                                             }
+                                        </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            { getFileNameFromURL(item.media.file_path) }
                                         </TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             { item.qr ? (

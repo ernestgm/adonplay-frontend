@@ -24,8 +24,8 @@ import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
 import { fetchMedia, deleteMedia } from "@/server/api/media";
 import mediaUrl from "@/utils/files";
-import Image from "next/image";
-import { deleteFileByDownloadURL } from "@/utils/firebaseStorage";
+import Image from "@/components/ui/images/ExpandableImage";
+import { deleteFileByDownloadURL, getFileNameFromURL} from "@/utils/firebaseStorage";
 import { useT } from "@/i18n/I18nProvider";
 
 const MediaTable = () => {
@@ -187,8 +187,8 @@ const MediaTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("user")}</TableCell>
                                     <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
+                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
                                     <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
@@ -201,16 +201,15 @@ const MediaTable = () => {
                                                 onChange={() => toggleSelectMedia(item.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.owner.name}</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {item.media_type === "image" ? (
-                                                <div className="w-16 h-16 border rounded overflow-hidden">
+                                                <div className="border rounded overflow-hidden">
                                                     <Image
                                                         src={mediaUrl(item.file_path)}
                                                         alt="Image preview"
                                                         className="w-full h-full object-cover"
-                                                        width={160}
-                                                        height={160}
+                                                        width={config.thumbnailSizes.width}
+                                                        height={config.thumbnailSizes.height}
                                                     />
                                                 </div>
                                             ) : item.media_type === "video" ? (
@@ -226,6 +225,7 @@ const MediaTable = () => {
                                             )
                                             }
                                         </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ getFileNameFromURL(item.file_path) }</TableCell>
                                         <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("view")}>

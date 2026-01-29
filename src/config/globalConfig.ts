@@ -33,7 +33,11 @@ const config = {
         {value: "image", label: "Imagen"},
         {value: "video", label: "Video"},
         {value: "audio", label: "Audio"},
-    ]
+    ],
+    thumbnailSizes: {
+        width: 100,
+        height: 56
+    },
 };
 
 export default config;

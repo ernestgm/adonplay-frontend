@@ -3,7 +3,7 @@
 import React from "react";
 import { MdAudioFile } from "react-icons/md";
 import mediaUrl from "@/utils/files";
-import Image from "next/image";
+import Image from "@/components/ui/images/ExpandableImage";
 import {useT} from "@/i18n/I18nProvider";
 
 

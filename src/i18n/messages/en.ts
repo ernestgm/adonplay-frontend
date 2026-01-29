@@ -428,6 +428,7 @@ const en = {
                     select: "Select",
                     preview: "Preview",
                     type: "Type",
+                    name: "Name",
                 },
                 empty: "No media available",
             },
