@@ -9,6 +9,7 @@ const es = {
             create: "Crear",
             activate: "Activar",
             delete: "Eliminar",
+            takeScreenshot: "Hacer Screenshot",
         },
         nav: {
             home: "Inicio",

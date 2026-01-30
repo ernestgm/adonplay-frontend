@@ -9,6 +9,7 @@ const en = {
             create: "Create",
             activate: "Activate",
             delete: "Delete",
+            takeScreenshot: "Take Screenshot",
         },
         nav: {
             home: "Home",

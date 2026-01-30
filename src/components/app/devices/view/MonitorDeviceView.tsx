@@ -116,35 +116,38 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
         <div className="mx-auto p-4 bg-white rounded shadow">
             <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                        <Label>{t("labels.deviceId")} </Label>
-                        <Label className="font-bold">
-                            { device?.device_id }
-                        </Label>
+                    <div className={"mb-5"}>
+                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                            <Label>{t("labels.deviceId")} </Label>
+                            <Label className="font-bold">
+                                { device?.device_id }
+                            </Label>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                            <Label>{t("labels.name")}</Label>
+                            <Label className="font-bold">{ device?.name }</Label>
+                        </div>
                     </div>
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                        <Label>{t("labels.name")}</Label>
-                        <Label className="font-bold">{ device?.name }</Label>
+                    <div className={"mb-5 border rounded-lg p-4 bg-gray-50"}>
+                        <div className="mb-5">
+                            <Button loading={waiting} onClick={() => getScreenShot()} className="w-full">{tBtn("takeScreenshot")}</Button>
+                        </div>
+                        {
+                            showScreenShoot && (
+                                <div className="mb-5">
+                                    <Image
+                                        src={screenShotUrl}
+                                        alt="Captura de pantalla"
+                                        width={600}
+                                        height={337}
+                                        className="w-full h-full object-contain"
+                                    />
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="mb-5">
-                        <Button loading={waiting} onClick={() => getScreenShot()} className="w-full">{tBtn("takeScreenshot")}</Button>
-                    </div>
-                    {
-                        showScreenShoot && (
-                            <div className="mb-5">
-                                <Image
-                                    src={screenShotUrl}
-                                    alt="Captura de pantalla"
-                                    width={600}
-                                    height={337}
-                                    className="w-full h-full object-contain"
-                                />
-                            </div>
-                        )
-                    }
-                </div>
+
             </div>
             {
                 showCharts && (
