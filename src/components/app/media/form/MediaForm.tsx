@@ -805,7 +805,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     </div>
                 </div>
             )}
-            
+
             {/* Legacy audio input - hidden but kept for backward compatibility */}
             <div className="hidden">
                 <FileInput
@@ -816,9 +816,9 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     hint={audioError}
                 />
             </div>
-            
+
             {form.media_type === "image" && (file || imagePreviewUrls.size > 0) && (
-                    <div className="mb-5">
+                <div className="mb-5">
                     <Label>{media ? t("labels.imageSectionSingle") : t("labels.imageSectionMultiple")}</Label>
                     <div className="mt-3 space-y-4">
                         {media ? (
@@ -894,27 +894,6 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         </div>
                     )}
                 </>
-                                <div key={index} className="p-3 border rounded-md">
-                                    <div className="flex flex-row gap-4">
-                                        {/* Image preview */}
-                                        <div className="w-full">
-                                            <div className="border rounded overflow-hidden">
-                                                <Image
-                                                    src={previewUrl}
-                                                    alt={t("labels.imageAltNumber", { n: index + 1 })}
-                                                    className="w-full h-auto object-contain"
-                                                    width={config.thumbnailSizes.width}
-                                                    height={config.thumbnailSizes.height}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </div>
             )}
 
             <div className="flex gap-2 justify-end">
