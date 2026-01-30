@@ -7,6 +7,10 @@ import { useT } from "@/i18n/I18nProvider";
 import {useStatusActionsChannel} from "@/websockets/channels/statusActionsChannel";
 import CircularChart from "@/components/charts/circular/CircularChart";
 import formatBytes from "@/utils/formatBytes";
+import {useReportActionsChannel} from "@/websockets/channels/reportActionsChannel";
+import Button from "@/components/ui/button/Button";
+import Image from "@/components/ui/images/ExpandableImage";
+import mediaUrl from "@/utils/files";
 
 interface UserFormProps {
     device?: any;
@@ -22,13 +26,17 @@ interface RamDiskCpuData {
 }
 
 const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
+    const [reportSubscription, setReportSubscription] = useState<any>(null);
+    const [screenShotUrl, setScreenShotUrl] = useState("");
     const t = useT("forms.devices");
+    const tBtn = useT("common.buttons");
     const tHeaders = useT("common.table.headers");
     const tUtil = useT("util");
     const [ramData, setRamData] = useState<{name:string, value: number}[]>([])
     const [diskData, setDiskData] = useState<{name:string, value: number}[]>([])
     const [cpuData, setCpuData] = useState<{name:string, value: number}[]>([])
     const [showCharts, setShowChart] = useState(false)
+    const [showScreenShoot, setShowScreenShoot] = useState(false)
     const [metrics, setMetrics] = useState<RamDiskCpuData>({
         cpu_usage: 0,
         device_id: "",
@@ -37,6 +45,7 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
         total_disk: 0,
         total_ram: 0
     })
+    const [waiting, setWaiting] = useState(false)
 
 
     useStatusActionsChannel("frontend", (data: any) => {
@@ -76,43 +85,79 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
         setShowChart(false)
     })
 
+    useReportActionsChannel("frontend", (data: any) => {
+        if (data.device_id !== device?.device_id) return;
+        if (data.action === "screenshot_ready") {
+            setWaiting(false)
+            setShowScreenShoot(true)
+            setScreenShotUrl(data.url);
+        }
+
+        console.log("📊 Recibido reporte de estado");
+    }, () => {
+        setWaiting(false)
+        setShowScreenShoot(false)
+        console.log("❌ Desconectado de ReportActionsChannel");
+    }, (subscription: any) => {
+        setReportSubscription(subscription);
+        console.log("✅ Conectado a ReportActionsChannel");
+    })
+
+    const getScreenShot = () => {
+        console.log("📷 Taking screenshot", reportSubscription);
+        if (reportSubscription) {
+            setWaiting(true)
+            setShowScreenShoot(false)
+            setScreenShotUrl("");
+            reportSubscription.perform('request_screenshot', {
+                body: {
+                    action: "screenshot",
+                    device_id: device?.device_id
+                }
+            });
+        }
+    }
+
     return (
         <div className="mx-auto p-4 bg-white rounded shadow">
-            <div className="mb-5 flex flex-row items-center gap-1">
-                <Label>{t("labels.deviceId")} </Label>
-                <Label className="font-bold">
-                    { device?.device_id }
-                </Label>
-            </div>
-            <div className="mb-5">
-                <Label>{t("labels.name")}</Label>
-                <Label className="font-bold">{ device?.name }</Label>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="mb-5">
-                    <Label>{t("labels.user")}</Label>
-                    <div className="flex flex-shrink-0 w-full sm:w-auto">
-                        <Label className="font-bold">{ device?.user?.name }</Label>
+            <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={"mb-5"}>
+                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                            <Label>{t("labels.deviceId")} </Label>
+                            <Label className="font-bold">
+                                {device?.device_id}
+                            </Label>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                            <Label>{t("labels.name")}</Label>
+                            <Label className="font-bold">{device?.name}</Label>
+                        </div>
+                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                            <Label>{t("labels.name")}</Label>
+                            <Label className="font-bold">{device?.name}</Label>
+                        </div>
                     </div>
-                </div>
-                <div className="mb-5">
-                    <Label>{t("labels.slides")}</Label>
-                    <div className="flex flex-shrink-0 w-full sm:w-auto">
-                        <Label className="font-bold">{ device?.slide ? device?.slide?.name : "No" }</Label>
-                    </div>
-                </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="mb-5">
-                    <Label>{t("labels.qr")}</Label>
-                    <div className="flex flex-shrink-0 w-full sm:w-auto">
-                        <Label className="font-bold">{ device?.qr ? device?.qr?.name : "No" }</Label>
-                    </div>
-                </div>
-                <div className="mb-5">
-                    <Label>{t("labels.marquee")}</Label>
-                    <div className="flex flex-shrink-0 w-full sm:w-auto">
-                        <Label className="font-bold">{ device?.marquee ? device?.marquee?.name : "No" }</Label>
+                    <div className={"mb-5"}>
+                        <div className="mb-5">
+                            <Button loading={waiting} onClick={() => getScreenShot()}
+                                    className="w-full">{tBtn("takeScreenshot")}</Button>
+                        </div>
+                        {
+                            showScreenShoot && (
+                                <div className="flex flex-col items-center">
+                                    <div className="w-full max-w-md border rounded overflow-hidden mb-4 relative">
+                                        <Image
+                                            src={screenShotUrl}
+                                            alt="Captura de pantalla"
+                                            width={600}
+                                            height={337}
+                                            className="w-full h-auto object-contain"
+                                        />
+                                    </div>
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
             </div>
