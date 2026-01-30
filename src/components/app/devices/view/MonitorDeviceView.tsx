@@ -126,40 +126,34 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
                         <div className="border rounded-lg p-4 bg-gray-50 mb-5">
                             <Label>{t("labels.deviceId")} </Label>
                             <Label className="font-bold">
-                                {device?.device_id}
+                                { device?.device_id }
                             </Label>
                         </div>
                         <div className="border rounded-lg p-4 bg-gray-50 mb-5">
                             <Label>{t("labels.name")}</Label>
-                            <Label className="font-bold">{device?.name}</Label>
-                        </div>
-                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
-                            <Label>{t("labels.name")}</Label>
-                            <Label className="font-bold">{device?.name}</Label>
+                            <Label className="font-bold">{ device?.name }</Label>
                         </div>
                     </div>
-                    <div className={"mb-5"}>
+                    <div className={"mb-5 border rounded-lg p-4 bg-gray-50"}>
                         <div className="mb-5">
-                            <Button loading={waiting} onClick={() => getScreenShot()}
-                                    className="w-full">{tBtn("takeScreenshot")}</Button>
+                            <Button loading={waiting} onClick={() => getScreenShot()} className="w-full">{tBtn("takeScreenshot")}</Button>
                         </div>
                         {
                             showScreenShoot && (
-                                <div className="flex flex-col items-center">
-                                    <div className="w-full max-w-md border rounded overflow-hidden mb-4 relative">
-                                        <Image
-                                            src={screenShotUrl}
-                                            alt="Captura de pantalla"
-                                            width={600}
-                                            height={337}
-                                            className="w-full h-auto object-contain"
-                                        />
-                                    </div>
+                                <div className="mb-5">
+                                    <Image
+                                        src={screenShotUrl}
+                                        alt="Captura de pantalla"
+                                        width={600}
+                                        height={337}
+                                        className="w-full h-full object-contain"
+                                    />
                                 </div>
                             )
                         }
                     </div>
                 </div>
+
             </div>
             {
                 showCharts && (
