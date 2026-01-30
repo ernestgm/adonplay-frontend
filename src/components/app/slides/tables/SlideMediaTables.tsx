@@ -17,7 +17,7 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import Image from 'next/image'
+import Image from "@/components/ui/images/ExpandableImage";
 import {
     MdSearch,
     MdDelete,
@@ -37,6 +37,7 @@ import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/a
 import {QRCodeCanvas} from "qrcode.react";
 import { useT } from "@/i18n/I18nProvider";
 import {getFileNameFromURL} from "@/utils/firebaseStorage";
+import ExpandableImage from "@/components/ui/images/ExpandableImage";
 
 interface SlideMediaTableProps {
     slide?: any; // Optional className for styling
