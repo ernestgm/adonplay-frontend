@@ -65,3 +65,14 @@ export const updateDevicePermissions = async (id: number, data: any  ) => {
     };
   }
 };
+
+export const deleteDevicePermissions = async (deviceId: number) => {
+  try {
+    return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes`, {'id': deviceId});
+  } catch (error) {
+    throw {
+      status: isAxiosError(error) ? (error.response?.status ?? 500) : 500,
+      data: isAxiosError(error) ? (error.response?.data ?? "Error al eliminar Devices.") : "Error al eliminar Devices.",
+    };
+  }
+};

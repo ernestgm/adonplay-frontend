@@ -14,13 +14,21 @@ import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
 import Input from "@/components/form/input/InputField";
-import {MdSearch} from "react-icons/md";
+import {MdDelete, MdSearch} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import {useMessage} from "@/context/MessageContext";
 import filterItems from "@/utils/filterItems";
-import {fetchDevicesPermissions, updateDevicePermissions} from "@/server/api/devices";
+import {
+    deleteDevicePermissions,
+    deleteDevicesAPI,
+    fetchDevicesPermissions,
+    updateDevicePermissions
+} from "@/server/api/devices";
 import Switch from "@/components/form/switch/Switch";
 import { useT } from "@/i18n/I18nProvider";
+import Button from "@/components/ui/button/Button";
+import Tooltip from "@/components/ui/tooltip/Tooltip";
+import ActionModal from "@/components/ui/modal/ActionModal";
 
 
 type DevicePermissionItem = {
@@ -31,6 +39,8 @@ type DevicePermissionItem = {
 } & Record<string, unknown>;
 
 const DevicesPermissionsTable = () => {
+    const tCommon = useT("common.buttons");
+    const tActions = useT("common.table.actions");
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tFilters = useT("common.table.filters");
@@ -42,6 +52,10 @@ const DevicesPermissionsTable = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
+    const [selectedDevice, setSelectedDevice] = useState<number>();
+    const [isWarningModalOpen, setIsWarningModalOpen] = useState(false);
+
+
 
     useEffect(() => {
         const fetchData = async () => {
@@ -79,8 +93,37 @@ const DevicesPermissionsTable = () => {
         currentPage * itemsPerPage
     );
 
+    const openWarningModal = (deviceId: number) => {
+        setSelectedDevice(deviceId)
+        setIsWarningModalOpen(true);
+    };
+
+    const confirmDeleteDevices = async () => {
+        if (selectedDevice !== undefined && selectedDevice !== null && selectedDevice > 0) {
+            try {
+                const response = await deleteDevicePermissions(selectedDevice);
+                setDevices((prev) => prev.filter((device) => device.id !== selectedDevice));
+                setMessage(response.message);
+            } catch (err: any) {
+                setError(err.data?.message || err.message || "Error al eliminar Devices");
+            } finally {
+                setIsWarningModalOpen(false);
+            }
+        }
+    };
+
     return (
         <>
+            <ActionModal
+                isOpen={isWarningModalOpen}
+                onClose={() => setIsWarningModalOpen(false)}
+                title={tTable("modals.delete.title")}
+                message={tTable("modals.delete.message")}
+                actions={[
+                    {label: tCommon("cancel"), onClick: () => setIsWarningModalOpen(false)},
+                    {label: tCommon("delete"), onClick: confirmDeleteDevices, variant: "primary"},
+                ]}
+            />
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <div className="relative">
@@ -116,6 +159,10 @@ const DevicesPermissionsTable = () => {
                                         {tHeaders("code")}
                                     </TableCell>
                                     <TableCell
+                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                        {tHeaders("active")}
+                                    </TableCell>
+                                    <TableCell
                                         className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
                                         {tHeaders("actions")}
                                     </TableCell>
@@ -130,6 +177,9 @@ const DevicesPermissionsTable = () => {
                                         <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                             {device.code}
                                         </TableCell>
+                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            {device.active ? tTable("yes") : tTable("no")}
+                                        </TableCell>
                                         <TableCell
                                             className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
                                             <div className="flex gap-2 justify-end">
@@ -139,6 +189,18 @@ const DevicesPermissionsTable = () => {
                                                     defaultChecked={device.registered}
                                                     onChange={handleSwitchChange}
                                                 />
+                                                {!device.active && (
+                                                    <Tooltip content={tActions("delete")}>
+                                                        <Button
+                                                            onClick={() => openWarningModal(device.id)}
+                                                            variant="danger"
+                                                            size="sm"
+                                                        >
+                                                            <MdDelete size={18}/>
+                                                        </Button>
+                                                    </Tooltip>
+                                                )
+                                                }
                                             </div>
                                         </TableCell>
                                     </TableRow>
