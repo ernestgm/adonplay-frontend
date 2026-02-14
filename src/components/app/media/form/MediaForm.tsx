@@ -483,8 +483,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     </span>
                 </div>
             </div>
-            
-            {isAdmin && media && (
+
+            {isAdmin && (
                 <div className="mb-5">
                     <Label>{t("labels.ownerRequired")}</Label>
                     <div className="relative">
