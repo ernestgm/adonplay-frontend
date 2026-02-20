@@ -37,11 +37,13 @@ const ExpandableImage: React.FC<ExpandableImageProps> = (props) => {
           className="flex items-center justify-center w-full h-full cursor-zoom-out"
           onClick={() => setIsExpanded(false)}
         >
-          <img
-            src={typeof props.src === 'string' ? props.src : ''}
-            alt={props.alt || "Expanded image"}
-            className="max-w-full max-h-[85vh] object-contain rounded-lg"
-          />
+            <Image
+                src={typeof props.src === 'string' ? props.src : ''}
+                alt={props.alt || "Expanded image"}
+                className="w-full max-h-[85vh] object-contain rounded-lg"
+                width={1024}
+                height={768}
+            />
         </div>
       </Modal>
     </>
