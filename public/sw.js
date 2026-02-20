@@ -1,15 +1,16 @@
 /*
-  Service Worker for caching media from Firebase Storage and other remote sources.
-  - Cache-first strategy for images, videos, and audio.
-  - New: small video/audio are cached as full files and Range requests are served from cache.
+  Service Worker Optimizado para Media (Firebase Storage)
+  - Estrategia: Cache-First.
+  - Memoria: Uso de Blobs para evitar colapsos de RAM.
+  - Ahorro: Normalización de URLs para evitar duplicados por tokens.
+  - Eficiencia: Eliminación de peticiones HEAD innecesarias.
 */
 
-const SW_VERSION = 'v2';
+const SW_VERSION = 'v3';
 const MEDIA_CACHE = `media-cache-${SW_VERSION}`;
 
-// Max size (bytes) to fully cache video/audio. Adjust as needed.
-// Default ~25 MB
-const MAX_MEDIA_BYTES = 1024 * 1024 * 1024;
+// Límite de seguridad para caché (100MB es más seguro que 1GB para navegadores móviles)
+const MAX_MEDIA_BYTES = 100 * 1024 * 1024;
 
 const FIREBASE_HOSTS = new Set([
     'firebasestorage.googleapis.com',
@@ -17,55 +18,69 @@ const FIREBASE_HOSTS = new Set([
 ]);
 
 self.addEventListener('install', (event) => {
-    // Activate immediately on install
     self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         (async () => {
-            // Claim clients so the SW starts controlling pages immediately
             await self.clients.claim();
             const keys = await caches.keys();
             await Promise.all(
                 keys
-                    .filter((k) => !k.startsWith('media-cache-') || k !== MEDIA_CACHE)
+                    .filter((k) => k.startsWith('media-cache-') && k !== MEDIA_CACHE)
                     .map((k) => caches.delete(k))
             );
         })()
     );
 });
 
+/**
+ * Normaliza la URL para usarla como clave de caché.
+ * Elimina tokens de Firebase (?token=...) para que si la imagen es la misma,
+ * se sirva desde caché aunque el token de acceso haya cambiado.
+ */
+function getCacheKey(request) {
+    const url = new URL(request.url);
+    if (FIREBASE_HOSTS.has(url.hostname)) {
+        return url.origin + url.pathname; // Solo origen + ruta, ignoramos query params
+    }
+    return request.url;
+}
+
 function isMediaRequest(request) {
-    // Prefer the Request.destination hint when available
     const dest = request.destination;
     if (dest === 'image' || dest === 'video' || dest === 'audio') return true;
 
-    // Fallback by extension in URL
     const url = new URL(request.url);
     const pathname = url.pathname.toLowerCase();
-    if (/(\.(png|jpg|jpeg|gif|webp|avif|svg|mp4|webm|ogv|mov|m4v|mp3|wav|ogg|m4a|aac))$/.test(pathname)) {
-        return true;
-    }
+    return /(\.(png|jpg|jpeg|gif|webp|avif|svg|mp4|webm|ogv|mov|m4v|mp3|wav|ogg|m4a|aac))$/.test(pathname);
+}
 
-    // Heuristic: Firebase hosts often serve media with token parameters
-    if (FIREBASE_HOSTS.has(url.hostname)) {
-        // We still limit to GET and non-Range below
-        return true;
-    }
-
-    return false;
+/**
+ * Procesa peticiones parciales (Range) usando Blobs en lugar de ArrayBuffers.
+ * Esto es mucho más eficiente en el uso de memoria RAM.
+ */
+function partialResponseFromBlob(blob, range, contentType) {
+    const {start, end} = range;
+    const chunk = blob.slice(start, end + 1);
+    const headers = new Headers({
+        'Content-Type': contentType || 'application/octet-stream',
+        'Content-Range': `bytes ${start}-${end}/${blob.size}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': String(chunk.size),
+    });
+    return new Response(chunk, {status: 206, headers});
 }
 
 function parseRangeHeader(rangeHeader, total) {
-    // Supports single range: bytes=start-end
     if (!rangeHeader || !rangeHeader.startsWith('bytes=')) return null;
     const s = rangeHeader.substring(6).trim();
     const [startStr, endStr] = s.split('-', 2);
     let start = startStr ? parseInt(startStr, 10) : NaN;
     let end = endStr ? parseInt(endStr, 10) : NaN;
+
     if (Number.isNaN(start)) {
-        // suffix range: bytes=-N (last N bytes)
         const n = Number.isNaN(end) ? 0 : end;
         if (!total || n <= 0) return null;
         start = Math.max(0, total - n);
@@ -77,115 +92,66 @@ function parseRangeHeader(rangeHeader, total) {
     return {start, end};
 }
 
-function partialResponseFromBuffer(buffer, range, contentType) {
-    const {start, end} = range;
-    const chunk = buffer.slice(start, end + 1);
-    const headers = new Headers({
-        'Content-Type': contentType || 'application/octet-stream',
-        'Content-Range': `bytes ${start}-${end}/${buffer.byteLength}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': String(chunk.byteLength),
-    });
-    return new Response(chunk, {status: 206, headers});
-}
-
-async function headContentLength(url) {
-    try {
-        const r = await fetch(url, {method: 'HEAD'});
-        if (!r.ok) return null;
-        const len = r.headers.get('Content-Length');
-        return len ? parseInt(len, 10) : null;
-    } catch (_) {
-        return null;
-    }
-}
-
 self.addEventListener('fetch', (event) => {
     const {request} = event;
-    if (request.method !== 'GET') return; // only cache GET
-
-    const hasRange = request.headers.has('range');
-    if (!isMediaRequest(request)) {
-        return; // not a media request
-    }
+    if (request.method !== 'GET' || !isMediaRequest(request)) return;
 
     event.respondWith(
         (async () => {
             const cache = await caches.open(MEDIA_CACHE);
-            // Use URL as the cache key; we intentionally ignore Range header for keying full file
-            const url = new URL(request.url);
-            const cacheKey = new Request(url.toString(), {method: 'GET'});
+            const cacheKey = getCacheKey(request);
 
-            // If we already have a full cached response, serve from it
-            const existing = await cache.match(cacheKey, {ignoreSearch: false});
+            // 1. Intentar buscar en caché (usando la URL normalizada)
+            const cachedResponse = await cache.match(cacheKey);
 
-            if (existing) {
-                // For images or non-range requests, return cached as-is
+            if (cachedResponse) {
+                const hasRange = request.headers.has('range');
+                // Si es imagen o no pide rango, devolver tal cual
                 if (!hasRange || request.destination === 'image') {
-                    return existing;
+                    return cachedResponse;
                 }
-                // Range requested: synthesize partial from full cached body when possible
+
+                // 2. Si es video/audio y pide rango, sintetizar respuesta desde el caché
                 try {
-                    const totalBuf = await existing.clone().arrayBuffer();
-                    const total = totalBuf.byteLength;
-                    const ct = existing.headers.get('Content-Type') || request.headers.get('Accept') || '';
-                    const range = parseRangeHeader(request.headers.get('Range'), total);
-                    if (!range) return existing; // fallback to full if parsing failed
-                    return partialResponseFromBuffer(totalBuf, range, ct);
-                } catch (_) {
-                    // If anything fails, fall back to network
+                    const blob = await cachedResponse.blob();
+                    const range = parseRangeHeader(request.headers.get('range'), blob.size);
+                    if (!range) return cachedResponse;
+                    return partialResponseFromBlob(blob, range, cachedResponse.headers.get('content-type'));
+                } catch (e) {
+                    return fetch(request); // Fallback a red si falla el blob
                 }
             }
 
-            // No existing cache entry
+            // 3. Si no está en caché, ir a la red
             try {
-                // If Range requested for video/audio, attempt to prefetch full when small enough
-                const isImage = request.destination === 'image';
-                if (hasRange && !isImage) {
-                    const contentLen = await headContentLength(url.toString());
-                    if (contentLen != null && contentLen <= MAX_MEDIA_BYTES) {
-                        const full = await fetch(url.toString(), {method: 'GET'});
-                        if (full.ok && full.type !== 'opaque') {
-                            // Cache full response
-                            await cache.put(cacheKey, full.clone());
-                            // Build partial from cached/full body
-                            const totalBuf = await full.clone().arrayBuffer();
-                            const range = parseRangeHeader(request.headers.get('Range'), totalBuf.byteLength);
-                            const ct = full.headers.get('Content-Type') || '';
-                            if (range) {
-                                return partialResponseFromBuffer(totalBuf, range, ct);
-                            }
-                            return full;
-                        }
-                    }
-                    // Fallback: just fetch the ranged request normally
-                    return fetch(request);
+                // Hacemos el fetch normal (con sus tokens originales)
+                const networkResponse = await fetch(request);
+
+                // Si la respuesta es opaca o error, no podemos/debemos procesar rangos
+                if (!networkResponse.ok && networkResponse.type !== 'opaque') {
+                    return networkResponse;
                 }
 
-                // Non-range media request: cache-first
-                const networkResp = await fetch(request);
-                if (networkResp && (networkResp.status === 200 || networkResp.type === 'opaque')) {
-                    try {
-                        // For image: cache as-is. For video/audio: only cache if size is <= MAX_MEDIA_BYTES or unknown
-                        let shouldCache = true;
-                        if (request.destination === 'video' || request.destination === 'audio') {
-                            // Try to determine size
-                            let total = parseInt(networkResp.headers.get('Content-Length') || '0', 10);
-                            if (Number.isFinite(total) && total > 0) {
-                                shouldCache = total <= MAX_MEDIA_BYTES;
-                            }
-                        }
-                        if (shouldCache) {
-                            await cache.put(cacheKey, networkResp.clone());
-                        }
-                    } catch (_) {
-                        // ignore caching errors
+                // Clonamos para guardar en caché
+                const responseToCache = networkResponse.clone();
+
+                // Guardar en caché asíncronamente para no bloquear la respuesta
+                event.waitUntil((async () => {
+                    let shouldCache = true;
+                    // Solo validar tamaño si la respuesta no es opaca (CORS habilitado)
+                    if (networkResponse.type !== 'opaque') {
+                        const size = parseInt(networkResponse.headers.get('content-length') || '0', 10);
+                        if (size > MAX_MEDIA_BYTES) shouldCache = false;
                     }
-                }
-                return networkResp;
-            } catch (e) {
-                // Network failed and no cache available; just throw
-                throw e;
+
+                    if (shouldCache) {
+                        await cache.put(cacheKey, responseToCache);
+                    }
+                })());
+
+                return networkResponse;
+            } catch (err) {
+                throw err;
             }
         })()
     );

@@ -13,7 +13,12 @@ export async function uploadFileToStorage(file: File, pathPrefix: string = "uplo
   const cleanName = sanitizeFileName(file.name);
   const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
   const storageRef = ref(storage, storagePath);
-  await uploadBytes(storageRef, file, { contentType: file.type });
+  // Definir los metadatos
+  const metadata = {
+    cacheControl: 'public,max-age=31536000', // 1 año en segundos
+    contentType: file.type,
+  };
+  await uploadBytes(storageRef, file, metadata);
   const downloadURL = await getDownloadURL(storageRef);
   return { downloadURL, storagePath };
 }
@@ -27,7 +32,11 @@ export async function uploadFileToStorageWithProgress(
   const cleanName = sanitizeFileName(file.name);
   const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
   const storageRef = ref(storage, storagePath);
-  const task = uploadBytesResumable(storageRef, file, { contentType: file.type });
+  const metadata = {
+    cacheControl: 'public,max-age=31536000', // 1 año en segundos
+    contentType: file.type,
+  };
+  const task = uploadBytesResumable(storageRef, file, metadata);
   await new Promise<void>((resolve, reject) => {
     task.on(
       "state_changed",

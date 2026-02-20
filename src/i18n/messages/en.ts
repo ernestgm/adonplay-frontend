@@ -227,8 +227,8 @@ const en = {
     forms: {
         signIn: {
             labels: {
-                email: "Email *",
-                password: "Password *",
+                email: "Email",
+                password: "Password",
                 signIn: "Sign In",
             },
             placeholders: {
