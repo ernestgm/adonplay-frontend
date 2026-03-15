@@ -1,15 +1,12 @@
 /*
-  Service Worker Optimizado para Media (Firebase Storage)
+  Service Worker Optimizado para Media (Firebase Storage) - FIXED 412
   - Estrategia: Cache-First.
-  - Memoria: Uso de Blobs para evitar colapsos de RAM.
-  - Ahorro: Normalización de URLs para evitar duplicados por tokens.
-  - Eficiencia: Eliminación de peticiones HEAD innecesarias.
+  - Fix: Manejo de errores 412 (Precondition Failed) mediante limpieza de headers.
+  - Memoria: Uso de Blobs para peticiones de rango (video/audio).
 */
 
-const SW_VERSION = 'v3';
+const SW_VERSION = 'v4'; // Incrementamos versión por seguridad
 const MEDIA_CACHE = `media-cache-${SW_VERSION}`;
-
-// Límite de seguridad para caché (100MB es más seguro que 1GB para navegadores móviles)
 const MAX_MEDIA_BYTES = 100 * 1024 * 1024;
 
 const FIREBASE_HOSTS = new Set([
@@ -35,15 +32,10 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-/**
- * Normaliza la URL para usarla como clave de caché.
- * Elimina tokens de Firebase (?token=...) para que si la imagen es la misma,
- * se sirva desde caché aunque el token de acceso haya cambiado.
- */
 function getCacheKey(request) {
     const url = new URL(request.url);
     if (FIREBASE_HOSTS.has(url.hostname)) {
-        return url.origin + url.pathname; // Solo origen + ruta, ignoramos query params
+        return url.origin + url.pathname;
     }
     return request.url;
 }
@@ -51,45 +43,64 @@ function getCacheKey(request) {
 function isMediaRequest(request) {
     const dest = request.destination;
     if (dest === 'image' || dest === 'video' || dest === 'audio') return true;
-
     const url = new URL(request.url);
-    const pathname = url.pathname.toLowerCase();
-    return /(\.(png|jpg|jpeg|gif|webp|avif|svg|mp4|webm|ogv|mov|m4v|mp3|wav|ogg|m4a|aac))$/.test(pathname);
+    return /(\.(png|jpg|jpeg|gif|webp|avif|svg|mp4|webm|ogv|mov|m4v|mp3|wav|ogg|m4a|aac))$/.test(url.pathname.toLowerCase());
 }
 
-/**
- * Procesa peticiones parciales (Range) usando Blobs en lugar de ArrayBuffers.
- * Esto es mucho más eficiente en el uso de memoria RAM.
- */
 function partialResponseFromBlob(blob, range, contentType) {
     const {start, end} = range;
     const chunk = blob.slice(start, end + 1);
-    const headers = new Headers({
-        'Content-Type': contentType || 'application/octet-stream',
-        'Content-Range': `bytes ${start}-${end}/${blob.size}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': String(chunk.size),
+    return new Response(chunk, {
+        status: 206,
+        headers: {
+            'Content-Type': contentType || 'application/octet-stream',
+            'Content-Range': `bytes ${start}-${end}/${blob.size}`,
+            'Accept-Ranges': 'bytes',
+            'Content-Length': String(chunk.size),
+        },
     });
-    return new Response(chunk, {status: 206, headers});
 }
 
 function parseRangeHeader(rangeHeader, total) {
     if (!rangeHeader || !rangeHeader.startsWith('bytes=')) return null;
     const s = rangeHeader.substring(6).trim();
     const [startStr, endStr] = s.split('-', 2);
-    let start = startStr ? parseInt(startStr, 10) : NaN;
-    let end = endStr ? parseInt(endStr, 10) : NaN;
-
-    if (Number.isNaN(start)) {
-        const n = Number.isNaN(end) ? 0 : end;
-        if (!total || n <= 0) return null;
-        start = Math.max(0, total - n);
+    let start = parseInt(startStr, 10);
+    let end = parseInt(endStr, 10);
+    if (isNaN(start)) {
+        start = total - end;
         end = total - 1;
-    } else {
-        if (Number.isNaN(end) || end >= total) end = total - 1;
+    } else if (isNaN(end)) {
+        end = total - 1;
     }
-    if (start < 0 || end < start || (total != null && start >= total)) return null;
     return {start, end};
+}
+
+/**
+ * Realiza un fetch robusto que maneja el error 412 eliminando validaciones del navegador.
+ */
+async function robustFetch(request) {
+    let response = await fetch(request);
+
+    // SI falla con 412, el navegador está enviando ETags viejos. Reintentamos limpio.
+    if (response.status === 412) {
+        const cleanHeaders = new Headers(request.headers);
+        cleanHeaders.delete('If-Match');
+        cleanHeaders.delete('If-None-Match');
+        cleanHeaders.delete('If-Modified-Since');
+        cleanHeaders.delete('If-Unmodified-Since');
+
+        const cleanRequest = new Request(request.url, {
+            method: request.method,
+            headers: cleanHeaders,
+            mode: request.mode,
+            credentials: request.credentials,
+            cache: 'reload' // Forzamos a ignorar el cache del navegador
+        });
+
+        response = await fetch(cleanRequest);
+    }
+    return response;
 }
 
 self.addEventListener('fetch', (event) => {
@@ -100,58 +111,49 @@ self.addEventListener('fetch', (event) => {
         (async () => {
             const cache = await caches.open(MEDIA_CACHE);
             const cacheKey = getCacheKey(request);
-
-            // 1. Intentar buscar en caché (usando la URL normalizada)
             const cachedResponse = await cache.match(cacheKey);
 
+            // 1. Si está en caché, servir (y manejar rangos si es video)
             if (cachedResponse) {
                 const hasRange = request.headers.has('range');
-                // Si es imagen o no pide rango, devolver tal cual
                 if (!hasRange || request.destination === 'image') {
                     return cachedResponse;
                 }
 
-                // 2. Si es video/audio y pide rango, sintetizar respuesta desde el caché
                 try {
                     const blob = await cachedResponse.blob();
                     const range = parseRangeHeader(request.headers.get('range'), blob.size);
-                    if (!range) return cachedResponse;
-                    return partialResponseFromBlob(blob, range, cachedResponse.headers.get('content-type'));
+                    return range
+                        ? partialResponseFromBlob(blob, range, cachedResponse.headers.get('content-type'))
+                        : cachedResponse;
                 } catch (e) {
-                    return fetch(request); // Fallback a red si falla el blob
+                    return robustFetch(request);
                 }
             }
 
-            // 3. Si no está en caché, ir a la red
+            // 2. Si no está en caché, ir a la red con el fetch robusto
             try {
-                // Hacemos el fetch normal (con sus tokens originales)
-                const networkResponse = await fetch(request);
+                const networkResponse = await robustFetch(request);
 
-                // Si la respuesta es opaca o error, no podemos/debemos procesar rangos
                 if (!networkResponse.ok && networkResponse.type !== 'opaque') {
                     return networkResponse;
                 }
 
-                // Clonamos para guardar en caché
                 const responseToCache = networkResponse.clone();
-
-                // Guardar en caché asíncronamente para no bloquear la respuesta
-                event.waitUntil((async () => {
-                    let shouldCache = true;
-                    // Solo validar tamaño si la respuesta no es opaca (CORS habilitado)
-                    if (networkResponse.type !== 'opaque') {
-                        const size = parseInt(networkResponse.headers.get('content-length') || '0', 10);
-                        if (size > MAX_MEDIA_BYTES) shouldCache = false;
-                    }
-
-                    if (shouldCache) {
-                        await cache.put(cacheKey, responseToCache);
-                    }
-                })());
+                event.waitUntil(
+                    (async () => {
+                        let shouldCache = true;
+                        if (networkResponse.type !== 'opaque') {
+                            const size = parseInt(networkResponse.headers.get('content-length') || '0', 10);
+                            if (size > MAX_MEDIA_BYTES) shouldCache = false;
+                        }
+                        if (shouldCache) await cache.put(cacheKey, responseToCache);
+                    })()
+                );
 
                 return networkResponse;
             } catch (err) {
-                throw err;
+                return new Response('Network error', {status: 408});
             }
         })()
     );
