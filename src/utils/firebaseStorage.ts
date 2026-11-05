@@ -1,5 +1,4 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject, uploadBytesResumable } from "firebase/storage";
-import { storage } from "@/lib/firebase";
+import { apiPost } from "@/server/api/apiClient";
 
 export interface UploadedRef {
   downloadURL: string;
@@ -7,103 +6,40 @@ export interface UploadedRef {
 }
 
 const sanitizeFileName = (name: string) => name.replace(/[^a-zA-Z0-9._-]/g, "_");
-const uploadEnv = process.env.NEXT_PUBLIC_UPLOAD_ENV
-export async function uploadFileToStorage(file: File, pathPrefix: string = "uploads"): Promise<UploadedRef> {
-  const timestamp = Date.now();
-  const cleanName = sanitizeFileName(file.name);
-  const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
-  const storageRef = ref(storage, storagePath);
-  // Definir los metadatos
-  const metadata = {
-    cacheControl: 'public,max-age=31536000', // 1 año en segundos
-    contentType: file.type,
-  };
-  await uploadBytes(storageRef, file, metadata);
-  const downloadURL = await getDownloadURL(storageRef);
-  return { downloadURL, storagePath };
+
+// Compatibility API kept for existing forms. Files are uploaded to the local
+// Rails API and stored under rorbackend/public/uploads.
+async function uploadLocal(file: File, pathPrefix: string, onProgress?: (percent: number) => void): Promise<UploadedRef> {
+  const form = new FormData();
+  form.append("file", file, sanitizeFileName(file.name));
+  form.append("media_type", pathPrefix.split("/").pop() || "file");
+  const result = await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/media/upload`, form);
+  onProgress?.(100);
+  return { storagePath: result.file_path, downloadURL: result.file_path };
 }
 
-export async function uploadFileToStorageWithProgress(
-  file: File,
-  pathPrefix: string = "uploads",
-  onProgress?: (percent: number) => void
-): Promise<UploadedRef> {
-  const timestamp = Date.now();
-  const cleanName = sanitizeFileName(file.name);
-  const storagePath = `${uploadEnv}/${pathPrefix}/${timestamp}-${cleanName}`;
-  const storageRef = ref(storage, storagePath);
-  const metadata = {
-    cacheControl: 'public,max-age=31536000', // 1 año en segundos
-    contentType: file.type,
-  };
-  const task = uploadBytesResumable(storageRef, file, metadata);
-  await new Promise<void>((resolve, reject) => {
-    task.on(
-      "state_changed",
-      (snapshot) => {
-        if (onProgress && snapshot.totalBytes > 0) {
-          const pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          onProgress(Math.max(0, Math.min(100, pct)));
-        }
-      },
-      (error) => reject(error),
-      () => resolve()
-    );
-  });
-  const downloadURL = await getDownloadURL(storageRef);
-  if (onProgress) onProgress(100);
-  return { downloadURL, storagePath };
-}
+export const uploadFileToStorage = (file: File, pathPrefix = "uploads") => uploadLocal(file, pathPrefix);
+export const uploadFileToStorageWithProgress = (file: File, pathPrefix = "uploads", onProgress?: (percent: number) => void) => uploadLocal(file, pathPrefix, onProgress);
+export const uploadFileToExactPath = (file: File, storagePath: string) => uploadLocal(file, storagePath);
 
-// Extract the object path from a Firebase Storage download URL or gs:// URL
 export function getStoragePathFromDownloadURL(url: string | null | undefined): string | null {
   if (!url) return null;
   try {
-    if (url.startsWith("gs://")) {
-      // Format: gs://<bucket>/<path>
-      const withoutScheme = url.replace(/^gs:\/\//, "");
-      const firstSlash = withoutScheme.indexOf("/");
-      if (firstSlash === -1) return null;
-      return withoutScheme.substring(firstSlash + 1);
-    }
-    const u = new URL(url);
-    // Expected: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<pathEncoded>?...
-    const parts = u.pathname.split("/");
-    const oIndex = parts.findIndex((p) => p === "o");
-    if (oIndex !== -1 && parts.length > oIndex + 1) {
-      const encodedPath = parts[oIndex + 1];
-      return decodeURIComponent(encodedPath);
-    }
-  } catch (_) {
-    // Ignore parse errors
+    if (!/^https?:\/\//i.test(url)) return url.replace(/^\//, "");
+    const parsed = new URL(url);
+    const marker = "/uploads/";
+    const index = parsed.pathname.indexOf(marker);
+    return index >= 0 ? parsed.pathname.slice(index + marker.length) : null;
+  } catch {
+    return null;
   }
-  return null;
 }
 
-export async function uploadFileToExactPath(file: File, storagePath: string): Promise<UploadedRef> {
-  const storageRef = ref(storage, storagePath);
-  await uploadBytes(storageRef, file, { contentType: file.type });
-  const downloadURL = await getDownloadURL(storageRef);
-  return { downloadURL, storagePath };
-}
+// Local files are removed by the Rails lifecycle; kept as a no-op for callers
+// that previously deleted cloud objects directly from the browser.
+export async function deleteFileByDownloadURL(_url: string): Promise<void> {}
 
-export async function deleteFileByDownloadURL(url: string): Promise<void> {
-  const path = getStoragePathFromDownloadURL(url);
-  if (!path) return; // Not a Firebase Storage URL we can handle
-  const storageRef = ref(storage, path);
-  await deleteObject(storageRef);
-}
-
-/**
- * Extrae solo el nombre del archivo (ej: "foto.png") de una URL de Firebase,
- * eliminando toda la ruta de carpetas anterior.
- */
 export function getFileNameFromURL(url: string | null | undefined): string | null {
-  const fullPath = getStoragePathFromDownloadURL(url);
-
-  if (!fullPath) return null;
-
-  // El nombre del archivo es todo lo que está después del último "/"
-  const parts = fullPath.split("/");
-  return parts.pop() || null;
+  const path = getStoragePathFromDownloadURL(url);
+  return path ? path.split("/").pop() || null : null;
 }

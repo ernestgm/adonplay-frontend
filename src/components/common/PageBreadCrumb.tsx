@@ -26,7 +26,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle, onBack }) => {
                 </Button>
             )}
             <h2
-                className="text-xl font-semibold text-gray-800 dark:text-white/90"
+                className="text-xl font-semibold text-content-primary"
                 x-text="pageName"
             >
                 {pageTitle}
@@ -36,7 +36,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle, onBack }) => {
         <ol className="flex items-center gap-1.5">
           <li>
             <Link
-              className="inline-flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400"
+              className="inline-flex items-center gap-1.5 text-sm text-content-muted hover:text-content-secondary"
               href="/"
             >
               {tNav("home")}
@@ -58,7 +58,7 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ pageTitle, onBack }) => {
               </svg>
             </Link>
           </li>
-          <li className="text-sm text-gray-800 dark:text-white/90">
+          <li className="text-sm text-content-secondary">
             {pageTitle}
           </li>
         </ol>

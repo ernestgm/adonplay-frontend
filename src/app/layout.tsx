@@ -1,63 +1,54 @@
-"use client";
+import { Outfit } from "next/font/google";
+import "./globals.css";
 
-import { Outfit } from 'next/font/google';
-import './globals.css';
-
-import { SidebarProvider } from '@/context/SidebarContext';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { cookies } from "next/headers";
+import { SidebarProvider } from "@/context/SidebarContext";
+import { ThemeProvider } from "@/context/ThemeContext";
 import { ErrorProvider } from "@/context/ErrorContext";
 import { I18nProvider } from "@/i18n/I18nProvider";
-import React, {Suspense, useEffect} from "react";
+import React, { Suspense } from "react";
 import GlobalLoadingIndicator from "@/components/ui/loading/globalLoadingIndicator";
+import ServiceWorkerRegister from "@/components/common/ServiceWorkerRegister";
 
 const outfit = Outfit({
   subsets: ["latin"],
 });
 
-export default function RootLayout({
+// Applied before first paint to avoid a flash of the wrong theme.
+// Must mirror the ThemeProvider initializer exactly (localStorage → system).
+const themeInitScript = `(function(){try{var t=localStorage.getItem("theme");var d=t==="dark"||((!t||t==="system")&&window.matchMedia("(prefers-color-scheme: dark)").matches);var c=document.documentElement.classList;if(d){c.add("dark")}else{c.remove("dark")}document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Try to read initial locale from cookie to minimize flicker
+  // Read initial locale server-side to avoid a client-side flash
   let initialLocale = "en";
-  if (typeof document !== "undefined") {
-    const match = document.cookie.match(/(?:^|; )locale=([^;]+)/);
-    initialLocale = match ? decodeURIComponent(match[1]) : "en";
+  try {
+    const cookieStore = await cookies();
+    initialLocale = cookieStore.get("locale")?.value || "en";
+  } catch {
+    // cookies() unavailable (e.g. static generation) — fall back to "en"
   }
 
-  // Register Service Worker for media caching
-  useEffect(() => {
-    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
-    console.log('Registering SW...');
-    const register = async () => {
-      try {
-        await navigator.serviceWorker.register('/sw.js', {scope: '/'});
-      } catch (e) {
-        console.warn('SW registration failed', e);
-      }
-    };
-    // Delay registration until app idle to avoid competing with critical resources
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(register);
-    } else {
-      setTimeout(register, 0);
-    }
-  }, [])
-
   return (
-    <html lang="en">
-      <body className={`${outfit.className} dark:bg-gray-900`}>
-      <Suspense fallback={<div>Loading...</div>}>
-        <I18nProvider defaultLocale={initialLocale}>
-          <ThemeProvider>
-            <GlobalLoadingIndicator/>
-            <SidebarProvider>
-              <ErrorProvider>{children}</ErrorProvider>
-            </SidebarProvider>
-          </ThemeProvider>
-        </I18nProvider>
-      </Suspense>
+    <html lang={initialLocale} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className={`${outfit.className} bg-surface-page text-content-primary antialiased`}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <I18nProvider defaultLocale={initialLocale}>
+            <ThemeProvider>
+              <GlobalLoadingIndicator />
+              <SidebarProvider>
+                <ErrorProvider>{children}</ErrorProvider>
+              </SidebarProvider>
+              <ServiceWorkerRegister />
+            </ThemeProvider>
+          </I18nProvider>
+        </Suspense>
       </body>
     </html>
   );

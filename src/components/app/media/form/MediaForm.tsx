@@ -465,7 +465,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
                 <Label>{t("labels.type")}</Label>
                 <div className="relative">
@@ -478,7 +478,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         hint={validationErrors.media_type}
                         disabled={media}
                     />
-                    <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                    <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                         <ChevronDownIcon/>
                     </span>
                 </div>
@@ -497,7 +497,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                             error={validationErrors.owner_id !== ""}
                             hint={validationErrors.owner_id}
                         />
-                        <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                        <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                             <ChevronDownIcon/>
                         </span>
                     </div>
@@ -507,10 +507,10 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             {!isAdmin && currentUser && (
                 <div className="mb-5">
                     <Label>{t("labels.ownerReadonly")}</Label>
-                    <div className="p-2 border rounded bg-gray-50">
+                    <div className="p-2 border border-line rounded-lg bg-surface-sunken">
                         {currentUser.name || currentUser.email} ({t("owner.you")})
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-content-muted">
                         {t("owner.notAdminHint")}
                     </div>
                 </div>
@@ -541,7 +541,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     required={!media} // Only required when creating new media
                 />
                 {media && (
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-content-muted">
                         {form.media_type === "image"
                             ? t("hints.keepImage")
                             : form.media_type === "video"
@@ -563,20 +563,20 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     </div>
                     {(loading && convertProgress > 0) && (
                         <div className="mt-3">
-                            <div className="text-sm text-gray-700">{convertStatus || t("status.convertingVideo")}</div>
+                            <div className="text-sm text-content-secondary">{convertStatus || t("status.convertingVideo")}</div>
                             <div className="w-full bg-gray-200 rounded h-2 mt-1">
-                                <div className="bg-blue-600 h-2 rounded" style={{ width: `${convertProgress}%` }} />
+                                <div className="bg-brand-500 h-2 rounded" style={{ width: `${convertProgress}%` }} />
                             </div>
-                            <div className="text-xs text-gray-500 mt-1">{convertProgress}%</div>
+                            <div className="text-xs text-content-muted mt-1">{convertProgress}%</div>
                         </div>
                     )}
                     {(loading && uploadProgress > 0) && (
                         <div className="mt-3">
-                            <div className="text-sm text-gray-700">{t("status.uploadingVideo")}</div>
+                            <div className="text-sm text-content-secondary">{t("status.uploadingVideo")}</div>
                         <div className="w-full bg-gray-200 rounded h-2 mt-1">
                             <div className="bg-green-600 h-2 rounded" style={{ width: `${uploadProgress}%` }} />
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">{ Math.round(uploadProgress)}%</div>
+                        <div className="text-xs text-content-muted mt-1">{ Math.round(uploadProgress)}%</div>
                         </div>
                     )}
                 </div>

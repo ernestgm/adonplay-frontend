@@ -4,17 +4,20 @@ import {ChevronDownIcon} from "@/icons";
 import {fetchMarquees, deleteMarquees} from "@/server/api/marquees";
 import {useRouter} from "next/navigation";
 import Button from "@/components/ui/button/Button";
-import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {useError} from "@/context/ErrorContext";
 import {useMessage} from "@/context/MessageContext";
 import {Table, TableBody, TableCell, TableHeader, TableRow} from "@/components/ui/table";
 import Checkbox from "@/components/form/input/Checkbox";
-import {MdDelete, MdEdit, MdSearch} from "react-icons/md";
+import {MdDelete, MdEdit} from "react-icons/md";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
 import Pagination from "@/components/tables/Pagination";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import filterItems from "@/utils/filterItems";
 import { useT } from "@/i18n/I18nProvider";
 
@@ -24,7 +27,6 @@ const MarqueesTable = () => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const setError = useError().setError;
     const setMessage = useMessage().setMessage;
@@ -80,7 +82,8 @@ const MarqueesTable = () => {
         }
     };
 
-    const filteredMarquees = filterItems(marquees, searchTerm);
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredMarquees = filterItems(marquees, debouncedSearchTerm);
 
     // PAGINACIÓN
     const [currentPage, setCurrentPage] = useState(1);
@@ -131,53 +134,48 @@ const MarqueesTable = () => {
                         <span className="block sm:hidden">+</span>
                     </Button>
                 )}
-                <div className="relative">
-                    <Input
-                        placeholder={tFilters("searchPlaceholder")}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        type="text"
-                        className="pl-[62px]"
-                    />
-                    <span
-                        className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            <MdSearch size={20}/>
-                        </span>
-                </div>
+                <SearchInput
+                    value={searchTerm}
+                    onChange={(value) => {
+                        setSearchTerm(value);
+                        setCurrentPage(1);
+                    }}
+                    placeholder={tFilters("searchPlaceholder")}
+                />
             </div>
             {loading ? (
-                <div className="py-8 text-center text-gray-500">{tStates("loading")}</div>
+                <TableSkeleton columns={5} />
             ) : paginatedMarquees.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">{tStates("empty")}</div>
+                <EmptyState />
             ) : (
                 <div className="overflow-x-auto">
-                    <Table className="min-w-full divide-y divide-gray-200">
-                        <TableHeader className="bg-gray-50">
+                    <Table className="min-w-full">
+                        <TableHeader>
                             <TableRow>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                <TableCell isHeader>
                                     <Checkbox
                                         checked={selectedMarquee.length === marquees.length && marquees.length > 0}
                                         onChange={(checked) => setSelectedMarquee(checked ? marquees.map((b) => b.id) : [])}
                                     />
                                 </TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("business")}</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("preview")}</TableCell>
-                                <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
+                                <TableCell isHeader>{tHeaders("name")}</TableCell>
+                                <TableCell isHeader>{tHeaders("business")}</TableCell>
+                                <TableCell isHeader>{tHeaders("preview")}</TableCell>
+                                <TableCell isHeader className="text-right sticky right-0 bg-surface-sunken z-10">{tHeaders("actions")}</TableCell>
                             </TableRow>
                         </TableHeader>
-                        <TableBody className="bg-white divide-y divide-gray-200">
+                        <TableBody>
                             {paginatedMarquees.map((m: any) => (
                                 <TableRow key={m.id}>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <TableCell className="whitespace-nowrap">
                                         <Checkbox
                                             checked={selectedMarquee.includes(m.id)}
                                             onChange={() => toggleSelectMarquees(m.id)}
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.name}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{m.business?.name || '-'}</TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <TableCell className="whitespace-nowrap text-content-primary">{m.name}</TableCell>
+                                    <TableCell className="whitespace-nowrap">{m.business?.name || '-'}</TableCell>
+                                    <TableCell className="whitespace-nowrap">
                                         <span style={{
                                             background: m.background_color,
                                             color: m.text_color,
@@ -187,7 +185,7 @@ const MarqueesTable = () => {
                                             {m.message}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                    <TableCell className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                         <div className="flex gap-2 justify-end">
                                             <Tooltip content={tActions("edit")}>
                                                 <Button size="sm" variant="outline" onClick={() => handleEdit(m.id)}>
@@ -223,11 +221,14 @@ const MarqueesTable = () => {
                                 }))}
                                 placeholder={tFilters("itemsPerPage")}
                                 defaultValue={config.defaultItemsPerPage.toString()}
-                                onChange={(value) => setItemsPerPage(Number(value))}
-                                className="border border-gray-300 rounded w-full sm:w-auto"
+                                onChange={(value) => {
+                                    setItemsPerPage(Number(value));
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full sm:w-auto"
                             />
                             <span
-                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                         <ChevronDownIcon/>
                                     </span>
                         </div>

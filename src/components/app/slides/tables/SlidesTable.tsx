@@ -7,8 +7,7 @@ import {useError} from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
-import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdSettings, MdCollections} from "react-icons/md";
+import {MdDelete, MdSettings, MdCollections} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
@@ -23,6 +22,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import filterItems from "@/utils/filterItems";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import { useT } from "@/i18n/I18nProvider";
 
 const SlidesTable = () => {
@@ -31,7 +34,6 @@ const SlidesTable = () => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const [slides, setSlides] = useState<any[]>([]);
     const [selectedSlides, setSelectedSlides] = useState<any[]>([]);
@@ -87,7 +89,8 @@ const SlidesTable = () => {
         }
     };
 
-    const filteredBusinesses = filterItems(slides, searchTerm);
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredBusinesses = filterItems(slides, debouncedSearchTerm);
     const totalPages = Math.ceil(filteredBusinesses.length / itemsPerPage);
     const paginatedBusinesses = filteredBusinesses.slice(
         (currentPage - 1) * itemsPerPage,
@@ -140,53 +143,49 @@ const SlidesTable = () => {
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            <MdSearch size={20}/>
-                        </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={5} />
                 ) : paginatedBusinesses.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         <Checkbox
                                             checked={selectedSlides.length === slides.length && slides.length > 0}
                                             onChange={(checked) => setSelectedSlides(checked ? slides.map((b) => b.id) : [])}
                                         />
                                     </TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("business")}</TableCell>
-                                    <TableCell isHeader className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("name")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("description")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("business")}</TableCell>
+                                    <TableCell isHeader className="text-right sticky right-0 bg-surface-sunken z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedBusinesses.map((slides: any) => (
                                     <TableRow key={slides.id}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox
                                                 checked={selectedSlides.includes(slides.id)}
                                                 onChange={() => toggleSelectSlides(slides.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{slides.name}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.description}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{slides.business?.name || ""}</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                        <TableCell className="whitespace-nowrap text-content-primary">{slides.name}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{slides.description}</TableCell>
+                                        <TableCell className="whitespace-nowrap">{slides.business?.name || ""}</TableCell>
+                                        <TableCell className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("mediaManagement")}>
                                                     <Button size="sm" variant="primary" onClick={() => handleEdit(slides.id)}>
@@ -222,11 +221,14 @@ const SlidesTable = () => {
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
-                                    onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded py-1 w-full sm:w-auto"
+                                    onChange={(value) => {
+                                        setItemsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full sm:w-auto"
                                 />
                                 <span
-                                    className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                    className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                         <ChevronDownIcon/>
                                     </span>
                             </div>

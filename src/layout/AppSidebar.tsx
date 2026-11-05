@@ -9,6 +9,7 @@ import {
     HorizontaLDots,
 } from "../icons/index";
 import {getCurrentLocale, getDataUserAuth} from "@/server/api/auth";
+import {useT} from "@/i18n/I18nProvider";
 import {
     MdOutlineBusinessCenter,
     MdOutlineGridView,
@@ -16,7 +17,6 @@ import {
     MdOutlineVideoLibrary, MdOutlineViewCarousel
 } from "react-icons/md";
 import {TbDeviceDesktopAnalytics, TbDeviceImacCheck} from "react-icons/tb";
-import {cookies} from "next/headers"; // Importar nookies para manejar cookies
 
 type NavItem = {
     name: { es: string; en: string };
@@ -100,6 +100,7 @@ const AppSidebar: React.FC = () => {
     const userData = getDataUserAuth()
     const userRole = userData?.role || ""; // Obtener el primer rol del usuario
     const locale = getCurrentLocale();
+    const tNav = useT("common.nav");
 
 
     const handleToggle = () => {
@@ -179,6 +180,10 @@ const AppSidebar: React.FC = () => {
                                         <span
                                             className={`menu-item-text`}>{lang === "en" ? nav.name.en : nav.name.es}</span>
                                     )}
+                                    {(isExpanded || isHovered || isMobileOpen) &&
+                                        isActive(nav.path) && (
+                                            <span className="ml-auto signal-dot"/>
+                                        )}
                                 </Link>
                             )
                         )}
@@ -310,7 +315,7 @@ const AppSidebar: React.FC = () => {
 
     return (
         <aside
-            className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
+            className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-surface text-content-primary h-screen transition-all duration-300 ease-in-out z-50 border-r border-line-faint
         ${
                 isExpanded || isMobileOpen
                     ? "w-[290px]"
@@ -336,6 +341,14 @@ const AppSidebar: React.FC = () => {
                                 alt="Logo"
                                 width={130}
                                 height={40}
+                                className="dark:hidden"
+                            />
+                            <Image
+                                src="/images/logo/logo-text-white.png"
+                                alt="Logo"
+                                width={130}
+                                height={40}
+                                className="hidden dark:block"
                             />
                         </>
                     ) : (
@@ -353,14 +366,14 @@ const AppSidebar: React.FC = () => {
                     <div className="flex flex-col gap-4">
                         <div>
                             <h2
-                                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                                className={`mb-4 text-xs font-medium flex leading-[20px] text-content-muted ${
                                     !isExpanded && !isHovered
                                         ? "lg:justify-center"
                                         : "justify-start"
                                 }`}
                             >
                                 {isExpanded || isHovered || isMobileOpen ? (
-                                    "Menu"
+                                    tNav("groups.main")
                                 ) : (
                                     <HorizontaLDots/>
                                 )}
@@ -370,14 +383,14 @@ const AppSidebar: React.FC = () => {
 
                         <div className="">
                             <h2
-                                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
+                                className={`mb-4 text-xs font-medium flex leading-[20px] text-content-muted ${
                                     !isExpanded && !isHovered
                                         ? "lg:justify-center"
                                         : "justify-start"
                                 }`}
                             >
                                 {isExpanded || isHovered || isMobileOpen ? (
-                                    "System Settings"
+                                    tNav("groups.others")
                                 ) : (
                                     <HorizontaLDots/>
                                 )}

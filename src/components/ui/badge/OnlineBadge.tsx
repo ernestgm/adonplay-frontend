@@ -18,7 +18,7 @@ const OnlineBadge: React.FC<BadgeProps> = ({
   }, [devices, deviceId]);
 
   return (
-    <span className={`block w-5 h-5 ${ onlineDevice ? "onlineBadget text-emerald-500" : "text-error-700" }`}>
+    <span className={`block w-5 h-5 ${ onlineDevice ? "onlineBadget text-success-500" : "text-error-700 dark:text-error-400" }`}>
         { icon }
     </span>
   );

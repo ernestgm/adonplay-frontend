@@ -158,7 +158,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     }, []);
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5 flex flex-row items-center gap-1">
                 <Label>{t("labels.deviceId")} </Label>
                 <Label>{ device?.device_id }</Label>
@@ -191,7 +191,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 hint={validationErrors.users_id}
                             />
                             <span
-                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                         </div>
@@ -212,7 +212,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 hint={validationErrors.users_id}
                             />
                             <span
-                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                         </div>
@@ -235,7 +235,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 hint={validationErrors.qr_id}
                             />
                             <span
-                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                         </div>
@@ -256,7 +256,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                                 hint={validationErrors.marquee_id}
                             />
                             <span
-                                className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                         </div>

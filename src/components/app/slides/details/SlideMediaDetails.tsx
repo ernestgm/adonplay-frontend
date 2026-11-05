@@ -68,11 +68,11 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
     };
 
     return (
-        <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="max-w-4xl mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             {/* Media Preview */}
             <div className="mb-8">
-                <h2 className="text-xl font-semibold mb-4">{tHeaders("preview")}</h2>
-                <div className="border rounded-lg p-4 bg-gray-50">
+                <h2 className="text-xl font-semibold mb-4 text-content-primary">{tHeaders("preview")}</h2>
+                <div className="border border-line rounded-xl p-4 bg-surface-sunken">
                     {media?.media_type === "image" ? (
                         <div className="flex flex-col items-center">
                             <div className="w-full max-w-md border rounded overflow-hidden mb-4 relative">
@@ -111,7 +111,7 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
                             {slideMedia?.audio_media?.file_path && (
                                 <div className="w-full max-w-md">
                                     <div className="flex items-center mb-2">
-                                        <MdAudioFile size={24} className="text-green-500 mr-2" />
+                                        <MdAudioFile size={24} className="text-success-600 dark:text-success-400 mr-2" />
                                         <span className="font-medium">{tHeaders("audio")}</span>
                                     </div>
                                     <audio 
@@ -161,28 +161,28 @@ const SlideMediaDetails: React.FC<MediaDetailsProps> = ({ slideMedia }) => {
 
             {/* Media Details */}
             <div>
-                <h2 className="text-xl font-semibold mb-4">{tHeaders("information")}</h2>
+                <h2 className="text-xl font-semibold mb-4 text-content-primary">{tHeaders("information")}</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("slideName")}</h3>
-                        <p>{slideMedia.slide.name}</p>
+                    <div className="border border-line rounded-xl p-4 bg-surface-sunken">
+                        <h3 className="font-medium text-content-secondary mb-2">{tHeaders("slideName")}</h3>
+                        <p className="text-content-primary">{slideMedia.slide.name}</p>
                     </div>
 
                     {media?.media_type === "image" && !slideMedia?.audio_media && (
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                            <h3 className="font-medium text-gray-700 mb-2">{tHeaders("duration")}</h3>
-                            <p>{slideMedia?.duration} s</p>
+                        <div className="border border-line rounded-xl p-4 bg-surface-sunken">
+                            <h3 className="font-medium text-content-secondary mb-2">{tHeaders("duration")}</h3>
+                            <p className="text-content-primary">{slideMedia?.duration} s</p>
                         </div>
                     )}
 
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("createdAt")}</h3>
-                        <p>{formatDate(slideMedia?.created_at)}</p>
+                    <div className="border border-line rounded-xl p-4 bg-surface-sunken">
+                        <h3 className="font-medium text-content-secondary mb-2">{tHeaders("createdAt")}</h3>
+                        <p className="text-content-primary">{formatDate(slideMedia?.created_at)}</p>
                     </div>
 
-                    <div className="border rounded-lg p-4 bg-gray-50">
-                        <h3 className="font-medium text-gray-700 mb-2">{tHeaders("updatedAt")}</h3>
-                        <p>{formatDate(slideMedia?.updated_at)}</p>
+                    <div className="border border-line rounded-xl p-4 bg-surface-sunken">
+                        <h3 className="font-medium text-content-secondary mb-2">{tHeaders("updatedAt")}</h3>
+                        <p className="text-content-primary">{formatDate(slideMedia?.updated_at)}</p>
                     </div>
                 </div>
             </div>

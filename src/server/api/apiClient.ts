@@ -17,9 +17,10 @@ const apiRequest = async (method: string, url: string, data: any = null, headers
         });
         return response.data;
     } catch (error: any) {
-        if (error.status === 401 && !isPublic) {
+        // Axios expone el status en error.response.status (no en error.status).
+        if (error?.response?.status === 401 && !isPublic) {
             // Redirige al login
-            if (typeof window !== 'undefined' && window.location.href != '/signin') {
+            if (typeof window !== 'undefined' && window.location.pathname !== '/signin') {
                 Cookies.remove("auth_token")
                 Cookies.remove("user")
                 window.location.href = '/signin';
@@ -32,4 +33,4 @@ const apiRequest = async (method: string, url: string, data: any = null, headers
 export const apiGet = (url: string, headers = {}, isPublic = false) => apiRequest("get", url, null, headers, isPublic);
 export const apiPost = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("post", url, data, headers, isPublic);
 export const apiPut = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("put", url, data, headers, isPublic);
-export const apiDelete = (url: string, data: any, headers = {}, isPublic = false) => apiRequest("delete", url, data, headers, isPublic);
+export const apiDelete = (url: string, data: any = null, headers = {}, isPublic = false) => apiRequest("delete", url, data, headers, isPublic);

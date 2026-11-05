@@ -30,7 +30,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Checkbox from "@/components/form/input/Checkbox";
-import {MdSearch} from "react-icons/md";
+import SearchInput from "@/components/tables/SearchInput";
 import Pagination from "@/components/tables/Pagination";
 import filterItems from "@/utils/filterItems";
 import Image from "@/components/ui/images/ExpandableImage";
@@ -373,7 +373,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     // No audio pagination in the new modal-based assignment
 
     return (
-        <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
                 <Label>{t("labels.selectMedia")}</Label>
                 <div className="flex flex-col gap-2">
@@ -408,7 +408,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         </div>
                                         {media.media_type === "image" && (
                                             <div className="mt-2 flex items-center justify-between gap-2">
-                                                <div className="text-xs text-gray-600">
+                                                <div className="text-xs text-content-muted">
                                                     {mediaAudioMap[id]
                                                         ? t("labels.audioAssigned", { id: mediaAudioMap[id] })
                                                         : t("labels.noAudio")}
@@ -437,41 +437,37 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     {t("selector.close")}
                                 </Button>
                             </div>
-                            <div className="relative mb-3">
-                                <Input
-                                    placeholder={t("selector.searchPlaceholder")}
-                                    value={mediaSearchTerm}
-                                    onChange={(e) => setMediaSearchTerm(e.target.value)}
-                                    type="text"
-                                    className="pl-[62px]"
-                                />
-                                <span
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                    <MdSearch size={20}/>
-                                </span>
-                            </div>
+                            <SearchInput
+                                value={mediaSearchTerm}
+                                onChange={(value) => {
+                                    setMediaSearchTerm(value);
+                                    setCurrentMediaPage(1);
+                                }}
+                                placeholder={t("selector.searchPlaceholder")}
+                                className="mb-3"
+                            />
 
                             <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-                                <Table className="min-w-full divide-y divide-gray-200">
-                                    <TableHeader className="bg-gray-50">
+                                <Table className="min-w-full">
+                                    <TableHeader>
                                         <TableRow>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.select")}</TableCell>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.name")}</TableCell>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.preview")}</TableCell>
-                                            <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.type")}</TableCell>
+                                            <TableCell className="">{t("selector.headers.select")}</TableCell>
+                                            <TableCell className="">{t("selector.headers.name")}</TableCell>
+                                            <TableCell className="">{t("selector.headers.preview")}</TableCell>
+                                            <TableCell className="">{t("selector.headers.type")}</TableCell>
                                         </TableRow>
                                     </TableHeader>
-                                    <TableBody className="bg-white divide-y divide-gray-200">
+                                    <TableBody>
                                         {paginatedMedia.length === 0 ? (
                                             <TableRow>
-                                                <TableCell className="px-3 py-2 text-center text-sm text-gray-500" colSpan={3}>
+                                                <TableCell className="text-center" colSpan={3}>
                                                     {t("selector.empty")}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             paginatedMedia.map((item: any) => (
                                                 <TableRow key={item.id}>
-                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                    <TableCell className="whitespace-nowrap">
                                                         {isEditing ? (
                                                             <input
                                                                 type="radio"
@@ -486,10 +482,10 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                             />
                                                         )}
                                                     </TableCell>
-                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                                    <TableCell className="whitespace-nowrap text-xs">
                                                         { getFileNameFromURL(item.file_path) }
                                                     </TableCell>
-                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                    <TableCell className="whitespace-nowrap">
                                                         <div className="border rounded overflow-hidden">
                                                             {item.media_type === "image" ? (
                                                                 <Image
@@ -504,7 +500,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                             )}
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className="px-3 py-2 whitespace-nowrap text-xs text-gray-500">
+                                                    <TableCell className="whitespace-nowrap text-xs">
                                                         {item.media_type}
                                                     </TableCell>
                                                 </TableRow>
@@ -531,7 +527,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             {selectedMediaIds.length > 0 && (!audioUsed) && (
                 <div className="mb-5">
                     <Label>{t("labels.durationSeconds")}</Label>
-                    <div className="text-xs text-gray-500 mb-1">{t("hints.durationWithAudio")}</div>
+                    <div className="text-xs text-content-muted mb-1">{t("hints.durationWithAudio")}</div>
                     <Input
                         name="duration"
                         type="number"
@@ -569,7 +565,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             className="w-full"
                                         />
                                         <span
-                                            className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                             <ChevronDownIcon/>
                                         </span>
                                     </div>
@@ -582,7 +578,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                             className="w-full"
                                         />
                                         <span
-                                            className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                             <ChevronDownIcon/>
                                         </span>
                                     </div>
@@ -613,7 +609,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                 </div>
                                 <div className="flex-1">
                                     <div className="font-medium">{t("labels.selectedQr")}</div>
-                                    <div className="text-sm text-gray-500">{selectedQr.name || t("labels.qrCode")}</div>
+                                    <div className="text-sm text-content-secondary">{selectedQr.name || t("labels.qrCode")}</div>
                                 </div>
                                 <Button
                                     type="button"
@@ -657,40 +653,33 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                     {t("qrSelector.close")}
                                 </Button>
                             </div>
-                            <div className="relative mb-3">
-                                <Input
-                                    placeholder={t("qrSelector.searchPlaceholder")}
-                                    value={qrSearchTerm}
-                                    onChange={(e) => setQrSearchTerm(e.target.value)}
-                                    type="text"
-                                    className="pl-[62px]"
-                                />
-                                <span
-                                    className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                                    <MdSearch size={20}/>
-                                </span>
-                            </div>
+                            <SearchInput
+                                value={qrSearchTerm}
+                                onChange={setQrSearchTerm}
+                                placeholder={t("qrSelector.searchPlaceholder")}
+                                className="mb-3"
+                            />
 
                             <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-                                <Table className="min-w-full divide-y divide-gray-200">
-                                    <TableHeader className="bg-gray-50">
+                                <Table className="min-w-full">
+                                    <TableHeader>
                                         <TableRow>
                                             <TableCell
-                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
+                                                className="">
                                                 {t("qrSelector.headers.select")}
                                             </TableCell>
                                             <TableCell
-                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("qrSelector.headers.name")}</TableCell>
+                                                className="">{t("qrSelector.headers.name")}</TableCell>
                                             <TableCell
-                                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("qrSelector.headers.preview")}
+                                                className="">{t("qrSelector.headers.preview")}
                                             </TableCell>
                                         </TableRow>
                                     </TableHeader>
-                                    <TableBody className="bg-white divide-y divide-gray-200">
+                                    <TableBody>
                                         {qrCodes.length === 0 ? (
                                             <TableRow>
                                                 <TableCell
-                                                       className="px-3 py-2 text-center text-sm text-gray-500">
+                                                       className="text-center">
                                                     {t("qrSelector.empty")}
                                                 </TableCell>
                                             </TableRow>
@@ -705,18 +694,18 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                 .map((qr) => (
                                                     <TableRow key={qr.id}>
                                                         <TableCell
-                                                            className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                            className="whitespace-nowrap">
                                                             <Checkbox
                                                                 checked={selectedQrId === qr.id.toString()}
                                                                 onChange={() => handleSelectQr(qr.id)}
                                                             />
                                                         </TableCell>
                                                         <TableCell
-                                                            className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                            className="whitespace-nowrap">
                                                             {qr.name || t("labels.qrCode")}
                                                         </TableCell>
                                                         <TableCell
-                                                            className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                                                            className="whitespace-nowrap">
                                                             <QRCodeCanvas
                                                                 value={qr.info || ""}
                                                                 size={48}
@@ -764,17 +753,17 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             <Modal isOpen={showAssignAudioModal} onClose={() => setShowAssignAudioModal(false)} className="max-w-4xl w-[95%] p-6">
                 <h3 className="text-lg font-semibold mb-4">{t("labels.assignAudio")}</h3>
                 <div className="overflow-x-auto max-h-[420px] overflow-y-auto">
-                    <Table className="min-w-full divide-y divide-gray-200">
-                        <TableHeader className="bg-gray-50">
+                    <Table className="min-w-full">
+                        <TableHeader>
                             <TableRow>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{t("selector.headers.select")}</TableCell>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{tTableHeaders("audio")}</TableCell>
-                                <TableCell className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">{tTableHeaders("preview")}</TableCell>
+                                <TableCell className="">{t("selector.headers.select")}</TableCell>
+                                <TableCell className="">{tTableHeaders("audio")}</TableCell>
+                                <TableCell className="">{tTableHeaders("preview")}</TableCell>
                             </TableRow>
                         </TableHeader>
-                        <TableBody className="bg-white divide-y divide-gray-200">
+                        <TableBody>
                             <TableRow>
-                                <TableCell className="px-3 py-2 text-sm text-gray-700">
+                                <TableCell className="px-3 py-2 text-sm text-content-primary">
                                     <input
                                         type="radio"
                                         name="audio-select"
@@ -782,12 +771,12 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                         onChange={() => setAudioModalSelectedId("")}
                                     />
                                 </TableCell>
-                                <TableCell className="px-3 py-2 text-sm text-gray-700">{t("labels.noAudio")}</TableCell>
-                                <TableCell className="px-3 py-2 text-sm text-gray-500">—</TableCell>
+                                <TableCell className="px-3 py-2 text-sm text-content-primary">{t("labels.noAudio")}</TableCell>
+                                <TableCell className="px-3 py-2 text-sm text-content-secondary">—</TableCell>
                             </TableRow>
                             {allAudios.length === 0 ? (
                                 <TableRow>
-                                    <TableCell className="px-3 py-4 text-center text-sm text-gray-500" colSpan={3}>
+                                    <TableCell className="px-3 py-4 text-center text-sm text-content-secondary" colSpan={3}>
                                         {tTableStates("empty")}
                                     </TableCell>
                                 </TableRow>
@@ -802,7 +791,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                                                 onChange={() => setAudioModalSelectedId(a.id.toString())}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-3 py-2 text-sm text-gray-700">{tTableHeaders("audio")} #{a.id}</TableCell>
+                                        <TableCell className="px-3 py-2 text-sm text-content-primary">{tTableHeaders("audio")} #{a.id}</TableCell>
                                         <TableCell className="px-3 py-2">
                                             <audio controls src={mediaUrl(a.file_path)} className="w-56" />
                                         </TableCell>

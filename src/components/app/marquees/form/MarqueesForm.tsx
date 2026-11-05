@@ -96,7 +96,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-6">
                 <Label>{t("labels.name")}</Label>
                 <Input

@@ -35,15 +35,15 @@ const Button: React.FC<ButtonProps> = ({
   // Variant Classes
   const variantClasses = {
     primary:
-      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300",
+      "bg-brand-500 text-white shadow-theme-xs hover:bg-brand-600 disabled:bg-brand-300 dark:shadow-glow",
     outline:
-      "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
-    danger: "bg-red-500 text-white shadow-theme-xs hover:bg-red-600 disabled:bg-red-300",
+      "bg-surface text-content-primary ring-1 ring-inset ring-line-strong hover:bg-surface-hover",
+    danger: "bg-error-600 text-white shadow-theme-xs hover:bg-error-700 disabled:bg-error-300",
   };
 
   const loadingIcon = (
     <svg
-      className="animate-spin h-5 w-5 text-white"
+      className="animate-spin h-5 w-5 text-current"
       xmlns="http://www.w3.org/2000/svg"
       fill="none"
       viewBox="0 0 24 24"
@@ -67,7 +67,7 @@ const Button: React.FC<ButtonProps> = ({
   return (
     <button
       type={type}
-      className={`inline-flex items-center justify-center font-medium gap-2 rounded-lg transition ${className} ${
+      className={`inline-flex items-center justify-center font-medium gap-2 rounded-lg transition-colors focus-visible:ring-4 focus-visible:ring-brand-500/15 ${className} ${
         sizeClasses[size]
       } ${variantClasses[variant]} ${
         disabled || loading ? "cursor-not-allowed opacity-50" : ""

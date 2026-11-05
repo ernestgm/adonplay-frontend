@@ -7,10 +7,10 @@ const LanguageSwitcher: React.FC = () => {
   const { locale, setLocale } = useI18n();
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-md bg-fuchsia-900/70 p-1 text-sm text-white shadow">
+    <div className="inline-flex items-center rounded-lg border border-line-strong bg-surface-sunken p-0.5 text-sm">
       <button
         type="button"
-        className={`px-3 py-1 rounded ${locale === "en" ? "bg-white text-gray-900" : "hover:bg-white/10"}`}
+        className={`px-3 py-1 rounded-md transition-colors ${locale === "en" ? "bg-surface text-content-primary shadow-theme-xs" : "text-content-secondary hover:text-content-primary"}`}
         onClick={() => setLocale("en")}
         aria-pressed={locale === "en"}
       >
@@ -18,7 +18,7 @@ const LanguageSwitcher: React.FC = () => {
       </button>
       <button
         type="button"
-        className={`px-3 py-1 rounded ${locale === "es" ? "bg-white text-gray-900" : "hover:bg-white/10"}`}
+        className={`px-3 py-1 rounded-md transition-colors ${locale === "es" ? "bg-surface text-content-primary shadow-theme-xs" : "text-content-secondary hover:text-content-primary"}`}
         onClick={() => setLocale("es")}
         aria-pressed={locale === "es"}
       >

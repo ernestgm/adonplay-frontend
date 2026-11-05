@@ -58,10 +58,10 @@ export default function SignInForm() {
             <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
                 <div>
                     <div className="mb-5 sm:mb-8">
-                        <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
+                        <h1 className="mb-2 font-semibold text-content-primary text-title-sm sm:text-title-md">
                             {tPage("pageTitle")}
                         </h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-content-secondary">
                             {t("tips.heading1")}
                         </p>
                     </div>

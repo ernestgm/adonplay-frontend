@@ -19,6 +19,24 @@ const en = {
             marquees: "Marquees Management",
             qrs: "Qrs Code Management",
             devices: "Device Management",
+            users: "User Management",
+            devicesPermissions: "Device Permissions",
+            monitor: "Monitor Devices",
+            groups: {
+                main: "Menu",
+                others: "System Settings",
+            },
+        },
+        theme: {
+            toggle: "Toggle theme",
+            light: "Light",
+            dark: "Dark",
+            system: "System",
+        },
+        userMenu: {
+            editProfile: "Edit profile",
+            activateDevice: "Activate Device",
+            signOut: "Sign out",
         },
         table: {
             headers: {
@@ -66,9 +84,12 @@ const en = {
             states: {
                 loading: "Loading...",
                 empty: "No data to display",
+                emptyTitle: "No results found",
+                emptyDescription: "Try adjusting your search or filters",
             },
             filters: {
                 searchPlaceholder: "Search...",
+                clear: "Clear search",
                 itemsPerPage: "Items per page",
                 itemsPerPageOption: "{n} items per page",
             },
@@ -103,6 +124,17 @@ const en = {
             adminPanel: {
                 title: "Administration Panel",
                 subtitle: "Select a tool to begin managing your platform.",
+            },
+            modules: {
+                business: "Create and organize the businesses that own your screens.",
+                media: "Upload and manage the videos and images for your screens.",
+                slides: "Build slides and control what each screen shows.",
+                marquees: "Manage scrolling text banners for your displays.",
+                qrs: "Generate QR codes to link content to your screens.",
+                devices: "Register, assign and configure your display devices.",
+                users: "Manage platform users and their roles.",
+                devicesPermissions: "Approve or revoke access for new devices.",
+                monitor: "Watch live status and performance of your devices.",
             },
             meta: {
                 title: "Home | {app}",

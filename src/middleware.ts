@@ -18,11 +18,12 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(homeUrl);
   } else {
     const userObj = JSON.parse(isAuthenticated?.value || '{}');
-    const userRole = userObj.roles?.[0]?.code;
+    // El backend devuelve `role` como string (UserSerializer), no `roles[]`.
+    const userRole = userObj.role;
 
     if (
-        userRole === 'owner' && request.nextUrl.pathname === '/users/create' ||
-        userRole === 'owner' && request.nextUrl.pathname === '/business/create'
+        (userRole === 'owner' && request.nextUrl.pathname === '/users/create') ||
+        (userRole === 'owner' && request.nextUrl.pathname === '/business/create')
     ) {
       const notFoundUrl = request.nextUrl.clone();
       notFoundUrl.pathname = '/not-found';

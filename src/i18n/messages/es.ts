@@ -19,6 +19,24 @@ const es = {
             marquees: "Administrar Marquees",
             qrs: "Administrar QRs",
             devices: "Administrar Dispositivos",
+            users: "Administrar Usuarios",
+            devicesPermissions: "Permisos de Dispositivos",
+            monitor: "Monitorear Dispositivos",
+            groups: {
+                main: "Menú",
+                others: "Configuración del sistema",
+            },
+        },
+        theme: {
+            toggle: "Cambiar tema",
+            light: "Claro",
+            dark: "Oscuro",
+            system: "Sistema",
+        },
+        userMenu: {
+            editProfile: "Editar perfil",
+            activateDevice: "Activar Dispositivo",
+            signOut: "Cerrar sesión",
         },
         table: {
             headers: {
@@ -66,9 +84,12 @@ const es = {
             states: {
                 loading: "Cargando...",
                 empty: "No hay datos para mostrar",
+                emptyTitle: "Sin resultados",
+                emptyDescription: "Ajusta la búsqueda o los filtros",
             },
             filters: {
                 searchPlaceholder: "Buscar...",
+                clear: "Limpiar búsqueda",
                 itemsPerPage: "Ítems por página",
                 itemsPerPageOption: "{n} ítems por página",
             },
@@ -99,6 +120,17 @@ const es = {
             adminPanel: {
                 title: "Panel de Administración",
                 subtitle: "Selecciona una herramienta para comenzar a gestionar tu plataforma",
+            },
+            modules: {
+                business: "Crea y organiza los negocios dueños de tus pantallas.",
+                media: "Sube y administra los videos e imágenes de tus pantallas.",
+                slides: "Crea slides y controla lo que muestra cada pantalla.",
+                marquees: "Administra marquesinas de texto para tus pantallas.",
+                qrs: "Genera códigos QR para vincular contenido a tus pantallas.",
+                devices: "Registra, asigna y configura tus dispositivos.",
+                users: "Administra los usuarios de la plataforma y sus roles.",
+                devicesPermissions: "Aprueba o revoca el acceso de nuevos dispositivos.",
+                monitor: "Observa el estado y rendimiento de tus dispositivos en vivo.",
             },
             meta: {
                 title: "Inicio | {app}",

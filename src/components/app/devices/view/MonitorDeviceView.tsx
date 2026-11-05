@@ -113,22 +113,22 @@ const MonitorDeviceView: React.FC<UserFormProps> = ({device}) => {
     }
 
     return (
-        <div className="mx-auto p-4 bg-white rounded shadow">
+        <div className="mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className={"mb-5"}>
-                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                        <div className="border border-line rounded-xl p-4 bg-surface-sunken mb-5">
                             <Label>{t("labels.deviceId")} </Label>
                             <Label className="font-bold">
                                 { device?.device_id }
                             </Label>
                         </div>
-                        <div className="border rounded-lg p-4 bg-gray-50 mb-5">
+                        <div className="border border-line rounded-xl p-4 bg-surface-sunken mb-5">
                             <Label>{t("labels.name")}</Label>
                             <Label className="font-bold">{ device?.name }</Label>
                         </div>
                     </div>
-                    <div className={"mb-5 border rounded-lg p-4 bg-gray-50"}>
+                    <div className={"mb-5 border border-line rounded-xl p-4 bg-surface-sunken"}>
                         <div className="mb-5">
                             <Button loading={waiting} onClick={() => getScreenShot()} className="w-full">{tBtn("takeScreenshot")}</Button>
                         </div>

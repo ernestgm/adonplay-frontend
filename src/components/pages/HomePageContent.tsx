@@ -1,64 +1,116 @@
 "use client";
 
 import React from "react";
-import ShortCuts from "@/components/common/ShortCuts";
+import ModuleCard from "@/components/pages/home/ModuleCard";
 import {
-    MdOutlineBusinessCenter, MdOutlineQrCode2,
-    MdOutlineTextRotationNone, MdOutlineTv,
+    MdOutlineBusinessCenter,
+    MdOutlineQrCode2,
+    MdOutlineTextRotationNone,
+    MdOutlineTv,
     MdOutlineVideoLibrary,
-    MdOutlineViewCarousel
+    MdOutlineViewCarousel,
+    MdOutlineSupervisedUserCircle,
 } from "react-icons/md";
+import {TbDeviceDesktopAnalytics, TbDeviceImacCheck} from "react-icons/tb";
 import {useT} from "@/i18n/I18nProvider";
+import {getDataUserAuth} from "@/server/api/auth";
+
+interface Module {
+    key: string;
+    path: string;
+    icon: React.ReactNode;
+    roles: string[];
+}
+
+const modules: Module[] = [
+    {
+        key: "business",
+        path: "/business",
+        icon: <MdOutlineBusinessCenter size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "media",
+        path: "/media-library",
+        icon: <MdOutlineVideoLibrary size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "slides",
+        path: "/slides",
+        icon: <MdOutlineViewCarousel size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "marquees",
+        path: "/marquees",
+        icon: <MdOutlineTextRotationNone size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "qrs",
+        path: "/qrcodes",
+        icon: <MdOutlineQrCode2 size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "devices",
+        path: "/devices",
+        icon: <MdOutlineTv size={26}/>,
+        roles: ["admin", "owner"],
+    },
+    {
+        key: "users",
+        path: "/users",
+        icon: <MdOutlineSupervisedUserCircle size={26}/>,
+        roles: ["admin"],
+    },
+    {
+        key: "devicesPermissions",
+        path: "/devices-permissions",
+        icon: <TbDeviceImacCheck size={26}/>,
+        roles: ["admin"],
+    },
+    {
+        key: "monitor",
+        path: "/monitor-devices",
+        icon: <TbDeviceDesktopAnalytics size={26}/>,
+        roles: ["admin"],
+    },
+];
 
 const HomePageContent: React.FC = () => {
     const t = useT("common.nav");
+    const tModuleDesc = useT("pages.home.modules");
     const tPage = useT("pages.home.adminPanel");
+
+    const userData = getDataUserAuth();
+    const userRole = userData?.role || "";
+
+    const visibleModules = modules.filter(
+        (module) => module.roles.includes(userRole)
+    );
+
     return (
         <>
-            <header className="text-center mb-12">
-                <h1 className="text-4xl font-bold bg-clip-text text-blue-950 mb-2">
+            <header className="mb-10">
+                <h1 className="text-3xl font-semibold text-content-primary">
                     {tPage("title")}
                 </h1>
-                <p className="text-slate-400">
+                <p className="mt-2 text-content-secondary">
                     {tPage("subtitle")}
                 </p>
             </header>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <ShortCuts
-                    title={t("business")}
-                    icon={<MdOutlineBusinessCenter size={35}/>}
-                    link="/business"
-                />
-
-                <ShortCuts
-                    title={t("media")}
-                    icon={<MdOutlineVideoLibrary size={35}/>}
-                    link="/media-library"
-                />
-
-                <ShortCuts
-                    title={t("slides")}
-                    icon={<MdOutlineViewCarousel size={35}/>}
-                    link="/slides"
-                />
-
-                <ShortCuts
-                    title={t("marquees")}
-                    icon={<MdOutlineTextRotationNone size={35}/>}
-                    link="/marquees"
-                />
-
-                <ShortCuts
-                    title={t("qrs")}
-                    icon={<MdOutlineQrCode2 size={35}/>}
-                    link="/qrcodes"
-                />
-
-                <ShortCuts
-                    title={t("devices")}
-                    icon={<MdOutlineTv size={50}/>}
-                    link="/devices"
-                />
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                {visibleModules.map((module) => (
+                    <ModuleCard
+                        key={module.key}
+                        title={t(module.key)}
+                        description={tModuleDesc(module.key)}
+                        icon={module.icon}
+                        link={module.path}
+                    />
+                ))}
             </div>
         </>
     );

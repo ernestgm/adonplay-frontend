@@ -93,7 +93,7 @@ const QrCodeForm: React.FC<QrCodeFormProps> = ({ qrcode }) => {
   };
 
   return (
-    <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+    <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
       <div className="mb-6">
         <Label>{t("labels.name")}</Label>
         <Input
@@ -115,7 +115,7 @@ const QrCodeForm: React.FC<QrCodeFormProps> = ({ qrcode }) => {
             error={validationErrors?.business_id !== ""}
             hint={validationErrors?.business_id}
           />
-          <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+          <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
             <ChevronDownIcon />
           </span>
         </div>
@@ -161,7 +161,7 @@ const QrCodeForm: React.FC<QrCodeFormProps> = ({ qrcode }) => {
                 error={validationErrors.position !== ""}
                 hint={validationErrors.position}
               />
-              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+              <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                 <ChevronDownIcon />
               </span>
             </div>

@@ -68,7 +68,7 @@ export const updateDevicePermissions = async (id: number, data: any  ) => {
 
 export const deleteDevicePermissions = async (deviceId: number) => {
   try {
-    return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes`, {'id': deviceId});
+    return await apiDelete(`${process.env.NEXT_PUBLIC_API_URL}/devices_verify_codes/${deviceId}`);
   } catch (error) {
     throw {
       status: isAxiosError(error) ? (error.response?.status ?? 500) : 500,

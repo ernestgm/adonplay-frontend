@@ -15,13 +15,16 @@ import { useMessage } from "@/context/MessageContext";
 import { useRouter } from "next/navigation";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
-import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
-import {MdSearch, MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile} from "react-icons/md";
+import {MdDelete, MdEdit, MdInfo, MdAudioFile, MdVideoFile} from "react-icons/md";
 import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import { fetchMedia, deleteMedia } from "@/server/api/media";
 import mediaUrl from "@/utils/files";
 import Image from "@/components/ui/images/ExpandableImage";
@@ -33,7 +36,6 @@ const MediaTable = () => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [media, setMedia] = useState<any[]>([]);
@@ -104,7 +106,8 @@ const MediaTable = () => {
         }
     };
 
-    const filteredMedia = filterItems(media, searchTerm);
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredMedia = filterItems(media, debouncedSearchTerm);
     const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
     const paginatedMedia = filteredMedia.slice(
         (currentPage - 1) * itemsPerPage,
@@ -157,29 +160,25 @@ const MediaTable = () => {
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            defaultValue={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            <MdSearch size={20}/>
-                        </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={4} />
                 ) : paginatedMedia.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         <Checkbox
                                             checked={selectedMedia.length === media.length}
                                             onChange={(checked) =>
@@ -187,21 +186,21 @@ const MediaTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("file")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("name")}</TableCell>
+                                    <TableCell isHeader className="text-right sticky right-0 bg-surface-sunken z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedMedia.map((item: any) => (
                                     <TableRow key={item.id}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox
                                                 checked={selectedMedia.includes(item.id)}
                                                 onChange={() => toggleSelectMedia(item.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {item.media_type === "image" ? (
                                                 <div className="border rounded overflow-hidden">
                                                     <Image
@@ -214,19 +213,19 @@ const MediaTable = () => {
                                                 </div>
                                             ) : item.media_type === "video" ? (
                                                 <div className="flex items-center">
-                                                    <MdVideoFile size={24} className="text-blue-500 mr-2" />
+                                                    <MdVideoFile size={24} className="text-blue-light-500 dark:text-blue-light-400 mr-2" />
                                                     <span>{tHeaders("video")}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center">
-                                                    <MdAudioFile size={24} className="text-blue-500 mr-2" />
+                                                    <MdAudioFile size={24} className="text-blue-light-500 dark:text-blue-light-400 mr-2" />
                                                     <span>{tHeaders("audio")}</span>
                                                 </div>
                                             )
                                             }
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{ getFileNameFromURL(item.file_path) }</TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                        <TableCell className="whitespace-nowrap">{ getFileNameFromURL(item.file_path) }</TableCell>
+                                        <TableCell className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("view")}>
                                                     <Button
@@ -274,10 +273,13 @@ const MediaTable = () => {
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
-                                    onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                                    onChange={(value) => {
+                                        setItemsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full sm:w-auto"
                                 />
-                                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                     <ChevronDownIcon/>
                                 </span>
                             </div>

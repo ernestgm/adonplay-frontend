@@ -14,14 +14,17 @@ import { useError } from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
-import Input from "@/components/form/input/InputField";
-import { MdSearch, MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit } from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import { ChevronDownIcon } from "@/icons";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import {deleteQrCode, fetchQrCode} from "@/server/api/qrcodes";
 import {QRCodeCanvas} from "qrcode.react";
 import { useT } from "@/i18n/I18nProvider";
@@ -31,7 +34,6 @@ const QrCodesTable = () => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [qrcodes, setQrCodes] = useState<any[]>([]);
@@ -88,7 +90,8 @@ const QrCodesTable = () => {
         }
     };
 
-    const filteredQrCodes = filterItems(qrcodes, searchTerm);
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredQrCodes = filterItems(qrcodes, debouncedSearchTerm);
     const totalPages = Math.ceil(filteredQrCodes.length / itemsPerPage);
     const paginatedQrCodes = filteredQrCodes.slice(
         (currentPage - 1) * itemsPerPage,
@@ -137,29 +140,25 @@ const QrCodesTable = () => {
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            defaultValue={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            <MdSearch size={20} />
-                        </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={6} />
                 ) : paginatedQrCodes.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         <Checkbox
                                             checked={selectedQrCodes.length === qrcodes.length && qrcodes.length > 0}
                                             onChange={(checked) =>
@@ -167,39 +166,39 @@ const QrCodesTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("name")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("info")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("preview")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("business")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
+                                    <TableCell isHeader className="text-right sticky right-0 bg-surface-sunken z-10">
                                         {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedQrCodes.map((qr: any) => (
                                     <TableRow key={qr.id}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox
                                                 checked={selectedQrCodes.includes(qr.id)}
                                                 onChange={() => toggleSelectQrCode(qr.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <TableCell className="whitespace-nowrap text-content-primary">
                                             {qr.name}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {qr.info}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {
                                                 <QRCodeCanvas
                                                     id="qrcode-canvas"
@@ -210,10 +209,10 @@ const QrCodesTable = () => {
                                                 />
                                             }
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {qr.business?.name || "-"}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                        <TableCell className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("edit")}>
                                                     <Button
@@ -252,10 +251,13 @@ const QrCodesTable = () => {
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
-                                    onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                                    onChange={(value) => {
+                                        setItemsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full sm:w-auto"
                                 />
-                                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                     <ChevronDownIcon />
                                 </span>
                             </div>

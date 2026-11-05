@@ -32,7 +32,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
         phone: user?.phone || "",
         password: "",
         password_confirmation: "",
-        enabled: user?.enabled || false,
+        enabled: user?.enabled ?? true,
         role: user?.role || "",
         // Agrega más campos según tu modelo
     });
@@ -98,7 +98,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
                 <Label>{t("name")} *</Label>
                 <Input
@@ -207,7 +207,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
                             disabled={isAuthenticatedUserEditing} // Deshabilitar campo de rol si está editando su propio perfil
                         />
                         <span
-                            className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                     </div>

@@ -19,7 +19,13 @@ export const signOut = () => {
 
 export const getDataUserAuth = () => {
   const userAuth = typeof window !== "undefined" ? Cookies.get("user") : null;
-  return userAuth ? JSON.parse(userAuth) : null;
+  if (!userAuth) return null;
+
+  try {
+    return JSON.parse(userAuth);
+  } catch {
+    return null;
+  }
 };
 
 export const getCurrentLocale = () => {
@@ -27,5 +33,5 @@ export const getCurrentLocale = () => {
 };
 export const getIsOwner = () => {
   const userAuth = getDataUserAuth();
-  return (userAuth.role === "owner");
+  return userAuth?.role === "owner";
 };

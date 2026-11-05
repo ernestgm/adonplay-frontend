@@ -1,9 +1,9 @@
 "use client";
 import UserDropdown from "@/components/header/UserDropdown";
 import {useSidebar} from "@/context/SidebarContext";
-import React, {useEffect, useRef} from "react";
-import GlobalLoadingIndicator from "@/components/ui/loading/globalLoadingIndicator";
+import React from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
+import ThemeToggle from "@/components/common/ThemeToggle";
 
 const AppHeader: React.FC = () => {
     const {isMobileOpen, toggleSidebar, toggleMobileSidebar} = useSidebar();
@@ -16,31 +16,14 @@ const AppHeader: React.FC = () => {
         }
     };
 
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if ((event.metaKey || event.ctrlKey) && event.key === "k") {
-                event.preventDefault();
-                inputRef.current?.focus();
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, []);
-
     return (
         <header
-            className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
+            className="sticky top-0 flex w-full bg-surface border-line-faint z-99999 lg:border-b">
             <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
                 <div
-                    className="flex items-center justify-between w-full grow gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+                    className="flex items-center justify-between w-full grow gap-2 px-3 py-3 border-b border-line-faint sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
                     <button
-                        className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+                        className="items-center justify-center w-10 h-10 text-content-secondary border-line-strong rounded-lg z-99999 lg:flex lg:h-11 lg:w-11 lg:border hover:bg-surface-hover hover:text-content-primary transition-colors"
                         onClick={handleToggle}
                         aria-label="Toggle Sidebar"
                     >
@@ -77,8 +60,9 @@ const AppHeader: React.FC = () => {
                         )}
                         {/* Cross Icon */}
                     </button>
-                    <div className="flex items-center justify-end w-full">
+                    <div className="flex items-center justify-end w-full gap-2">
                         <LanguageSwitcher/>
+                        <ThemeToggle/>
                         <UserDropdown/>
                     </div>
                 </div>

@@ -14,9 +14,12 @@ import {useError} from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
-import Input from "@/components/form/input/InputField";
-import {MdSearch, MdEdit} from "react-icons/md";
+import {MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import filterItems from "@/utils/filterItems";
@@ -30,7 +33,6 @@ import {getIsOwner} from "@/server/api/auth";
 const DevicesTable = () => {
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [devices, setDevices] = useState<any[]>([]);
@@ -58,7 +60,8 @@ const DevicesTable = () => {
         fetchData();
     }, []);
 
-    const filteredDevices = filterItems(devices, searchTerm)
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredDevices = filterItems(devices, debouncedSearchTerm)
 
     const totalPages = Math.ceil(filteredDevices.length / itemsPerPage);
     const paginatedDevices = filteredDevices.slice(
@@ -91,42 +94,42 @@ const DevicesTable = () => {
             <div>
                 <div className="flex items-center justify-between mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                        <div className="bg-surface p-6 rounded-2xl border border-line shadow-theme-xs border-l-4 border-l-success-500">
                             <div className="flex items-center">
-                                <div className="p-3 bg-green-100 rounded-full">
-                                    <div className="w-6 h-6 text-green-600">
+                                <div className="p-3 bg-success-100 dark:bg-success-500/15 rounded-full">
+                                    <div className="w-6 h-6 text-success-600 dark:text-success-400">
                                         <PiMonitorPlayFill size={25}/>
                                     </div>
                                 </div>
                                 <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                    <p className="text-sm font-medium text-content-secondary">
                                         {tHeaders("devicesOn")}
                                     </p>
-                                    <p className="text-3xl font-bold text-gray-900">
+                                    <p className="text-3xl font-bold text-content-primary tabular-nums">
                                         { !isOwner ? Math.round(devicesOnline.length) : Math.round(filterDevicesOnline.length) }
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                        <div className="bg-surface p-6 rounded-2xl border border-line shadow-theme-xs border-l-4 border-l-error-500">
                             <div className="flex items-center">
-                                <div className="p-3 bg-red-100 rounded-full">
-                                    <div className="w-6 h-6 text-red-600" >
+                                <div className="p-3 bg-error-100 dark:bg-error-500/15 rounded-full">
+                                    <div className="w-6 h-6 text-error-600 dark:text-error-400" >
                                         <PiMonitorPlayFill size={25}/>
                                     </div>
                                 </div>
                                 <div className="ml-4">
-                                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wider">
+                                    <p className="text-sm font-medium text-content-secondary">
                                         {tHeaders("devicesOff")}
                                     </p>
                                     {
                                         isOwner ? (
-                                            <p className="text-3xl font-bold text-gray-900">
+                                            <p className="text-3xl font-bold text-content-primary tabular-nums">
                                                 {Math.round(devices.length - filterDevicesOnline.length)}
                                             </p>
                                         ) : (
-                                            <p className="text-3xl font-bold text-gray-900">
+                                            <p className="text-3xl font-bold text-content-primary tabular-nums">
                                                 {Math.round(devices.length - devicesOnline.length)}
                                             </p>
                                         )
@@ -137,68 +140,57 @@ const DevicesTable = () => {
                     </div>
                 </div>
                 <div className="flex items-center justify-between mb-4">
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            defaultValue={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                  <MdSearch size={20}/>
-                </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
 
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={8} />
                 ) : paginatedDevices.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("status")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("user")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("deviceId")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("name")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("slide")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("qr")}
                                     </TableCell>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         {tHeaders("marquee")}
                                     </TableCell>
                                     <TableCell
-                                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
+                                        isHeader
+                                        className="text-right sticky right-0 bg-surface-sunken z-10">
                                         {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedDevices.map((device: any) => (
                                     <TableRow key={device.id}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <div className="flex items-center gap-2">
                                                 <OnlineBadge
                                                     icon={<PiMonitorPlayFill size={30}/>}
@@ -207,28 +199,28 @@ const DevicesTable = () => {
                                                 />
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {device.user?.name || "-"}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <TableCell className="whitespace-nowrap text-content-primary">
                                             <div className="flex items-center gap-2">
                                                 {device.device_id || "-"}
                                             </div>
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <TableCell className="whitespace-nowrap text-content-primary">
                                             {device.name}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {device.slide?.name || "-"}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {device.qr?.name || "-"}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {device.marquee?.name || "-"}
                                         </TableCell>
                                         <TableCell
-                                            className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                            className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("edit")}>
                                                     <Button
@@ -259,11 +251,14 @@ const DevicesTable = () => {
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
-                                    onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                                    onChange={(value) => {
+                                        setItemsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full sm:w-auto"
                                 />
                                 <span
-                                    className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                    className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                             </div>

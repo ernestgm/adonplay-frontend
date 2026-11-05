@@ -95,7 +95,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
                 <Label>{t("labels.name")}</Label>
                 <Input
@@ -130,7 +130,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                             hint={validationErrors.business_id}
                         />
                         <span
-                            className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                     </div>
@@ -153,7 +153,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                         hint={validationErrors.description_position}
                                     />
                                     <span
-                                        className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                        className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                         <ChevronDownIcon/>
                                     </span>
                                 </div>
@@ -169,7 +169,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                                         hint={validationErrors.description_size}
                                     />
                                     <span
-                                        className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                        className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                         <ChevronDownIcon/>
                                     </span>
                                 </div>

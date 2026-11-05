@@ -6,10 +6,12 @@ import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import { useRouter } from "next/navigation";
 import {getDataUserAuth, signOut} from "@/server/api/auth";
 import {MdDevices} from "react-icons/md";
+import {useT} from "@/i18n/I18nProvider";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const t = useT("common.userMenu");
 
   function toggleDropdown(e: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     e.stopPropagation();
@@ -31,9 +33,9 @@ export default function UserDropdown() {
     <div className="relative ml-auto">
       <button
         onClick={toggleDropdown}
-        className="flex items-center text-gray-700 dark:text-gray-400 dropdown-toggle"
+        className="flex items-center text-content-secondary dropdown-toggle"
       >
-        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 flex items-center justify-center bg-blue-600 text-white font-bold text-lg">
+        <span className="mr-3 overflow-hidden rounded-full h-11 w-11 flex items-center justify-center bg-brand-500 text-white font-bold text-lg">
           {userData?.name ? userData.name.charAt(0).toUpperCase() : "U"}
         </span>
 
@@ -42,7 +44,7 @@ export default function UserDropdown() {
         </span>
 
         <svg
-          className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
+          className={`text-content-muted transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
           width="18"
@@ -64,27 +66,27 @@ export default function UserDropdown() {
       <Dropdown
         isOpen={isOpen}
         onClose={closeDropdown}
-        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark"
+        className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl p-3"
       >
         <div>
-          <span className="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+          <span className="block font-medium text-content-primary text-theme-sm">
             {userData?.name || "Usuario"}
           </span>
-          <span className="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
+          <span className="mt-0.5 block text-theme-xs text-content-muted">
             {userData?.email || "Usuario"}
           </span>
         </div>
 
-        <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
+        <ul className="flex flex-col gap-1 pt-4 pb-3 border-b border-line-faint">
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
               tag="a"
               href={`/users/edit/${userData?.id || "0"}`}
-              className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              className="flex items-center gap-3 px-3 py-2 font-medium rounded-lg group text-theme-sm"
             >
               <svg
-                className="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300"
+                className="fill-content-muted group-hover:fill-content-primary"
                 width="24"
                 height="24"
                 viewBox="0 0 24 24"
@@ -98,7 +100,7 @@ export default function UserDropdown() {
                   fill=""
                 />
               </svg>
-              Edit profile
+              {t("editProfile")}
             </DropdownItem>
           </li>
           <li>
@@ -106,19 +108,19 @@ export default function UserDropdown() {
               onItemClick={closeDropdown}
               tag="a"
               href="/activate"
-              className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300"
+              className="flex items-center gap-3 px-3 py-2 font-medium rounded-lg group text-theme-sm"
             >
               <MdDevices size={20} className="mr-2" />
-              Activate Device
+              {t("activateDevice")}
             </DropdownItem>
           </li>
         </ul>
         <button
           onClick={handleSignOut}
-          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300 w-full"
+          className="flex items-center gap-3 px-3 py-2 mt-3 font-medium rounded-lg group text-theme-sm text-content-secondary hover:bg-surface-hover hover:text-content-primary w-full"
         >
           <svg
-            className="fill-gray-500 group-hover:fill-gray-700 dark:group-hover:fill-gray-300"
+            className="fill-content-muted group-hover:fill-content-primary"
             width="24"
             height="24"
             viewBox="0 0 24 24"
@@ -132,7 +134,7 @@ export default function UserDropdown() {
               fill=""
             />
           </svg>
-          Sign out
+          {t("signOut")}
         </button>
       </Dropdown>
     </div>

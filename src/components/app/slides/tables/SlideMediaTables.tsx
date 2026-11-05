@@ -15,11 +15,9 @@ import {useMessage} from "@/context/MessageContext";
 import {useRouter} from "next/navigation";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
-import Input from "@/components/form/input/InputField";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import Image from "@/components/ui/images/ExpandableImage";
 import {
-    MdSearch,
     MdDelete,
     MdEdit,
     MdInfo,
@@ -32,8 +30,12 @@ import {ChevronDownIcon} from "@/icons";
 import config from "@/config/globalConfig";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import filterItems from "@/utils/filterItems";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import mediaUrl from "@/utils/files";
-import {deleteSlideMedias, fetchSlideMedias, updateSlideMedias} from "@/server/api/slidesMedia";
+import {deleteSlideMedias, fetchSlideMedias, reorderSlideMedias} from "@/server/api/slidesMedia";
 import {QRCodeCanvas} from "qrcode.react";
 import { useT } from "@/i18n/I18nProvider";
 import {getFileNameFromURL} from "@/utils/firebaseStorage";
@@ -48,7 +50,6 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const [media, setMedia] = useState<any[]>([]); // This will now store the array of slide_media objects
     const [selectedMedia, setSelectedMedia] = useState<any[]>([]);
@@ -77,80 +78,37 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
         fetchData();
     }, [slide, setError]); // Added slide and setError to dependency array
 
-    // Function to handle moving an item up in order
-    const handleMoveUp = async (item: any, index: number) => {
-        if (index === 0) return; // Already at the top
+    // Reordena de forma atómica usando el endpoint /slides/:id/media/reorder.
+    // Antes se hacían dos PUT separados: si el segundo fallaba, el orden quedaba
+    // inconsistente.
+    const moveItem = async (item: any, offset: number) => {
+        const ordered = [...media].sort((a, b) => parseInt(a.order) - parseInt(b.order));
+        const index = ordered.findIndex((m) => m.id === item.id);
+        const targetIndex = index + offset;
+
+        if (index === -1 || targetIndex < 0 || targetIndex >= ordered.length) return;
+
+        const mediaIds = ordered.map((m) => m.media_id);
+        [mediaIds[index], mediaIds[targetIndex]] = [mediaIds[targetIndex], mediaIds[index]];
 
         try {
-            // Get the item above
-            const prevItem = paginatedMedia[index - 1];
-
-            // Swap orders
-            const newOrder = parseInt(prevItem.order);
-            const prevOrder = parseInt(item.order);
-
-            // Update current item with new order
-            await updateSlideMedias(item.id, {order: newOrder});
-
-            // Update previous item with current item's order
-            await updateSlideMedias(prevItem.id, {order: prevOrder});
-
-            // Update local state
-            const updatedMedia = [...media];
-            const itemIndex = updatedMedia.findIndex(m => m.id === item.id);
-            const prevItemIndex = updatedMedia.findIndex(m => m.id === prevItem.id);
-
-            if (itemIndex !== -1 && prevItemIndex !== -1) {
-                updatedMedia[itemIndex] = {...updatedMedia[itemIndex], order: newOrder};
-                updatedMedia[prevItemIndex] = {...updatedMedia[prevItemIndex], order: prevOrder};
-
-                // Sort the updated media by order
-                const sortedMedia = [...updatedMedia].sort((a, b) => parseInt(a.order) - parseInt(b.order));
-                setMedia(sortedMedia);
-            }
-
+            await reorderSlideMedias(slide, mediaIds);
+            setMedia(mediaIds.map((mediaId, i) => {
+                const record = ordered.find((m) => m.media_id === mediaId);
+                return {...record, order: i};
+            }));
             setMessage("OK");
         } catch (err: any) {
             setError(err.data?.message || err.message || "Error");
         }
     };
 
-    // Function to handle moving an item down in order
-    const handleMoveDown = async (item: any, index: number) => {
-        if (index === paginatedMedia.length - 1) return; // Already at the bottom
+    const handleMoveUp = async (item: any) => {
+        await moveItem(item, -1);
+    };
 
-        try {
-            // Get the item below
-            const nextItem = paginatedMedia[index + 1];
-
-            // Swap orders
-            const newOrder = parseInt(nextItem.order);
-            const nextOrder = parseInt(item.order);
-
-            // Update current item with new order
-            await updateSlideMedias(item.id, {order: newOrder});
-
-            // Update next item with current item's order
-            await updateSlideMedias(nextItem.id, {order: nextOrder});
-
-            // Update local state
-            const updatedMedia = [...media];
-            const itemIndex = updatedMedia.findIndex(m => m.id === item.id);
-            const nextItemIndex = updatedMedia.findIndex(m => m.id === nextItem.id);
-
-            if (itemIndex !== -1 && nextItemIndex !== -1) {
-                updatedMedia[itemIndex] = {...updatedMedia[itemIndex], order: newOrder};
-                updatedMedia[nextItemIndex] = {...updatedMedia[nextItemIndex], order: nextOrder};
-
-                // Sort the updated media by order
-                const sortedMedia = [...updatedMedia].sort((a, b) => parseInt(a.order) - parseInt(b.order));
-                setMedia(sortedMedia);
-            }
-
-            setMessage("OK");
-        } catch (err: any) {
-            setError(err.data?.message || err.message || "Error");
-        }
+    const handleMoveDown = async (item: any) => {
+        await moveItem(item, 1);
     };
 
     const toggleSelectMedia = (id: any) => {
@@ -184,7 +142,8 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
         }
     };
 
-    const filteredMedia = filterItems(media, searchTerm);
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredMedia = filterItems(media, debouncedSearchTerm);
     const totalPages = Math.ceil(filteredMedia.length / itemsPerPage);
     const paginatedMedia = filteredMedia.slice(
         (currentPage - 1) * itemsPerPage,
@@ -238,31 +197,25 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            defaultValue={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                            <MdSearch size={20}/>
-                        </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={10} />
                 ) : paginatedMedia.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell
-                                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         <Checkbox
                                             // Now check against item.id (slide_media id)
                                             checked={selectedMedia.length === media.length}
@@ -271,37 +224,37 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("order")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("audio")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("file")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("qr")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("description")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("duration")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("user")}</TableCell>
-                                    <TableCell className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">{tHeaders("actions")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("order")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("audio")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("file")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("name")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("qr")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("description")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("duration")}</TableCell>
+                                    <TableCell isHeader>{tHeaders("user")}</TableCell>
+                                    <TableCell isHeader className="text-right sticky right-0 bg-surface-sunken z-10">{tHeaders("actions")}</TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedMedia.map((item: any, index: number) => (
                                     <TableRow key={item.id}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox
                                                 // Check against item.id (slide_media id)
                                                 checked={selectedMedia.includes(item.id)}
                                                 onChange={() => toggleSelectMedia(item.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             <div className="flex items-center gap-2">
                                                 <span>{item.order}</span>
                                                 <div className="flex flex-col">
                                                     <Tooltip content={tActions("moveUp")}>
                                                         <Button
-                                                            onClick={() => handleMoveUp(item, index)}
+                                                            onClick={() => handleMoveUp(item)}
                                                             variant="outline"
                                                             size="normal"
-                                                            disabled={index === 0}
+                                                            disabled={currentPage === 1 && index === 0}
                                                             className="p-0 h-6"
                                                         >
                                                             <MdArrowUpward size={16}/>
@@ -309,10 +262,10 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                     </Tooltip>
                                                     <Tooltip content={tActions("moveDown")}>
                                                         <Button
-                                                            onClick={() => handleMoveDown(item, index)}
+                                                            onClick={() => handleMoveDown(item)}
                                                             variant="outline"
                                                             size="normal"
-                                                            disabled={index === paginatedMedia.length - 1}
+                                                            disabled={currentPage === totalPages && index === paginatedMedia.length - 1}
                                                             className="p-0 h-6 mt-1"
                                                         >
                                                             <MdArrowDownward size={16}/>
@@ -322,16 +275,16 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             </div>
                                         </TableCell>
                                         {/* Access owner name from nested media object */}
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {item.audio_media_id ? (
                                                 <div className="flex items-center">
-                                                    <MdAudioFile size={24} className="text-blue-500 mr-2"/>
+                                                    <MdAudioFile size={24} className="text-blue-light-500 dark:text-blue-light-400 mr-2"/>
                                                 </div>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {/* Access media_type and file_path from nested media object */}
                                             {item.media.media_type === "image" ? (
                                                 <div className="border rounded overflow-hidden">
@@ -345,21 +298,21 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                 </div>
                                             ) : item.media.media_type === "video" ? (
                                                 <div className="flex items-center">
-                                                    <MdVideoFile size={24} className="text-blue-500 mr-2"/>
+                                                    <MdVideoFile size={24} className="text-blue-light-500 dark:text-blue-light-400 mr-2"/>
                                                     <span>{tHeaders("video")}</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex items-center">
-                                                    <MdAudioFile size={24} className="text-blue-500 mr-2"/>
+                                                    <MdAudioFile size={24} className="text-blue-light-500 dark:text-blue-light-400 mr-2"/>
                                                     <span>{tHeaders("audio")}</span>
                                                 </div>
                                             )
                                             }
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             { getFileNameFromURL(item.media.file_path) }
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             { item.qr ? (
                                                 <QRCodeCanvas
                                                     id="qrcode-canvas"
@@ -371,14 +324,14 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                                 ) : ("-")
                                             }
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {item.description ? (
                                                 <div className="max-w-xs truncate">{item.description}</div>
                                             ) : (
                                                 <span className="text-gray-400">-</span>
                                             )}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {/* Hide duration if image has audio */}
                                             {item.media.media_type === "image" && item.audio_media_id ? (
                                                 <span className="text-gray-400">-</span>
@@ -389,9 +342,9 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                             )}
                                         </TableCell>
                                         <TableCell
-                                            className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.media.owner.name}</TableCell>
+                                            className="whitespace-nowrap">{item.media.owner.name}</TableCell>
                                         <TableCell
-                                            className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                            className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("view")}>
                                                     <Button
@@ -442,11 +395,14 @@ const SlideMediaTable: React.FC<SlideMediaTableProps> = ({slide}) => {
                                     }))}
                                     placeholder={tFilters("itemsPerPage")}
                                     defaultValue={config.defaultItemsPerPage.toString()}
-                                    onChange={(value) => setItemsPerPage(Number(value))}
-                                    className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                                    onChange={(value) => {
+                                        setItemsPerPage(Number(value));
+                                        setCurrentPage(1);
+                                    }}
+                                    className="w-full sm:w-auto"
                                 />
                                 <span
-                                    className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                                    className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                                     <ChevronDownIcon/>
                                 </span>
                             </div>

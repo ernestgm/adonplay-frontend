@@ -39,6 +39,9 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
     const router = useRouter();
 
     useEffect(() => {
+        // /users es admin-only: un owner no debe intentar cargar la lista de owners.
+        if (isOwner) return;
+
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
@@ -49,7 +52,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
             }
         };
         fetchOwners();
-    }, [setError]);
+    }, [setError, isOwner]);
 
     const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -83,7 +86,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
     };
 
     return (
-        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white rounded shadow">
+        <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
                 <Label>{t("labels.name")}</Label>
                 <Input
@@ -120,7 +123,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                             hint={validationErrors.owner_id}
                         />
                         <span
-                            className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                     </div>

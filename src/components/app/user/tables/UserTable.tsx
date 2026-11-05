@@ -16,8 +16,7 @@ import {fetchUsers, deleteUsersAPI} from "@/server/api/users";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
-import Input from "@/components/form/input/InputField";
-import {MdSearch, MdDelete, MdEdit} from "react-icons/md";
+import {MdDelete, MdEdit} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import { useRouter } from "next/navigation";
@@ -25,6 +24,10 @@ import { useMessage } from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import Cookies from "js-cookie";
 import filterItems from "@/utils/filterItems";
+import SearchInput from "@/components/tables/SearchInput";
+import TableSkeleton from "@/components/tables/TableSkeleton";
+import EmptyState from "@/components/tables/EmptyState";
+import useDebounce from "@/hooks/useDebounce";
 import { useT } from "@/i18n/I18nProvider";
 
 
@@ -34,7 +37,6 @@ const UserTable = () => {
     const tTable = useT("common.table");
     const tHeaders = useT("common.table.headers");
     const tActions = useT("common.table.actions");
-    const tStates = useT("common.table.states");
     const tFilters = useT("common.table.filters");
     const tStatus = useT("status");
     const [users, setUsers] = useState<any[]>([]);
@@ -102,7 +104,8 @@ const UserTable = () => {
         }
     };
 
-    const filteredUsers = filterItems(users, searchTerm).filter(
+    const debouncedSearchTerm = useDebounce(searchTerm, 250);
+    const filteredUsers = filterItems(users, debouncedSearchTerm).filter(
         (user: { id: null; }) => user.id !== authenticatedUserId
     );
 
@@ -164,31 +167,26 @@ const UserTable = () => {
 
 
 
-                    <div className="relative">
-                        <Input
-                            placeholder={tFilters("searchPlaceholder")}
-                            defaultValue={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            type="text"
-                            className="pl-[62px]"
-                        />
-                        <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 p-2 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                  <MdSearch size={20}/>
-                </span>
-                    </div>
+                    <SearchInput
+                        value={searchTerm}
+                        onChange={(value) => {
+                            setSearchTerm(value);
+                            setCurrentPage(1);
+                        }}
+                        placeholder={tFilters("searchPlaceholder")}
+                    />
                 </div>
 
                 {loading ? (
-                    <div>{tStates("loading")}</div>
+                    <TableSkeleton columns={8} />
                 ) : paginatedUsers.length === 0 ? (
-                    <div className="text-center text-gray-500 py-8">{tStates("empty")}</div>
+                    <EmptyState />
                 ) : (
                     <div className="overflow-x-auto">
-                        <Table className="min-w-full divide-y divide-gray-200">
-                            <TableHeader className="bg-gray-50">
+                        <Table className="min-w-full">
+                            <TableHeader>
                                 <TableRow>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                                    <TableCell isHeader>
                                         <Checkbox
                                             checked={selectedUsers.length === users.length}
                                             onChange={(checked) =>
@@ -196,53 +194,54 @@ const UserTable = () => {
                                             }
                                         />
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("id")}
+                                    <TableCell isHeader>{tHeaders("id")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("name")}
+                                    <TableCell isHeader>{tHeaders("name")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("email")}
+                                    <TableCell isHeader>{tHeaders("email")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("phone")}
+                                    <TableCell isHeader>{tHeaders("phone")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("status")}
+                                    <TableCell isHeader>{tHeaders("status")}
                                     </TableCell>
-                                    <TableCell className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">{tHeaders("role")}
+                                    <TableCell isHeader>{tHeaders("role")}
                                     </TableCell>
                                     <TableCell
-                                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase sticky right-0 bg-gray-50 z-10">
+                                        isHeader
+                                        className="text-right sticky right-0 bg-surface-sunken z-10">
                                         {tHeaders("actions")}
                                     </TableCell>
                                 </TableRow>
                             </TableHeader>
-                            <TableBody className="bg-white divide-y divide-gray-200">
+                            <TableBody>
                                 {paginatedUsers.map((user: any) => (
-                                    <TableRow key={user.id} className={user.enabled ? "" : "bg-red-100"}>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <TableRow key={user.id} className={user.enabled ? "" : "bg-error-50 dark:bg-error-500/10"}>
+                                        <TableCell className="whitespace-nowrap">
                                             <Checkbox
                                                 checked={selectedUsers.includes(user.id)}
                                                 onChange={() => toggleSelectUser(user.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {user.id}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        <TableCell className="whitespace-nowrap text-content-primary">
                                             {user.name}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {user.email}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {user.phone || "N/A"}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {user.enabled ? tStatus("enabled") : tStatus("disabled")}
                                         </TableCell>
-                                        <TableCell className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <TableCell className="whitespace-nowrap">
                                             {user.role}
                                         </TableCell>
                                         <TableCell
-                                            className="px-6 py-4 whitespace-nowrap relative sticky right-0 bg-white z-10">
+                                            className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
                                                 <Tooltip content={tActions("edit")}>
                                                     <Button
@@ -282,10 +281,13 @@ const UserTable = () => {
                             }))}
                             placeholder={tFilters("itemsPerPage")}
                             defaultValue={config.defaultItemsPerPage.toString()}
-                            onChange={(value) => setItemsPerPage(Number(value))}
-                            className="border border-gray-300 rounded px-2 py-1 w-full sm:w-auto"
+                            onChange={(value) => {
+                                setItemsPerPage(Number(value));
+                                setCurrentPage(1);
+                            }}
+                            className="w-full sm:w-auto"
                         />
-                        <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                        <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
                           <ChevronDownIcon/>
                         </span>
                           </div>

@@ -54,3 +54,14 @@ export const updateSlideMedias = async (id: any, data: any) => {
     }
 };
 
+export const reorderSlideMedias = async (slideId: any, order: number[]) => {
+    try {
+        return await apiPost(`${process.env.NEXT_PUBLIC_API_URL}/slides/${slideId}/media/reorder`, {order});
+    } catch (error: any) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Error al reordenar el contenido.",
+        };
+    }
+};
+
