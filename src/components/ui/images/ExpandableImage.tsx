@@ -24,7 +24,7 @@ const ExpandableImage: React.FC<ExpandableImageProps> = (props) => {
         className={`cursor-zoom-in ${containerClassName || ""}`} 
         onClick={toggleExpand}
       >
-        <Image {...imageProps} />
+        <Image {...imageProps} unoptimized />
       </div>
 
       <Modal 
@@ -43,6 +43,7 @@ const ExpandableImage: React.FC<ExpandableImageProps> = (props) => {
                 className="w-full max-h-[85vh] object-contain rounded-lg"
                 width={1024}
                 height={768}
+                unoptimized
             />
         </div>
       </Modal>
