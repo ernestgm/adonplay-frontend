@@ -225,7 +225,7 @@ const UserForm: React.FC<UserFormProps> = ({user}) => {
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/users")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {user ? tCommon("saveChanges") : tCommon("create")}
+                    {user ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
         </Form>

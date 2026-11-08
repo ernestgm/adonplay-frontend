@@ -1,5 +1,6 @@
 "use client";
 import UserDropdown from "@/components/header/UserDropdown";
+import GlobalSearch from "@/components/header/GlobalSearch";
 import {useSidebar} from "@/context/SidebarContext";
 import React from "react";
 import LanguageSwitcher from "@/components/common/LanguageSwitcher";
@@ -60,7 +61,10 @@ const AppHeader: React.FC = () => {
                         )}
                         {/* Cross Icon */}
                     </button>
-                    <div className="flex items-center justify-end w-full gap-2">
+                    <div className="flex flex-1 items-center justify-center px-2">
+                        <GlobalSearch/>
+                    </div>
+                    <div className="flex shrink-0 items-center justify-end gap-2">
                         <LanguageSwitcher/>
                         <ThemeToggle/>
                         <UserDropdown/>

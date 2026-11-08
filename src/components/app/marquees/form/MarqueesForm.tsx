@@ -20,12 +20,17 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
     const t = useT("forms.marquees");
     const tCommon = useT("common.buttons");
     const tSelect = useT("common.select");
+    const tOptions = useT("forms.marquees.options");
     const [form, setForm] = useState({
         name: marquee?.name || "",
         message: marquee?.message || "",
         business_id: marquee?.business_id || "",
         background_color: marquee?.background_color || "#000000",
         text_color: marquee?.text_color || "#ffffff",
+        speed: marquee?.speed || "medium",
+        size: marquee?.size || "medium",
+        position: marquee?.position || "bottom",
+        transparency: marquee?.transparency || "disabled",
     });
     const [business, setBusiness] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -129,6 +134,60 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     hint={validationErrors?.message}
                 />
             </div>
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <Label>{t("labels.speed")}</Label>
+                    <Select
+                        defaultValue={form.speed}
+                        onChange={(value) => setForm({...form, speed: value})}
+                        options={[
+                            {value: "slow", label: tOptions("speed.slow")},
+                            {value: "medium", label: tOptions("speed.medium")},
+                            {value: "fast", label: tOptions("speed.fast")},
+                        ]}
+                        className="w-full"
+                    />
+                </div>
+                <div>
+                    <Label>{t("labels.size")}</Label>
+                    <Select
+                        defaultValue={form.size}
+                        onChange={(value) => setForm({...form, size: value})}
+                        options={[
+                            {value: "small", label: tOptions("size.small")},
+                            {value: "medium", label: tOptions("size.medium")},
+                            {value: "large", label: tOptions("size.large")},
+                        ]}
+                        className="w-full"
+                    />
+                </div>
+                <div>
+                    <Label>{t("labels.position")}</Label>
+                    <Select
+                        defaultValue={form.position}
+                        onChange={(value) => setForm({...form, position: value})}
+                        options={[
+                            {value: "bottom", label: tOptions("position.bottom")},
+                            {value: "top", label: tOptions("position.top")},
+                        ]}
+                        className="w-full"
+                    />
+                </div>
+                <div>
+                    <Label>{t("labels.transparency")}</Label>
+                    <Select
+                        defaultValue={form.transparency}
+                        onChange={(value) => setForm({...form, transparency: value})}
+                        options={[
+                            {value: "disabled", label: tOptions("transparency.disabled")},
+                            {value: "low", label: tOptions("transparency.low")},
+                            {value: "medium", label: tOptions("transparency.medium")},
+                            {value: "high", label: tOptions("transparency.high")},
+                        ]}
+                        className="w-full"
+                    />
+                </div>
+            </div>
             <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8 w-full">
                 <div className="flex-1 min-w-0">
                     <Label>{t("labels.backgroundColor")}</Label>
@@ -160,7 +219,7 @@ const MarqueesForm:React.FC<MarqueeFormProps> = ({ marquee }) => {
                     {tCommon("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {marquee ? tCommon("saveChanges") : tCommon("create")}
+                    {marquee ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
         </Form>

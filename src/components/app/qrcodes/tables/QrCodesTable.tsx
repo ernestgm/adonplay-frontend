@@ -14,7 +14,7 @@ import { useError } from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "../../../form/Select";
 import config from "@/config/globalConfig";
-import { MdDelete, MdEdit } from "react-icons/md";
+import { MdDelete, MdEdit, MdPlayArrow } from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import { ChevronDownIcon } from "@/icons";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,7 @@ import TableSkeleton from "@/components/tables/TableSkeleton";
 import EmptyState from "@/components/tables/EmptyState";
 import useDebounce from "@/hooks/useDebounce";
 import {deleteQrCode, fetchQrCode} from "@/server/api/qrcodes";
+import {fetchDevices} from "@/server/api/devices";
 import {QRCodeCanvas} from "qrcode.react";
 import { useT } from "@/i18n/I18nProvider";
 
@@ -37,6 +38,8 @@ const QrCodesTable = () => {
     const tFilters = useT("common.table.filters");
     const router = useRouter();
     const [qrcodes, setQrCodes] = useState<any[]>([]);
+    // Cantidad de dispositivos que están usando cada QR ahora mismo.
+    const [activeQrCounts, setActiveQrCounts] = useState<Record<number, number>>({});
     const [selectedQrCodes, setSelectedQrCodes] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -49,8 +52,15 @@ const QrCodesTable = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await fetchQrCode();
+                const [data, devices] = await Promise.all([fetchQrCode(), fetchDevices()]);
                 setQrCodes(data);
+
+                const counts: Record<number, number> = {};
+                (Array.isArray(devices) ? devices : []).forEach((device: any) => {
+                    const id = device?.qr_id ?? device?.qr?.id;
+                    if (id) counts[id] = (counts[id] || 0) + 1;
+                });
+                setActiveQrCounts(counts);
             } catch (err: any) {
                 setError(err.message || "Error al obtener QRCodes");
             } finally {
@@ -136,7 +146,7 @@ const QrCodesTable = () => {
                             size="sm"
                             className="mb-2 sm:mb-0 sm:w-auto"
                         >
-                            <span className="hidden sm:block">{tCommon("create")}</span>
+                            <span className="hidden sm:block">{tCommon("add")}</span>
                             <span className="block sm:hidden">+</span>
                         </Button>
                     )}
@@ -193,7 +203,20 @@ const QrCodesTable = () => {
                                             />
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap text-content-primary">
-                                            {qr.name}
+                                            <div className="flex items-center gap-2">
+                                                <span>{qr.name}</span>
+                                                {activeQrCounts[qr.id] ? (
+                                                    <Tooltip
+                                                        content={tTable("activeOnDevices", {
+                                                            count: activeQrCounts[qr.id],
+                                                        })}
+                                                    >
+                                                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-500/15 text-success-600 dark:text-success-400">
+                                                            <MdPlayArrow size={14} />
+                                                        </span>
+                                                    </Tooltip>
+                                                ) : null}
+                                            </div>
                                         </TableCell>
                                         <TableCell className="whitespace-nowrap">
                                             {qr.info}

@@ -177,7 +177,7 @@ const QrCodeForm: React.FC<QrCodeFormProps> = ({ qrcode }) => {
           {tCommon("cancel")}
         </Button>
         <Button type="submit" variant="primary" loading={loading}>
-          {qrcode ? tCommon("saveChanges") : tCommon("create")}
+          {qrcode ? tCommon("saveChanges") : tCommon("add")}
         </Button>
       </div>
     </Form>

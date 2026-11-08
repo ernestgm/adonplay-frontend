@@ -50,6 +50,8 @@ export const config = {
     '/business',
     '/business/create',
     '/slides',
+    '/slides/menu/:path*',
+    '/menus',
     '/marquees',
     '/qrcodes',
     '/devices',

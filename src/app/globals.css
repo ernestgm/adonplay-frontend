@@ -497,3 +497,72 @@
     box-shadow: 0 0 0 14px transparent;
   }
 }
+
+/* FullCalendar (Programación) — adaptado a los tokens del tema */
+.adonplay-calendar {
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: var(--surface-sunken);
+  --fc-neutral-text-color: var(--content-secondary);
+  --fc-border-color: var(--line);
+  --fc-button-bg-color: var(--surface);
+  --fc-button-border-color: var(--line);
+  --fc-button-text-color: var(--content-primary);
+  --fc-button-hover-bg-color: var(--surface-hover);
+  --fc-button-hover-border-color: var(--line);
+  --fc-button-active-bg-color: #7c5cff;
+  --fc-button-active-border-color: #7c5cff;
+  --fc-event-bg-color: #7c5cff;
+  --fc-event-border-color: transparent;
+  --fc-event-text-color: #ffffff;
+  --fc-today-bg-color: rgba(124, 92, 255, 0.10);
+  --fc-now-indicator-color: #7c5cff;
+  --fc-highlight-color: rgba(124, 92, 255, 0.15);
+}
+
+.adonplay-calendar .fc {
+  font-size: 12px;
+  color: var(--content-primary);
+}
+
+.adonplay-calendar .fc .fc-toolbar-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.adonplay-calendar .fc .fc-button {
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.adonplay-calendar .fc .fc-col-header-cell-cushion,
+.adonplay-calendar .fc .fc-timegrid-slot-label-cushion {
+  color: var(--content-muted);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.adonplay-calendar .fc .fc-timegrid-now-indicator-line {
+  border-width: 2px;
+}
+
+/* A blank slot should stay clickable without looking like an existing schedule. */
+.adonplay-calendar .fc .fc-timegrid-slot-lane.fc-timegrid-slot-empty {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+/* FullCalendar draws the horizontal guide from the table row as well as the cell. */
+.adonplay-calendar .fc .fc-timegrid-slots tr,
+.adonplay-calendar .fc .fc-timegrid-slots tr > td {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+}
+
+.adonplay-calendar .fc .fc-event {
+  border-radius: 6px;
+  font-size: 11px;
+  padding: 2px 4px;
+}

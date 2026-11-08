@@ -7,13 +7,14 @@ import {useError} from "@/context/ErrorContext";
 import Pagination from "../../../tables/Pagination";
 import Select from "@/components/form/Select";
 import config from "@/config/globalConfig";
-import {MdDelete, MdSettings, MdCollections} from "react-icons/md";
+import {MdDelete, MdEdit, MdCollections, MdPointOfSale, MdPlayArrow} from "react-icons/md";
 import Tooltip from "@/components/ui/tooltip/Tooltip";
 import {ChevronDownIcon} from "@/icons";
 import {useRouter} from "next/navigation";
 import {useMessage} from "@/context/MessageContext";
 import ActionModal from "@/components/ui/modal/ActionModal";
 import {deleteSlides, fetchSlides} from "@/server/api/slides";
+import {fetchDevices} from "@/server/api/devices";
 import {
     Table,
     TableBody,
@@ -36,6 +37,8 @@ const SlidesTable = () => {
     const tActions = useT("common.table.actions");
     const tFilters = useT("common.table.filters");
     const [slides, setSlides] = useState<any[]>([]);
+    // Cantidad de dispositivos que están mostrando cada slide ahora mismo.
+    const [activeSlideCounts, setActiveSlideCounts] = useState<Record<number, number>>({});
     const [selectedSlides, setSelectedSlides] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -48,8 +51,21 @@ const SlidesTable = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await fetchSlides();
-                setSlides(data);
+                const [data, devices] = await Promise.all([fetchSlides(), fetchDevices()]);
+                // Los formmenu se gestionan en /menus; no se mezclan con el
+                // listado de slides de medios.
+                setSlides(
+                    (Array.isArray(data) ? data : []).filter(
+                        (slide: any) => slide.layout !== "menu"
+                    )
+                );
+
+                const counts: Record<number, number> = {};
+                (Array.isArray(devices) ? devices : []).forEach((device: any) => {
+                    const id = device?.slide_id ?? device?.slide?.id;
+                    if (id) counts[id] = (counts[id] || 0) + 1;
+                });
+                setActiveSlideCounts(counts);
             } catch (err: any) {
                 setError(err.data?.message || err.message || "Error loading slides");
             } finally {
@@ -98,11 +114,23 @@ const SlidesTable = () => {
     );
 
     const handleSettings = (slide: any) => {
-        router.push(`/slides/settings/${slide}`);
+        const slideId = typeof slide === "object" && slide !== null ? slide.id : slide;
+        const layout = typeof slide === "object" && slide !== null ? slide.layout : undefined;
+        if (layout === "menu") {
+            router.push(`/slides/menu/${slideId}`);
+            return;
+        }
+        router.push(`/slides/settings/${slideId}`);
     };
 
     const handleEdit = (slide: any) => {
-        router.push(`/slides/media-management/${slide}`);
+        const slideId = typeof slide === "object" && slide !== null ? slide.id : slide;
+        const layout = typeof slide === "object" && slide !== null ? slide.layout : undefined;
+        if (layout === "menu") {
+            router.push(`/slides/menu/${slideId}/values`);
+            return;
+        }
+        router.push(`/slides/media-management/${slideId}`);
     };
 
     return (
@@ -133,15 +161,25 @@ const SlidesTable = () => {
                             </Tooltip>
                         </div>
                     ) : (
-                        <Button
-                            onClick={() => { window.location.href = "/slides/create"; }}
-                            variant="primary"
-                            size="sm"
-                            className="mb-2 sm:mb-0 sm:w-auto"
-                        >
-                            <span className="hidden sm:block">{tCommon("create")}</span>
-                            <span className="block sm:hidden">+</span>
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Button
+                                onClick={() => { router.push("/slides/create"); }}
+                                variant="primary"
+                                size="sm"
+                                className="mb-2 sm:mb-0 sm:w-auto"
+                            >
+                                <span className="hidden sm:block">{tCommon("add")}</span>
+                                <span className="block sm:hidden">+</span>
+                            </Button>
+                            <Button
+                                onClick={() => { router.push("/slides/menu/new"); }}
+                                variant="outline"
+                                size="sm"
+                                className="mb-2 sm:mb-0 sm:w-auto"
+                            >
+                                Crear formmenu
+                            </Button>
+                        </div>
                     )}
                     <SearchInput
                         value={searchTerm}
@@ -182,19 +220,48 @@ const SlidesTable = () => {
                                                 onChange={() => toggleSelectSlides(slides.id)}
                                             />
                                         </TableCell>
-                                        <TableCell className="whitespace-nowrap text-content-primary">{slides.name}</TableCell>
+                                        <TableCell className="whitespace-nowrap text-content-primary">
+                                            <div className="flex items-center gap-2">
+                                                <span>{slides.name}</span>
+                                                {activeSlideCounts[slides.id] ? (
+                                                    <Tooltip
+                                                        content={tTable("activeOnDevices", {
+                                                            count: activeSlideCounts[slides.id],
+                                                        })}
+                                                    >
+                                                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-success-500/15 text-success-600 dark:text-success-400">
+                                                            <MdPlayArrow size={14}/>
+                                                        </span>
+                                                    </Tooltip>
+                                                ) : null}
+                                                {slides.layout === "menu" && (
+                                                    <span className="rounded-full bg-brand-500/10 px-2 py-0.5 text-xs font-medium text-brand-500">
+                                                        formmenu
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="whitespace-nowrap">{slides.description}</TableCell>
                                         <TableCell className="whitespace-nowrap">{slides.business?.name || ""}</TableCell>
                                         <TableCell className="whitespace-nowrap relative sticky right-0 bg-surface z-10 group-hover:bg-surface-hover">
                                             <div className="flex gap-2 justify-end">
-                                                <Tooltip content={tActions("mediaManagement")}>
-                                                    <Button size="sm" variant="primary" onClick={() => handleEdit(slides.id)}>
-                                                        <MdCollections size={18}/>
-                                                    </Button>
-                                                </Tooltip>
-                                                <Tooltip content={tActions("settings")}>
-                                                    <Button size="sm" variant="outline" onClick={() => handleSettings(slides.id)}>
-                                                        <MdSettings size={18}/>
+                                                {slides.layout === "menu" && (
+                                                    <Tooltip content="Editar valores">
+                                                        <Button size="sm" variant="primary" onClick={() => handleEdit(slides)}>
+                                                            <MdPointOfSale size={18}/>
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
+                                                {slides.layout !== "menu" && (
+                                                    <Tooltip content={tActions("mediaManagement")}>
+                                                        <Button size="sm" variant="primary" onClick={() => handleEdit(slides)}>
+                                                            <MdCollections size={18}/>
+                                                        </Button>
+                                                    </Tooltip>
+                                                )}
+                                                <Tooltip content={slides.layout === "menu" ? "Editar formmenu" : tActions("edit")}>
+                                                    <Button size="sm" variant="outline" onClick={() => handleSettings(slides)}>
+                                                        <MdEdit size={18}/>
                                                     </Button>
                                                 </Tooltip>
                                                 <Tooltip content={tActions("delete")}>

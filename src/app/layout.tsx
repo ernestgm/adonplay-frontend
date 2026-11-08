@@ -1,4 +1,5 @@
 import { Outfit } from "next/font/google";
+import type { Viewport } from "next";
 import "./globals.css";
 
 import { cookies } from "next/headers";
@@ -13,6 +14,17 @@ import ServiceWorkerRegister from "@/components/common/ServiceWorkerRegister";
 const outfit = Outfit({
   subsets: ["latin"],
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0B1020" },
+  ],
+};
 
 // Applied before first paint to avoid a flash of the wrong theme.
 // Must mirror the ThemeProvider initializer exactly (localStorage → system).

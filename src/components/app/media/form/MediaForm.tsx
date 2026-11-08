@@ -22,6 +22,18 @@ import { useT } from "@/i18n/I18nProvider";
 
 const typeOptions = config.typeOptions;
 
+// Formatos de video que el WebView de las TVs no reproduce (se requiere MP4 H.264 + AAC).
+const INCOMPATIBLE_VIDEO_EXT = /\.(webm|mkv|mov|avi|wmv|flv|ogv|3gp|ts|m4v)$/i;
+const INCOMPATIBLE_VIDEO_MIME = /webm|x-matroska|quicktime|x-msvideo|x-ms-wmv|ogg|mpegurl/i;
+
+function isIncompatibleVideoFile(file: File): boolean {
+    return INCOMPATIBLE_VIDEO_EXT.test(file.name) || INCOMPATIBLE_VIDEO_MIME.test(file.type);
+}
+
+function isMp4File(file: File): boolean {
+    return file.type === "video/mp4" || /\.mp4$/i.test(file.name);
+}
+
 interface MediaFormProps {
     media?: any;
 }
@@ -91,10 +103,17 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 // This is an assumption - adjust based on actual user object structure
                 setIsAdmin(userData?.role === 'admin' || userData?.isAdmin === true);
                 
-                // If user is admin, fetch all users for dropdown
+                // If user is admin, fetch the clients (owners) for the dropdown.
+                // Admins are not valid owners of content, so they are excluded.
                 if (userData?.role === 'admin' || userData?.isAdmin === true) {
                     const response = await fetchUsers();
-                    setUsers(response || []);
+                    const owners = (response || []).filter((user: any) =>
+                        // Keep the current owner visible when editing legacy content,
+                        // even if it is disabled or no longer a client.
+                        String(user.id) === String(media?.owner_id) ||
+                        (user.enabled !== false && user.role !== "admin")
+                    );
+                    setUsers(owners);
                 }
                 
                 // If not editing and current user is not admin, set owner_id to current user's ID
@@ -249,8 +268,8 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                 setFileError(t("errors.singleVideoOnly"));
                 return;
             }
-            if (!files[0].type.match("video/mp4")) {
-                setFileError(t("errors.videoOnlyMp4"));
+            if (!isMp4File(files[0])) {
+                setFileError(isIncompatibleVideoFile(files[0]) ? t("errors.videoIncompatibleFormat") : t("errors.videoOnlyMp4"));
                 return;
             }
             const videoFile = files[0];
@@ -507,8 +526,17 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
             {!isAdmin && currentUser && (
                 <div className="mb-5">
                     <Label>{t("labels.ownerReadonly")}</Label>
-                    <div className="p-2 border border-line rounded-lg bg-surface-sunken">
-                        {currentUser.name || currentUser.email} ({t("owner.you")})
+                    <div className="relative">
+                        <Select
+                            defaultValue={String(currentUser.id)}
+                            options={[{ value: String(currentUser.id), label: currentUser.name || currentUser.email }]}
+                            onChange={() => {}}
+                            disabled
+                            className="w-full"
+                        />
+                        <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
+                            <ChevronDownIcon/>
+                        </span>
                     </div>
                     <div className="mt-1 text-xs text-content-muted">
                         {t("owner.notAdminHint")}
@@ -531,7 +559,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                         form.media_type === "image"
                             ? ".jpg" 
                             : form.media_type === "video"
-                                ? ".mp4" 
+                                ? "video/*" 
                                 : ".mp3"
                     }
                     multiple={(form.media_type === "image" || form.media_type === "audio") && !media} // Multiple for images and audio when creating
@@ -668,7 +696,7 @@ const MediaForm: React.FC<MediaFormProps> = ({ media }) => {
                     {tCommon("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { media ? tCommon("saveChanges") : tCommon("create") }
+                    { media ? tCommon("saveChanges") : tCommon("add") }
                 </Button>
             </div>
         </Form>

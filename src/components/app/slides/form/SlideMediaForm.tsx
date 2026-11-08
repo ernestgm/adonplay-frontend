@@ -1,7 +1,9 @@
 "use client";
 
 import React, {useState, useEffect} from "react";
+import NextImage from "next/image";
 import {useRouter} from "next/navigation";
+import {MdCheck, MdClose, MdOutlinePermMedia, MdPlayArrow} from "react-icons/md";
 import Input from "@/components/form/input/InputField";
 import Button from "@/components/ui/button/Button";
 import Select from "@/components/form/Select";
@@ -85,7 +87,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     const [audioUsed, setAudioUsed] = useState(slideMedia?.audio_media != null);
     const [mediaSearchTerm, setMediaSearchTerm] = useState("");
     const [currentMediaPage, setCurrentMediaPage] = useState(1);
-    const [itemsPerPage] = useState(5);
+    const [itemsPerPage] = useState(8);
     const [showMediaSelector, setShowMediaSelector] = useState(false);
     // Per-image audio assignment modal
     const [showAssignAudioModal, setShowAssignAudioModal] = useState(false);
@@ -227,33 +229,29 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
             // single selection in edit mode
             setSelectedMediaIds([id]);
             setMediaAudioMap((prev) => (prev[id] ? { [id]: prev[id] } : {}));
-            setAudioUsed((prev) => !!(mediaAudioMap[id]));
+            setAudioUsed(Boolean(mediaAudioMap[id]));
             return;
         }
-        setSelectedMediaIds((prev) => {
-            if (prev.includes(id)) {
-                const next = prev.filter((m) => m !== id);
-                // Also remove any audio assignment for this media
-                setMediaAudioMap((map) => {
-                    const { [id]: _, ...rest } = map;
-                    setAudioUsed(Object.keys(rest).length > 0);
-                    return rest;
-                });
-                return next;
-            } else {
-                return [...prev, id];
-            }
-        });
+
+        if (selectedMediaIds.includes(id)) {
+            // Deseleccionar: sin efectos secundarios dentro del updater
+            setSelectedMediaIds((prev) => prev.filter((m) => m !== id));
+            const rest = { ...mediaAudioMap };
+            delete rest[id];
+            setMediaAudioMap(rest);
+            setAudioUsed(Object.keys(rest).length > 0);
+        } else {
+            setSelectedMediaIds((prev) => [...prev, id]);
+        }
     };
 
     const assignAudioToMedia = (mediaId: string, audioId: string) => {
         if (!audioId) {
-            // remove assignment
-            setMediaAudioMap((prev) => {
-                const { [mediaId]: _, ...rest } = prev;
-                setAudioUsed(Object.keys(rest).length > 0);
-                return rest;
-            });
+            // remove assignment (sin efectos secundarios dentro del updater)
+            const rest = { ...mediaAudioMap };
+            delete rest[mediaId];
+            setMediaAudioMap(rest);
+            setAudioUsed(Object.keys(rest).length > 0);
         } else {
             setMediaAudioMap((prev) => ({ ...prev, [mediaId]: audioId }));
             setAudioUsed(true);
@@ -280,7 +278,6 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
 
         try {
             const isEditing = !!slideMedia?.id;
-
             if (isEditing) {
                 // For edit, use the first selected media (if any) and its audio mapping
                 const mediaId = selectedMediaIds[0] || form.media_id;
@@ -375,40 +372,65 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
     return (
         <Form onSubmit={handleSubmit} className="mx-auto p-10 bg-surface border border-line rounded-2xl shadow-theme-xs">
             <div className="mb-5">
-                <Label>{t("labels.selectMedia")}</Label>
-                <div className="flex flex-col gap-2">
-                    <div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => setShowMediaSelector(true)}
-                            className="w-full"
-                        >
-                            {selectedMediaIds.length > 0
-                                ? (isEditing
-                                    ? t("labels.changeSelection")
-                                    : t("labels.changeSelectionWithCount", { n: selectedMediaIds.length }))
-                                : t("labels.selectMedia")}
-                        </Button>
-                    </div>
+                <Label>{t("labels.media")}</Label>
+                <div className="flex flex-col gap-3">
+                    <button
+                        type="button"
+                        onClick={() => setShowMediaSelector(true)}
+                        className="group flex w-full items-center justify-between gap-4 rounded-xl border border-dashed border-line-strong bg-surface px-4 py-3.5 text-left transition-all hover:border-brand-500/60 hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/15"
+                    >
+                        <span className="flex min-w-0 items-center gap-3">
+                            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-500/10 text-brand-500">
+                                <MdOutlinePermMedia size={22} />
+                            </span>
+                            <span className="flex min-w-0 flex-col">
+                                <span className="truncate text-sm font-medium text-content-primary">
+                                    {selectedMediaIds.length > 0
+                                        ? (isEditing
+                                            ? t("labels.changeSelection")
+                                            : t("labels.changeSelectionWithCount", { n: selectedMediaIds.length }))
+                                        : t("labels.selectMedia")}
+                                </span>
+                                <span className="truncate text-xs text-content-muted">
+                                    {t("selector.typesHint")}
+                                </span>
+                            </span>
+                        </span>
+                        <span className="shrink-0 rounded-lg bg-surface-sunken px-3 py-1.5 text-xs font-semibold text-content-secondary transition-colors group-hover:text-content-primary">
+                            {t("selector.browse")}
+                        </span>
+                    </button>
 
                     {selectedMediaIds.length > 0 && (
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
+                        <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                             {selectedMediaIds.map((id) => {
                                 const media = allMedia.find((m) => m.id === parseInt(id));
                                 if (!media) return null;
                                 return (
-                                    <div key={id} className="border rounded p-2">
-                                        <div className="w-full aspect-video relative overflow-hidden rounded">
+                                    <div key={id} className="group relative rounded-xl border border-line bg-surface p-2 transition-colors hover:border-line-strong">
+                                        {!isEditing && (
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleSelectMedia(parseInt(id))}
+                                                aria-label={t("selector.removeSelection")}
+                                                className="absolute right-3 top-3 z-10 flex size-7 items-center justify-center rounded-full bg-surface-raised/90 text-content-muted shadow-theme-xs ring-1 ring-line transition-colors hover:bg-surface-sunken hover:text-error-600"
+                                            >
+                                                <MdClose size={16} />
+                                            </button>
+                                        )}
+                                        <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-surface-sunken">
                                             {media.media_type === "image" ? (
-                                                <Image src={mediaUrl(media.file_path)} alt="preview" fill className="object-cover" />
+                                                <Image src={mediaUrl(media.file_path)} alt="preview" fill containerClassName="relative h-full w-full" className="object-contain" />
                                             ) : (
-                                                <video src={mediaUrl(media.file_path)} className="w-full h-full object-cover" controls muted />
+                                                <video src={mediaUrl(media.file_path)} className="h-full w-full object-contain" controls muted />
                                             )}
                                         </div>
+                                        <p className="mt-2 truncate px-0.5 text-xs font-medium text-content-primary" title={getFileNameFromURL(media.file_path) || ""}>
+                                            {getFileNameFromURL(media.file_path)}
+                                        </p>
                                         {media.media_type === "image" && (
                                             <div className="mt-2 flex items-center justify-between gap-2">
-                                                <div className="text-xs text-content-muted">
+                                                <div className="truncate text-xs text-content-muted">
                                                     {mediaAudioMap[id]
                                                         ? t("labels.audioAssigned", { id: mediaAudioMap[id] })
                                                         : t("labels.noAudio")}
@@ -425,99 +447,186 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     )}
 
                     {showMediaSelector && (
-                        <div className="mt-2 border rounded-md p-3">
-                            <div className="mb-3 flex justify-between items-center">
-                                <h3 className="font-medium">{t("selector.title")}</h3>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setShowMediaSelector(false)}
-                                >
-                                    {t("selector.close")}
-                                </Button>
-                            </div>
-                            <SearchInput
-                                value={mediaSearchTerm}
-                                onChange={(value) => {
-                                    setMediaSearchTerm(value);
-                                    setCurrentMediaPage(1);
+                        <Modal
+                            isOpen={showMediaSelector}
+                            onClose={() => setShowMediaSelector(false)}
+                            showCloseButton={false}
+                            className="w-[95%] max-w-5xl overflow-hidden p-0"
+                        >
+                            <div
+                                role="dialog"
+                                aria-modal="true"
+                                aria-label={t("selector.title")}
+                                className="flex max-h-[85vh] flex-col"
+                                onKeyDown={(event) => {
+                                    // Avoid submitting the slide form while typing in the selector search.
+                                    if (event.key === "Enter" && (event.target as HTMLElement).tagName === "INPUT") {
+                                        event.preventDefault();
+                                    }
                                 }}
-                                placeholder={t("selector.searchPlaceholder")}
-                                className="mb-3"
-                            />
+                            >
+                                <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6 sm:py-5">
+                                    <div className="min-w-0">
+                                        <h3 className="text-lg font-semibold text-content-primary sm:text-xl">
+                                            {t("selector.title")}
+                                        </h3>
+                                        <p className="mt-1 text-xs text-content-muted sm:text-sm">
+                                            {isEditing ? t("selector.subtitleSingle") : t("selector.subtitle")}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowMediaSelector(false)}
+                                        aria-label={t("selector.close")}
+                                        className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-hover text-content-muted transition-colors hover:bg-surface-sunken hover:text-content-primary"
+                                    >
+                                        <MdClose size={20} />
+                                    </button>
+                                </div>
 
-                            <div className="overflow-x-auto max-h-[300px] overflow-y-auto">
-                                <Table className="min-w-full">
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableCell className="">{t("selector.headers.select")}</TableCell>
-                                            <TableCell className="">{t("selector.headers.name")}</TableCell>
-                                            <TableCell className="">{t("selector.headers.preview")}</TableCell>
-                                            <TableCell className="">{t("selector.headers.type")}</TableCell>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {paginatedMedia.length === 0 ? (
-                                            <TableRow>
-                                                <TableCell className="text-center" colSpan={3}>
-                                                    {t("selector.empty")}
-                                                </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            paginatedMedia.map((item: any) => (
-                                                <TableRow key={item.id}>
-                                                    <TableCell className="whitespace-nowrap">
-                                                        {isEditing ? (
-                                                            <input
-                                                                type="radio"
-                                                                name="media-select"
-                                                                checked={selectedMediaIds.includes(item.id.toString())}
-                                                                onChange={() => toggleSelectMedia(item.id)}
-                                                            />
-                                                        ) : (
-                                                            <Checkbox
-                                                                checked={selectedMediaIds.includes(item.id.toString())}
-                                                                onChange={() => toggleSelectMedia(item.id)}
-                                                            />
-                                                        )}
-                                                    </TableCell>
-                                                    <TableCell className="whitespace-nowrap text-xs">
-                                                        { getFileNameFromURL(item.file_path) }
-                                                    </TableCell>
-                                                    <TableCell className="whitespace-nowrap">
-                                                        <div className="border rounded overflow-hidden">
+                                <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+                                    <div className="flex w-full flex-col gap-1.5 sm:w-80">
+                                        <SearchInput
+                                            value={mediaSearchTerm}
+                                            onChange={(value) => {
+                                                setMediaSearchTerm(value);
+                                                setCurrentMediaPage(1);
+                                            }}
+                                            placeholder={t("selector.searchPlaceholder")}
+                                            className="w-full"
+                                        />
+                                        <p className="text-[11px] leading-snug text-content-muted">
+                                            {t("selector.availableHint")}
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs font-medium text-content-muted sm:text-sm">
+                                            {t("selector.selectedCount", { n: selectedMediaIds.length })}
+                                        </span>
+                                        {selectedMediaIds.length > 0 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedMediaIds([]);
+                                                    setMediaAudioMap({});
+                                                    setAudioUsed(false);
+                                                }}
+                                                className="text-xs font-medium text-brand-500 transition-colors hover:text-brand-600 sm:text-sm"
+                                            >
+                                                {t("selector.clearSelection")}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="min-h-[240px] flex-1 overflow-y-auto px-5 pb-5 sm:px-6 sm:pb-6">
+                                    {paginatedMedia.length === 0 ? (
+                                        <div className="flex min-h-[240px] flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-line-strong bg-surface text-center">
+                                            <div className="flex size-12 items-center justify-center rounded-full bg-surface-sunken text-content-muted">
+                                                <MdOutlinePermMedia size={24} />
+                                            </div>
+                                            <p className="text-sm font-medium text-content-secondary">
+                                                {t("selector.empty")}
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+                                            {paginatedMedia.map((item: any) => {
+                                                const isSelected = selectedMediaIds.includes(item.id.toString());
+                                                const fileName = getFileNameFromURL(item.file_path) || String(item.id);
+                                                return (
+                                                    <button
+                                                        key={item.id}
+                                                        type="button"
+                                                        onClick={() => toggleSelectMedia(item.id)}
+                                                        aria-pressed={isSelected}
+                                                        className={`group relative flex flex-col overflow-hidden rounded-xl border text-left transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-500/15 ${
+                                                            isSelected
+                                                                ? "border-brand-500 bg-brand-500/5 ring-1 ring-brand-500"
+                                                                : "border-line bg-surface hover:border-line-strong hover:bg-surface-hover"
+                                                        }`}
+                                                    >
+                                                        <div className="relative aspect-video w-full overflow-hidden bg-surface-sunken">
                                                             {item.media_type === "image" ? (
-                                                                <Image
+                                                                <NextImage
                                                                     src={mediaUrl(item.file_path)}
-                                                                    alt="Image preview"
-                                                                    className="w-full h-full object-cover"
-                                                                    width={config.thumbnailSizes.width}
-                                                                    height={config.thumbnailSizes.height}
+                                                                    alt={fileName}
+                                                                    fill
+                                                                    unoptimized
+                                                                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                                                                 />
                                                             ) : (
-                                                                <video src={mediaUrl(item.file_path)} className="w-full h-full object-cover" muted />
+                                                                <>
+                                                                    <video
+                                                                        src={mediaUrl(item.file_path)}
+                                                                        className="h-full w-full object-cover"
+                                                                        muted
+                                                                        preload="metadata"
+                                                                    />
+                                                                    <span className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                                        <span className="flex size-10 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm">
+                                                                            <MdPlayArrow size={24} />
+                                                                        </span>
+                                                                    </span>
+                                                                </>
                                                             )}
+                                                            <span className={`absolute left-2 top-2 rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white shadow-theme-xs ${
+                                                                item.media_type === "image" ? "bg-brand-500/90" : "bg-gray-900/80"
+                                                            }`}>
+                                                                {item.media_type}
+                                                            </span>
+                                                            <span className={`absolute right-2 top-2 flex size-6 items-center justify-center rounded-full border-2 transition-all ${
+                                                                isSelected
+                                                                    ? "border-brand-500 bg-brand-500 text-white"
+                                                                    : "border-white/70 bg-black/30 text-transparent group-hover:border-white"
+                                                            }`}>
+                                                                <MdCheck size={14} />
+                                                            </span>
                                                         </div>
-                                                    </TableCell>
-                                                    <TableCell className="whitespace-nowrap text-xs">
-                                                        {item.media_type}
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            </div>
+                                                        <div className="flex min-w-0 flex-col px-3 py-2.5">
+                                                            <span className="truncate text-xs font-medium text-content-primary" title={fileName}>
+                                                                {fileName}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
 
-                            <div className="mt-3 flex justify-center">
-                                <Pagination
-                                    currentPage={currentMediaPage}
-                                    totalPages={totalMediaPages}
-                                    onPageChange={setCurrentMediaPage}
-                                />
+                                <div className="flex flex-col-reverse gap-3 border-t border-line bg-surface-raised px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                                    {totalMediaPages > 1 ? (
+                                        <Pagination
+                                            currentPage={currentMediaPage}
+                                            totalPages={totalMediaPages}
+                                            onPageChange={setCurrentMediaPage}
+                                        />
+                                    ) : (
+                                        <span />
+                                    )}
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setShowMediaSelector(false)}
+                                        >
+                                            {tCommon("cancel")}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => setShowMediaSelector(false)}
+                                        >
+                                            {t("selector.done")}
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        </Modal>
                     )}
                 </div>
             </div>
@@ -746,7 +855,7 @@ const SlideMediaForm: React.FC<MediaFormProps> = ({slideMedia, slideId}) => {
                     {tCommon("cancel")}
                 </Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    { slideMedia ? tCommon("saveChanges") : tCommon("create")}
+                    { slideMedia ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
             {/* Modal para asignar audio a una imagen (tabla con preview) */}

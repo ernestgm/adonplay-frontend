@@ -1,6 +1,6 @@
 import GridShape from "@/components/common/GridShape";
+import AdonPlayLogo from "@/components/common/AdonPlayLogo";
 
-import Image from "next/image";
 import React from "react";
 
 export default function AuthLayout({
@@ -16,14 +16,8 @@ export default function AuthLayout({
           <div className="relative items-center justify-center  flex z-1">
             {/* <!-- ===== Common Grid Shape Start ===== --> */}
             <GridShape />
-            <div className="flex flex-col items-center max-w-xs">
-              <Image
-                  src="/images/logo/logo-notext.png"
-                  alt="Logo"
-                  width={250}
-                  height={250}
-              />
-              <h1 className="mb-2 font-semibold text-white text-title-sm sm:text-title-md">{ process.env.NEXT_PUBLIC_NAME_PAGE }</h1>
+            <div className="flex max-w-xs flex-col items-center">
+              <AdonPlayLogo />
             </div>
           </div>
         </div>

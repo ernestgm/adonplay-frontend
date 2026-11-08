@@ -16,6 +16,18 @@ import config from "@/config/globalConfig";
 import PositionExample from "@/components/common/PositionExample";
 import { useT } from "@/i18n/I18nProvider";
 
+const TRANSITION_VALUES = [
+    "none",
+    "fade",
+    "slide_left",
+    "slide_right",
+    "slide_up",
+    "slide_down",
+    "zoom_in",
+    "zoom_out",
+    "flip",
+] as const;
+
 interface SlidesFormProps {
     slides?: any;
 }
@@ -29,6 +41,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
         business_id: slides?.business_id || "",
         description_position: slides?.description_position || "bc",
         description_size: slides?.description_size || "md",
+        transition: slides?.transition || "none",
     });
 
     const [loading, setLoading] = useState(false);
@@ -37,6 +50,7 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
         description: "",
         description_position: "",
         description_size: "",
+        transition: "",
         business_id: ""
     });
     const [business, setBusiness] = useState<any[]>([]);
@@ -71,10 +85,14 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
         setForm({...form, description_size: value});
     };
 
+    const handleTransitionChange = (value: any) => {
+        setForm({...form, transition: value});
+    };
+
     const handleSubmit = async (e: any) => {
         e.preventDefault();
         setLoading(true);
-        setValidationErrors({business_id: "", description: "", description_position: "", description_size: "", name: ""});
+        setValidationErrors({business_id: "", description: "", description_position: "", description_size: "", transition: "", name: ""});
         try {
             if (slides) {
                 await updateSlide(slides.id, form);
@@ -182,10 +200,36 @@ const SlidesForm:React.FC<SlidesFormProps> = ({slides}) => {
                     </div>
                 </ComponentCard>
             </div>
+            <div className="mb-5">
+                <ComponentCard title={t("sections.transitions")}>
+                    <Label>{t("labels.transition")}</Label>
+                    <div className="relative">
+                        <Select
+                            placeholder={tSelect("placeholder")}
+                            defaultValue={form.transition}
+                            onChange={handleTransitionChange}
+                            options={TRANSITION_VALUES.map(value => ({
+                                value,
+                                label: t(`options.transition.${value}`),
+                            }))}
+                            className="w-full"
+                            error={validationErrors.transition !== ""}
+                            hint={validationErrors.transition}
+                        />
+                        <span
+                            className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
+                            <ChevronDownIcon/>
+                        </span>
+                    </div>
+                    <p className="mt-3 text-sm text-content-muted">
+                        {t("labels.transitionHint")}
+                    </p>
+                </ComponentCard>
+            </div>
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/slides")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {slides ? tCommon("saveChanges") : tCommon("create")}
+                    {slides ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
         </Form>

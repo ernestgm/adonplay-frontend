@@ -20,6 +20,8 @@ import {ChevronDownIcon} from "@/icons";
 import {fetchSlidesByUser} from "@/server/api/slides";
 import {fetchQrCodeByUser} from "@/server/api/qrcodes";
 import {fetchMarqueesByUser} from "@/server/api/marquees";
+import {fetchYoutubeSourcesByUser} from "@/server/api/youtubeSources";
+import Checkbox from "@/components/form/input/Checkbox";
 import { useT } from "@/i18n/I18nProvider";
 
 interface UserFormProps {
@@ -35,6 +37,7 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
     const [users, setUsers] = useState<any[]>([]);
     const [slides, setSlides] = useState<any[]>([]);
     const [marquees, setMarquees] = useState<any[]>([]);
+    const [youtubeSources, setYoutubeSources] = useState<any[]>([]);
     const [qrs, setQrs] = useState<any[]>([]);
     const setError = useError().setError;
     const [form, setForm] = React.useState({
@@ -45,6 +48,8 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         users_id: device?.users_id || "",
         portrait: device?.portrait || false,
         as_presentation: device?.as_presentation || false,
+        youtube_source_id: device?.youtube_source_id || "",
+        youtube_enabled: device?.youtube_enabled ?? false,
     });
     const [loading, setLoading] = React.useState(false);
     const [validationErrors, setValidationErrors] = React.useState({
@@ -83,11 +88,15 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         setForm({...form, marquee_id: value});
     };
 
+    const handleYoutubeSourceChange = (value: any) => {
+        setForm({...form, youtube_source_id: value, youtube_enabled: Boolean(value)});
+    };
+
     const userSelectUpdateForm = () => {
         if (form.users_id != device?.users_id) {
-            setForm({...form, slide_id: "", qr_id: "", marquee_id: ""});
+            setForm({...form, slide_id: "", qr_id: "", marquee_id: "", youtube_source_id: "", youtube_enabled: false});
         } else {
-            setForm({...form, slide_id: device?.slide_id, qr_id: device?.qr_id, marquee_id: device?.marquee_id});
+            setForm({...form, slide_id: device?.slide_id, qr_id: device?.qr_id, marquee_id: device?.marquee_id, youtube_source_id: device?.youtube_source_id, youtube_enabled: device?.youtube_enabled});
         }
     }
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
@@ -134,10 +143,18 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 setError(err.data?.message || err.message || t("errors.loadMarquees"));
             }
         };
+        const fetchYoutube = async () => {
+            try {
+                setYoutubeSources(await fetchYoutubeSourcesByUser(form.users_id));
+            } catch (err: any) {
+                setError(err.data?.message || err.message || t("errors.loadYoutubeSources"));
+            }
+        };
 
         fetchSlides();
         fetchQrs();
         fetchMarquees();
+        fetchYoutube();
         userSelectUpdateForm()
     }, [form.users_id]);
 
@@ -156,6 +173,14 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
         }
 
     }, []);
+
+    // Un owner sólo puede administrar sus propios dispositivos: precargamos su id
+    // para que el formulario quede seleccionado por defecto y se envíe correcto.
+    useEffect(() => {
+        if (isOwner && userData?.id && !form.users_id) {
+            setForm((prev) => ({ ...prev, users_id: userData.id }));
+        }
+    }, [isOwner, userData?.id, form.users_id]);
 
     return (
         <Form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">
@@ -297,11 +322,31 @@ const DeviceForm: React.FC<UserFormProps> = ({device}) => {
                 </div>
             </ComponentCard>
 
+            <ComponentCard title={t("sections.youtube")} className="mb-6">
+                <div className="mb-5">
+                    <Label>{t("labels.youtubeSource")}</Label>
+                    <div className="relative">
+                        <Select
+                            defaultValue={form.youtube_source_id}
+                            onChange={handleYoutubeSourceChange}
+                            options={youtubeSources.map((source) => ({value: String(source.id), label: source.name}))}
+                            placeholder={t("placeholders.noYoutubeSource")}
+                            disabledPlaceholder={false}
+                            className="w-full"
+                        />
+                        <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2"><ChevronDownIcon /></span>
+                    </div>
+                </div>
+                <div className="mb-5">
+                    <Checkbox checked={form.youtube_enabled} onChange={(checked) => setForm({...form, youtube_enabled: checked})} label={t("labels.youtubeEnabled")} />
+                </div>
+            </ComponentCard>
+
             {/* Agrega más campos aquí si es necesario */}
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/devices")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {device ? tCommon("saveChanges") : tCommon("create")}
+                    {device ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
         </Form>

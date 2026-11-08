@@ -14,7 +14,8 @@ import {
     MdOutlineBusinessCenter,
     MdOutlineGridView,
     MdOutlineQrCode2, MdOutlineSupervisedUserCircle, MdOutlineTextRotationNone, MdOutlineTv,
-    MdOutlineVideoLibrary, MdOutlineViewCarousel
+    MdOutlineVideoLibrary, MdOutlineViewCarousel, MdOutlineMonitorHeart, MdOutlineCalendarMonth,
+    MdOutlineRestaurantMenu
 } from "react-icons/md";
 import {TbDeviceDesktopAnalytics, TbDeviceImacCheck} from "react-icons/tb";
 
@@ -52,6 +53,12 @@ const navItems: NavItem[] = [
         roles: ["admin", "owner"],
     },
     {
+        icon: <MdOutlineRestaurantMenu size={25}/>,
+        name: {es: "formmenu", en: "formmenu"},
+        path: "/menus",
+        roles: ["admin", "owner"],
+    },
+    {
         icon: <MdOutlineTextRotationNone size={25}/>,
         name: {es: "Administrar Marquees", en: "Marquees Management"},
         path: "/marquees",
@@ -64,9 +71,21 @@ const navItems: NavItem[] = [
         roles: ["admin", "owner"],
     },
     {
+        icon: <MdOutlineVideoLibrary size={25}/>,
+        name: {es: "Videos de YouTube", en: "YouTube Videos"},
+        path: "/youtube",
+        roles: ["admin", "owner"],
+    },
+    {
         icon: <MdOutlineTv size={25}/>,
         name: {es: "Administrar Dispositivos", en: "Devices Management"},
         path: "/devices",
+        roles: ["admin", "owner"],
+    },
+    {
+        icon: <MdOutlineCalendarMonth size={25}/>,
+        name: {es: "Programación", en: "Scheduling"},
+        path: "/schedules",
         roles: ["admin", "owner"],
     },
 ];
@@ -88,6 +107,12 @@ const othersItems: NavItem[] = [
         icon: <TbDeviceDesktopAnalytics size={25}/>,
         name: {es: "Monitorear Dispositivos", en: "Monitor Devices"},
         path: "/monitor-devices",
+        roles: ["admin"],
+    },
+    {
+        icon: <MdOutlineMonitorHeart size={25}/>,
+        name: {es: "Estado del Sistema", en: "System Status"},
+        path: "/system-status",
         roles: ["admin"],
     },
 ];
@@ -361,7 +386,7 @@ const AppSidebar: React.FC = () => {
                     )}
                 </Link>
             </div>
-            <div className="flex flex-col overflow-y-auto duration-300 ease-linear">
+            <div className="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
                 <nav className="mb-6">
                     <div className="flex flex-col gap-4">
                         <div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState } from "react";
-import Alert from "@/components/ui/alert/Alert";
+import Snackbar from "@/components/ui/snackbar/Snackbar";
 
 interface MessageContextProps {
   message: string | null;
@@ -16,14 +16,13 @@ export const MessageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <MessageContext.Provider value={{ message, setMessage }}>
       {message && (
-          <div className="m-4">
-              <Alert
-                  message={message}
-                  variant="info"
-                  title="Message"
-                  onClose={() => setMessage(null)}
-              />
-          </div>
+        <Snackbar
+          key={message}
+          message={message}
+          variant="success"
+          duration={4000}
+          onClose={() => setMessage(null)}
+        />
       )}
       {children}
     </MessageContext.Provider>

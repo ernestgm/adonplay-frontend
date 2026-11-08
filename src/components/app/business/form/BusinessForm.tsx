@@ -13,6 +13,7 @@ import {getDataUserAuth, getIsOwner} from "@/server/api/auth";
 import Form from "@/components/form/Form";
 import {ChevronDownIcon} from "@/icons";
 import { useT } from "@/i18n/I18nProvider";
+import { CURRENCY_OPTIONS } from "@/components/app/menus/menuTypes";
 
 interface BusinessFormProps {
     business?: any;
@@ -27,6 +28,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         name: business?.name || "",
         description: business?.description || "",
         owner_id: business?.owner_id || "",
+        currency: business?.currency || "MXN",
     });
     const [loading, setLoading] = useState(false);
     const [validationErrors, setValidationErrors] = useState({
@@ -45,7 +47,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         const fetchOwners = async () => {
             try {
                 const allUsers = await fetchUsers();
-                const filtered = allUsers.filter((u: { role: string; }) => u.role !== "admin");
+                const filtered = allUsers.filter((u: { role: string; enabled?: boolean; }) => u.role !== "admin" && u.enabled !== false);
                 setUsers(filtered);
             } catch (err: any) {
                 setError(err.data?.message || err.message || t("errors.loadOwners"));
@@ -54,12 +56,24 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
         fetchOwners();
     }, [setError, isOwner]);
 
+    // Un owner siempre es el propietario del negocio: precargamos su id para
+    // que el formulario se envíe correctamente aunque el select esté bloqueado.
+    useEffect(() => {
+        if (isOwner && userData?.id && !form.owner_id) {
+            setForm((prev) => ({ ...prev, owner_id: userData.id }));
+        }
+    }, [isOwner, userData?.id, form.owner_id]);
+
     const handleChange = (e: { target: { name: any; value: any; }; }) => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
     const handleOwnerChange = (value: any) => {
         if (!isOwner) setForm({ ...form, owner_id: value });
+    };
+
+    const handleCurrencyChange = (value: any) => {
+        setForm({ ...form, currency: value });
     };
 
     const handleSubmit = async (e: { preventDefault: () => void; }) => {
@@ -108,6 +122,24 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
                 />
             </div>
             <div className="mb-5">
+                <Label>Moneda</Label>
+                <div className="relative">
+                    <Select
+                        key={`currency-${form.currency}`}
+                        defaultValue={form.currency}
+                        onChange={handleCurrencyChange}
+                        options={CURRENCY_OPTIONS}
+                        className="w-full"
+                    />
+                    <span className="absolute text-content-muted -translate-y-1/2 pointer-events-none right-3 top-1/2">
+                        <ChevronDownIcon/>
+                    </span>
+                </div>
+                <p className="mt-2 text-xs text-content-muted">
+                    Se usa en los formmenu y en la edición rápida de precios del negocio.
+                </p>
+            </div>
+            <div className="mb-5">
                 <Label>{t("labels.owner")}</Label>
                 <div className="flex flex-shrink-0 w-full sm:w-auto">
                     <div className="relative">
@@ -132,7 +164,7 @@ const BusinessForm: React.FC<BusinessFormProps> = ({ business }) => {
             <div className="flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => router.push("/business")}>{tCommon("cancel")}</Button>
                 <Button type="submit" variant="primary" loading={loading}>
-                    {business ? tCommon("saveChanges") : tCommon("create")}
+                    {business ? tCommon("saveChanges") : tCommon("add")}
                 </Button>
             </div>
         </Form>

@@ -130,7 +130,7 @@ const MarqueesTable = () => {
                         size="sm"
                         className="mb-2 sm:mb-0 sm:w-auto"
                     >
-                        <span className="hidden sm:block">{tCommon("create")}</span>
+                        <span className="hidden sm:block">{tCommon("add")}</span>
                         <span className="block sm:hidden">+</span>
                     </Button>
                 )}

@@ -36,7 +36,6 @@ const ActivateUserForm = () => {
 
     const clearForm = () => {
         setForm({...form, code: ''});
-        console.log(form)
     }
 
     const handleSubmit = async (e: any) => {
@@ -44,10 +43,8 @@ const ActivateUserForm = () => {
         setLoading(true);
         setValidationErrors({code: "", owner_id: ""});
         try {
-            if (isOwner) {
-                setForm({...form, user_id: userData.id});
-            }
-            const response = await activateDevice(form);
+            const payload = isOwner && userData?.id ? { ...form, user_id: userData.id } : form;
+            const response = await activateDevice(payload);
             setMessage(response.message);
         } catch (error: any) {
             if (error.data.errors) {
@@ -77,12 +74,17 @@ const ActivateUserForm = () => {
                 setError(error.data?.message || error.message|| error.data?.error || t("errors.loadUsers"));
             }
         };
-        console.log(userData)
-        console.log(isOwner)
         if (!isOwner) {
             fetchOwners();
         };
     }, [setError, userData, isOwner]);
+
+    // Un owner activa siempre dispositivos a su propio nombre.
+    useEffect(() => {
+        if (isOwner && userData?.id && !form.user_id) {
+            setForm((prev) => ({ ...prev, user_id: userData.id }));
+        }
+    }, [isOwner, userData?.id, form.user_id]);
 
     return (
         <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-6 bg-surface border border-line rounded-2xl shadow-theme-xs">

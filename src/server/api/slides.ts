@@ -76,3 +76,16 @@ export const updateSlide = async (id: any, data: any) => {
     }
 };
 
+// Edición rápida de valores de un formmenu: solo nombre, precio, descripción y
+// visibilidad. El backend ignora cualquier intento de cambiar el diseño.
+export const updateMenuValues = async (id: any, items: any[]) => {
+    try {
+        return await apiPut(`${process.env.NEXT_PUBLIC_API_URL}/slides/${id}/menu_values`, {items});
+    } catch (error: any) {
+        throw {
+            status: error.response?.status || 500,
+            data: error.response?.data || "Error al actualizar los valores del formmenu.",
+        };
+    }
+};
+

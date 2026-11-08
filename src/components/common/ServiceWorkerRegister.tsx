@@ -16,11 +16,18 @@ export default function ServiceWorkerRegister() {
       }
     };
 
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
     if ("requestIdleCallback" in window) {
-      window.requestIdleCallback(register);
+      idleId = window.requestIdleCallback(register);
     } else {
-      setTimeout(register, 0);
+      timeoutId = setTimeout(register, 0);
     }
+
+    return () => {
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) clearTimeout(timeoutId);
+    };
   }, []);
 
   return null;
